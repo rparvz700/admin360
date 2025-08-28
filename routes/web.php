@@ -1,3 +1,10 @@
+// Document Manager Prototype Route
+Route::get('document-manager/prototype', function () {
+    return view('DocumentManagement.document_manager');
+})->name('document-manager.prototype');
+
+
+
 <?php
 
 use App\Http\Controllers\Admin\DepartmentController;
@@ -13,6 +20,8 @@ use App\Http\Controllers\FacilitiesManagement\Rent\RentController;
 use App\Http\Controllers\FacilitiesManagement\AssetManagement\AssetController;
 use App\Http\Controllers\FacilitiesManagement\AssetManagement\AssetCategoryController;
 use App\Http\Controllers\FacilitiesManagement\AssetManagement\AssetAttributeController;
+
+use App\Http\Controllers\VehicleManagement\DriverController;
 
 
 use App\Http\Controllers\ProfileController;
@@ -34,6 +43,25 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::middleware(['auth'])->group(function(){
+    // Vehicle Management: Vehicle Documents CRUD
+    Route::resource('vehicle-documents', App\Http\Controllers\VehicleManagement\VehicleDocumentController::class);
+    Route::get('vehicle-documents-list', [App\Http\Controllers\VehicleManagement\VehicleDocumentController::class, 'list'])->name('vehicle-documents.list');
+    // Vehicle Management: Vehicle Document Attributes CRUD
+    Route::get('vehicle-document-attributes/list', [\App\Http\Controllers\VehicleManagement\VehicleDocumentAttributeController::class, 'list'])->name('vehicle-document-attributes.list');
+    Route::resource('vehicle-document-attributes', \App\Http\Controllers\VehicleManagement\VehicleDocumentAttributeController::class);
+    // Vehicle Management: Vehicle Document Categories CRUD
+    Route::get('vehicle-document-categories/list', [\App\Http\Controllers\VehicleManagement\VehicleDocumentCategoryController::class, 'list'])->name('vehicle-document-categories.list');
+    Route::resource('vehicle-document-categories', \App\Http\Controllers\VehicleManagement\VehicleDocumentCategoryController::class);
+    // Vehicle Management: Vehicles CRUD
+    Route::get('vehicles/list', [\App\Http\Controllers\VehicleManagement\VehicleController::class, 'list'])->name('vehicles.list');
+    Route::resource('vehicles', \App\Http\Controllers\VehicleManagement\VehicleController::class);
+    // Vehicle Management: Vehicle Types CRUD
+    Route::get('vehicle-types-list', [\App\Http\Controllers\VehicleManagement\VehicleTypeController::class, 'list'])->name('vehicle-types.list');
+    Route::resource('vehicle-types', \App\Http\Controllers\VehicleManagement\VehicleTypeController::class);
+    // Vehicle Management: Import drivers from external API
+    Route::get('drivers/import/api', [\App\Http\Controllers\VehicleManagement\DriverController::class, 'importFromApi'])->name('drivers.import.api');
+    // Vehicle Management DataTables route
+    Route::get('drivers-list', [\App\Http\Controllers\VehicleManagement\DriverController::class, 'list'])->name('drivers.list');
     Route::get('/', [DashboardController::class, 'index']);
 
     Route::resources([
@@ -49,6 +77,9 @@ Route::middleware(['auth'])->group(function(){
         'asset-categories' => AssetCategoryController::class,
         'asset-attributes' => AssetAttributeController::class,
     ]);
+
+    // Vehicle Management
+    Route::resource('drivers', DriverController::class);
     Route::get('rent-list', [RentController::class, 'list'])->name('rent.list');
     Route::get('floors-list', [FloorsController::class, 'list'])->name('floors.list');
     Route::get('floors/{floor}', [FloorsController::class, 'show'])->name('floors.show');
