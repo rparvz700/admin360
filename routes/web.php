@@ -1,10 +1,3 @@
-// Document Manager Prototype Route
-Route::get('document-manager/prototype', function () {
-    return view('DocumentManagement.document_manager');
-})->name('document-manager.prototype');
-
-
-
 <?php
 
 use App\Http\Controllers\Admin\DepartmentController;
@@ -94,3 +87,9 @@ Route::middleware(['auth'])->group(function(){
 
 
 Auth::routes(['register' => false]);
+
+// Document Manager Prototype Route
+Route::get('document-manager/prototype', function () {
+    return view('DocumentManagement.document_manager');
+})->name('document-manager.prototype');
+

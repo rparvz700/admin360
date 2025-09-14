@@ -1,10 +1,4 @@
-                <li class="nav-main-item">
-                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'document-manager' ? 'active' : '' }}" href="{{ route('document-manager.prototype') }}">
-                        <span class="nav-main-link-name">Document Manager</span>
-                    </a>
-                </li>
                     
-                       
 <!-- Sidebar -->
 <nav id="sidebar" aria-label="Main Navigation">
     <!-- Side Header -->
@@ -217,7 +211,12 @@
                 </li>
                 {{-- ------------------------------End Vehicle Management-------------------------- --}}
                 {{-- ------------------------------End Users-------------------------- --}}
-
+                <li class="nav-main-item">
+                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'document-manager' ? 'active' : '' }}" href="{{ route('document-manager.prototype') }}">
+                        <span class="nav-main-link-name">Document Manager</span>
+                    </a>
+                </li>
+                    
                 {{-- ----------------------Settings------------------- --}}
                 <li class="nav-main-item {{ isset($activeMenu) && $activeMenu == 'roles' ? 'open' : '' }}">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true"
