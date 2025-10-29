@@ -16,6 +16,8 @@ use App\Http\Controllers\FacilitiesManagement\AssetManagement\AssetAttributeCont
 
 use App\Http\Controllers\VehicleManagement\DriverController;
 
+use App\Http\Controllers\GenericDocumentManagement\GenericDocumentController;
+
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
@@ -83,6 +85,21 @@ Route::middleware(['auth'])->group(function(){
     Route::get('user-list', [UserController::class, 'userList'])->name('userList');
     // Facilities Management Dashboard
     Route::get('facilities/dashboard', [DashboardController::class, 'index'])->name('facilities.dashboard');
+
+
+
+    // Generic Document Management: Generic Documents CRUD
+    Route::resource('generic-documents', App\Http\Controllers\GenericDocumentManagement\GenericDocumentController::class);
+    Route::get('generic-documents-list', [App\Http\Controllers\GenericDocumentManagement\GenericDocumentController::class, 'list'])->name('generic-documents.list');
+    // Generic Document Management: Generic Document Attributes CRUD
+    Route::get('generic-document-attributes/list', [\App\Http\Controllers\GenericDocumentManagement\GenericDocumentAttributeController::class, 'list'])->name('generic-document-attributes.list');
+    Route::resource('generic-document-attributes', \App\Http\Controllers\GenericDocumentManagement\GenericDocumentAttributeController::class);
+    // Generic Document Management: Generic Document Categories CRUD
+    Route::get('generic-document-categories/list', [\App\Http\Controllers\GenericDocumentManagement\GenericDocumentCategoryController::class, 'list'])->name('generic-document-categories.list');
+    Route::resource('generic-document-categories', \App\Http\Controllers\GenericDocumentManagement\GenericDocumentCategoryController::class);
+    Route::get('/fetch-documentable-records', [GenericDocumentController::class, 'fetchDocumentables'])
+    ->name('documentable.fetch');
+
 });
 
 

@@ -50,4 +50,9 @@ class Asset extends Model
     {
         return $this->hasMany(AssetAttributeValue::class, 'asset_id');
     }
+
+    public function documents()
+    {
+        return $this->morphMany(GenericDocument::class, 'documentable');
+    }
 }

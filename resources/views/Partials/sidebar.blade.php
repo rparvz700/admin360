@@ -8,7 +8,7 @@
             <span class="smini-visible">
                 <i class="fa fa-circle-notch text-primary"></i>
             </span>
-            <span class="smini-hide fs-5 tracking-wider">{{ env('APP_NAME') }}</span>
+            <span class="smini-hide fs-5 tracking-wider">{{ config('app.name') }} </span>
         </a>
         <!-- END Logo -->
 
@@ -209,14 +209,42 @@
                         </li>
                     </ul>
                 </li>
-                {{-- ------------------------------End Vehicle Management-------------------------- --}}
-                {{-- ------------------------------End Users-------------------------- --}}
-                <li class="nav-main-item">
-                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'document-manager' ? 'active' : '' }}" href="{{ route('document-manager.prototype') }}">
-                        <span class="nav-main-link-name">Document Manager</span>
+                    {{-- ------------------------------Start GenericDocument Management-------------------------- --}}
+                <li class="nav-main-item {{ isset($activeMenu) && (in_array($activeMenu, ['generic-documents', 'generic-document-categories', 'generic-document-attributes']) ? 'open' : '') }}">
+                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
+                        <i class="nav-main-link-icon fa fa-file-text"></i>
+                        <span class="nav-main-link-name">Generic Document Management</span>
                     </a>
+                    <ul class="nav-main-submenu">
+                        
+                        <li class="nav-main-item">
+                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'generic-documents' ? 'active' : '' }}" href="{{ route('generic-documents.index') }}">
+                                <span class="nav-main-link-name">Generic Documents</span>
+                            </a>
+                        </li>
+                        <li class="nav-main-item">
+                            <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
+                                <i class="nav-main-link-icon fa fa-cog"></i>
+                                <span class="nav-main-link-name">Settings</span>
+                            </a>
+                            <ul class="nav-main-submenu">
+                                
+                                <li class="nav-main-item">
+                                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'generic-document-categories' ? 'active' : '' }}" href="{{ route('generic-document-categories.index') }}">
+                                        <span class="nav-main-link-name">Generic Document Categories</span>
+                                    </a>
+                                </li>
+                                <li class="nav-main-item">
+                                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'generic-document-attributes' ? 'active' : '' }}" href="{{ route('generic-document-attributes.index') }}">
+                                        <span class="nav-main-link-name">Generic Document Attributes</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
                 </li>
-                    
+                {{-- ------------------------------End GenericDocument Management-------------------------- --}}
+
                 {{-- ----------------------Settings------------------- --}}
                 <li class="nav-main-item {{ isset($activeMenu) && $activeMenu == 'roles' ? 'open' : '' }}">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true"

@@ -52,13 +52,13 @@ class BuildingsController extends Controller
     public function show($id)
     {
         $building = PropertiesBuilding::findOrFail($id);
-        return view('Admin.Buildings.show', compact('building'));
+        return view('FacilitiesManagement.Buildings.show', compact('building'));
     }
 
     public function edit($id)
     {
         $building = PropertiesBuilding::findOrFail($id);
-        return view('Admin.Buildings.edit', compact('building'));
+        return view('FacilitiesManagement.Buildings.edit', compact('building'));
     }
 
     public function update(Request $request, $id)

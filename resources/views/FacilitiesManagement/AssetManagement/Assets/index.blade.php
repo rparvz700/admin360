@@ -1,7 +1,7 @@
 @extends('Partials.app', ['activeMenu' => 'assets'])
 
 @section('title')
-    {{ env('APP_NAME') }}
+    {{ config('app.name') }} 
 @endsection
 
 @section('page_title')

@@ -1,7 +1,7 @@
 @extends('Partials.app', ['activeMenu' => 'document-managerdocument-manager.prototype'])
 
 @section('title')
-    {{ env('APP_NAME') }}
+    {{ config('app.name') }} 
 @endsection
 
 @section('scripts')

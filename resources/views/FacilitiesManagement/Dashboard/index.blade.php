@@ -2,7 +2,7 @@
 @extends('Partials.app')
 
 @section('title')
-    {{ env('APP_NAME') }}
+    {{ config('app.name') }} 
 @endsection
 
 

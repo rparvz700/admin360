@@ -123,4 +123,24 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'documentableTypes' => [
+        'vehicle' => [
+            'class' => \App\Models\Vehicle::class,
+            'display_field' => 'registration_number',
+        ],
+        'asset' => [
+            'class' => \App\Models\Asset::class,
+            'display_field' => 'asset_name',
+        ],
+        'driver' => [
+            'class' => \App\Models\Driver::class,
+            'display_field' => 'name',
+        ],
+        'agreement' => [
+            'class' => \App\Models\Agreement::class,
+            'display_field' => 'agreement_ref_no',
+        ],
+    ],
+
+
 ];
