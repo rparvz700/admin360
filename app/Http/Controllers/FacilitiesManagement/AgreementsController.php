@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Agreement;
 use Yajra\DataTables\DataTables;
 use Illuminate\Http\Request;
+use App\Models\GenericDocument;
 
 class AgreementsController extends Controller
 {
@@ -37,9 +38,10 @@ class AgreementsController extends Controller
     }
 
     public function create()
-    {
+    {   
+        $documents = GenericDocument::with('category')->get();
         $agreement = new Agreement();
-        return view('FacilitiesManagement.Agreements.create', compact('agreement'));
+        return view('FacilitiesManagement.Agreements.create', compact('agreement','documents'));
     }
 
     public function store(Request $request)

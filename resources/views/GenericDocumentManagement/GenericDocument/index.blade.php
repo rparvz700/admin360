@@ -27,7 +27,7 @@
             @endif
             <div class="block-header block-header-default">
                 <h3 class="block-title">Generic Documents</h3>
-                <a href="{{ route('generic-documents.create') }}" class="btn btn-sm btn-primary">Add Generic Document</a>
+                <a href="{{ route('generic-documents.create') }}" class="btn btn-sm btn-primary">Add New</a>
             </div>
             <div class="block-content fs-sm data-content">
                 <div class="table-responsive">

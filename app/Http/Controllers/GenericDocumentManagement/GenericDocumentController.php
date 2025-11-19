@@ -11,10 +11,36 @@ use Yajra\DataTables\DataTables;
 
 class GenericDocumentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        if ($request->ajax()) {
+            $query = GenericDocument::with(['documentable', 'category'])->latest();
+
+            if ($request->filled('search')) {
+                $search = $request->get('search');
+                $query->whereHas('category', fn($q) => $q->where('category_name', 'ilike', "%$search%"));
+            }
+
+            $documents = $query->get()->map(function ($doc) {
+                $types = config('app.documentableTypes');
+                foreach ($types as $label => $config) {
+                    if ($config['class'] === $doc->documentable_type) {
+                        $doc->documentable_type_label = ucfirst($label);
+                        $field = $config['display_field'] ?? 'id';
+                        $doc->primary_text = $doc->documentable->{$field} ?? '';
+                        break;
+                    }
+                }
+                return $doc;
+            });
+
+            return response()->json($documents);
+        }
+
+        // normal index view (unchanged)
         return view('GenericDocumentManagement.GenericDocument.index');
     }
+
 
     public function list(Request $request)
     {
