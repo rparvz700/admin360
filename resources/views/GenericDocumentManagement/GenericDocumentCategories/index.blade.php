@@ -1,5 +1,5 @@
-@extends('Partials.app', ['activeMenu' => 'vehicle-document-categories'])
-@section('title') Vehicle Document Categories @endsection
+@extends('Partials.app', ['activeMenu' => 'generic-document-categories'])
+@section('title') Generic Document Categories @endsection
 @section('styles')
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-bs5/css/dataTables.bootstrap5.min.css') }}">
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-buttons-bs5/css/buttons.bootstrap5.min.css') }}">
@@ -17,8 +17,8 @@
             </div>
         @endif
         <div class="block-header block-header-default">
-            <h3 class="block-title">Vehicle Document Categories</h3>
-            <a href="{{ route('vehicle-document-categories.create') }}" class="btn btn-primary btn-sm float-end">Add Category</a>
+            <h3 class="block-title">Generic Document Categories</h3>
+            <a href="{{ route('generic-document-categories.create') }}" class="btn btn-primary btn-sm float-end">Add Category</a>
         </div>
         <div class="block-content fs-sm data-content">
             <div class="table-responsive">
@@ -49,7 +49,7 @@
             $('#categories-table').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: '{{ route('vehicle-document-categories.list') }}',
+                ajax: '{{ route('generic-document-categories.list') }}',
                 columns: [
                     { data: 'id' },
                     { data: 'category_name' },

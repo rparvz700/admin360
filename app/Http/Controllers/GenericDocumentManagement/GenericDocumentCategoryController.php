@@ -56,11 +56,11 @@ class GenericDocumentCategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category_name' => 'required|unique:vehicle_document_categories,category_name',
+            'category_name' => 'required|unique:generic_document_categories,category_name',
             'description' => 'nullable',
         ]);
         GenericDocumentCategory::create($validated);
-        return redirect()->route('vehicle-document-categories.index')->with('success', 'Category created successfully.');
+        return redirect()->route('generic-document-categories.index')->with('success', 'Category created successfully.');
     }
 
     public function show($id)
@@ -79,17 +79,17 @@ class GenericDocumentCategoryController extends Controller
     {
         $category = GenericDocumentCategory::findOrFail($id);
         $validated = $request->validate([
-            'category_name' => 'required|unique:vehicle_document_categories,category_name,' . $id,
+            'category_name' => 'required|unique:generic_document_categories,category_name,' . $id,
             'description' => 'nullable',
         ]);
         $category->update($validated);
-        return redirect()->route('vehicle-document-categories.index')->with('success', 'Category updated successfully.');
+        return redirect()->route('generic-document-categories.index')->with('success', 'Category updated successfully.');
     }
 
     public function destroy($id)
     {
         $category = GenericDocumentCategory::findOrFail($id);
         $category->delete();
-        return redirect()->route('vehicle-document-categories.index')->with('success', 'Category deleted successfully.');
+        return redirect()->route('generic-document-categories.index')->with('success', 'Category deleted successfully.');
     }
 }

@@ -1,5 +1,5 @@
-@extends('Partials.app', ['activeMenu' => 'vehicle-document-attributes'])
-@section('title') Vehicle Document Attributes @endsection
+@extends('Partials.app', ['activeMenu' => 'generic-document-attributes'])
+@section('title') Generic Document Attributes @endsection
 @section('styles')
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-bs5/css/dataTables.bootstrap5.min.css') }}">
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-buttons-bs5/css/buttons.bootstrap5.min.css') }}">
@@ -17,8 +17,8 @@
             </div>
         @endif
         <div class="block-header block-header-default">
-            <h3 class="block-title">Vehicle Document Attributes</h3>
-            <a href="{{ route('vehicle-document-attributes.create') }}" class="btn btn-primary btn-sm float-end">Add Attribute</a>
+            <h3 class="block-title">Generic Document Attributes</h3>
+            <a href="{{ route('generic-document-attributes.create') }}" class="btn btn-primary btn-sm float-end">Add Attribute</a>
         </div>
         <div class="block-content fs-sm data-content">
             <div class="table-responsive">
@@ -51,7 +51,7 @@
             $('#attributes-table').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: '{{ route('vehicle-document-attributes.list') }}',
+                ajax: '{{ route('generic-document-attributes.list') }}',
                 columns: [
                     { data: 'id' },
                     { data: 'category' },

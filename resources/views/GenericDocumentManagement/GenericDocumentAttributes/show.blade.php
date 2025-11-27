@@ -1,11 +1,11 @@
-@extends('Partials.app', ['activeMenu' => 'vehicle-document-attributes'])
-@section('title') Vehicle Document Attribute Details @endsection
+@extends('Partials.app', ['activeMenu' => 'generic-document-attributes'])
+@section('title') Generic Document Attribute Details @endsection
 @section('content')
 <div class="content">
     <div class="block block-rounded">
         <div class="block-header block-header-default">
-            <h3 class="block-title">Vehicle Document Attribute Details</h3>
-            <a href="{{ route('vehicle-document-attributes.index') }}" class="btn btn-secondary btn-sm float-end">Back to List</a>
+            <h3 class="block-title">Generic Document Attribute Details</h3>
+            <a href="{{ route('generic-document-attributes.index') }}" class="btn btn-secondary btn-sm float-end">Back to List</a>
         </div>
         <div class="block-content">
             <table class="table table-bordered">

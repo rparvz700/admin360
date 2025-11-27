@@ -83,7 +83,7 @@
     <title>SComm Admin360</title>
 
     <meta name="description"
-        content="OneUI - Bootstrap 5 Admin Template &amp; UI Framework created by pixelcave and published on Themeforest">
+        content="Summit Communications Ltd. Admin360 - All-in-one platform for managing administrative tasks and streamlining operations efficiently.">
     <meta name="author" content="pixelcave">
     <meta name="robots" content="noindex, nofollow">
 
@@ -109,11 +109,15 @@
                     <div class="hero-static col-lg-4 d-none d-lg-flex flex-column justify-content-center">
                         <div class="p-4 p-xl-5 flex-grow-1 d-flex align-items-center">
                             <div class="w-100">
+                                <p class="mb-3 text-center">
+                                    <img src="{{ asset('media/photos/scomm_logo.png') }}"
+                                        alt="Summit Communications Ltd." style="height: 80px;">
+                                </p>
                                 <a class="link-fx fw-semibold fs-2 text-white" href="#">
-                                    SComm Admin360
+                                    SComm admin360
                                 </a>
                                 <p class="text-white-75 me-xl-4 mt-2">
-                                    Welcome to SComm Admin360, your all-in-one platform for managing administrative
+                                    Welcome to SComm admin360,<br>your all-in-one platform for managing administrative
                                     tasks and streamlining operations efficiently.
                                 </p>
                             </div>
@@ -139,16 +143,10 @@
                                 <!-- Header -->
                                 <div class="text-center mb-5">
                                     <p class="mb-3">
-                                        {{-- <i class="fa fa-2x fa-circle-notch text-primary-light"></i> --}}
-                                        <img src="{{ asset('media/photos/scomm_logo.png') }}"
-                                            alt="Summit Communications Ltd.">
+                                        <img src="{{ asset('media/photos/admin360logo.png') }}"
+                                            alt="admin360. Summit Communications Ltd." style="height: 150px;">
                                     </p>
-                                    <h1 class="fw-bold mb-2">
-                                        Sign In
-                                    </h1>
-                                    <p class="fw-medium text-muted">
-                                        Welcome, to SComm Admin360.
-                                    </p>
+                                    
                                 </div>
                                 <!-- END Header -->
 
@@ -192,8 +190,8 @@
                                                     </a>
                                                 </div>
                                                 <div>
-                                                    <button type="submit" class="btn btn-lg btn-alt-primary">
-                                                        <i class="fa fa-fw fa-sign-in-alt me-1 opacity-50"></i> Sign In
+                                                    <button type="submit" class="btn btn-lg btn-alt-success">
+                                                         Sign In
                                                     </button>
                                                 </div>
                                             </div>

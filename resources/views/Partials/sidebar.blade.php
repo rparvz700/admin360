@@ -83,13 +83,7 @@
                         <span class="nav-main-link-name">Facilities Management</span>
                     </a>
                     <ul class="nav-main-submenu">
-                         @canany(['view-dashboard', 'create-building', 'edit-building', 'delete-building', 'create-floor', 'edit-floor', 'delete-floor'])
-                            <li class="nav-main-item">
-                                <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'dashboard' ? 'active' : '' }}" href="{{ route('facilities.dashboard') }}">
-                                    <span class="nav-main-link-name">Dashboard</span>
-                                </a>
-                            </li>
-                        @endcanany
+                        
                         <li class="nav-main-item">
                             <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
                                 <i class="nav-main-link-icon fa fa-home"></i>
@@ -179,11 +173,7 @@
                                 <span class="nav-main-link-name">Vehicles</span>
                             </a>
                         </li>
-                        <li class="nav-main-item">
-                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'vehicle-documents' ? 'active' : '' }}" href="{{ route('vehicle-documents.index') }}">
-                                <span class="nav-main-link-name">Vehicle Documents</span>
-                            </a>
-                        </li>
+                        
                         <li class="nav-main-item">
                             <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
                                 <i class="nav-main-link-icon fa fa-cog"></i>
@@ -195,16 +185,7 @@
                                         <span class="nav-main-link-name">Vehicle Types</span>
                                     </a>
                                 </li>
-                                <li class="nav-main-item">
-                                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'vehicle-document-categories' ? 'active' : '' }}" href="{{ route('vehicle-document-categories.index') }}">
-                                        <span class="nav-main-link-name">Vehicle Document Categories</span>
-                                    </a>
-                                </li>
-                                <li class="nav-main-item">
-                                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'vehicle-document-attributes' ? 'active' : '' }}" href="{{ route('vehicle-document-attributes.index') }}">
-                                        <span class="nav-main-link-name">Vehicle Document Attributes</span>
-                                    </a>
-                                </li>
+                                
                             </ul>
                         </li>
                     </ul>
