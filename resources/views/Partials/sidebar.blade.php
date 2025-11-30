@@ -8,8 +8,9 @@
             <span class="smini-visible">
                 <i class="fa fa-circle-notch text-primary"></i>
             </span>
-            <span class="smini-hide fs-5 tracking-wider">{{ config('app.name') }} </span>
+            <span class="smini-hide fs-3 tracking-wider text-center">{{ config('app.name') }} </span>
         </a>
+        
         <!-- END Logo -->
 
         <!-- Extra -->
@@ -21,6 +22,7 @@
                 href="javascript:void(0)">
                 <i class="fa fa-fw fa-times"></i>
             </a>
+            <span>{{ config('app.version') }} </span>
             <!-- END Close Sidebar -->
         </div>
         <!-- END Extra -->

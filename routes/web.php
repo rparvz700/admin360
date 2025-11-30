@@ -39,14 +39,14 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function(){
     // Vehicle Management: Vehicle Documents CRUD
-    Route::resource('vehicle-documents', App\Http\Controllers\VehicleManagement\VehicleDocumentController::class);
-    Route::get('vehicle-documents-list', [App\Http\Controllers\VehicleManagement\VehicleDocumentController::class, 'list'])->name('vehicle-documents.list');
+    //Route::resource('vehicle-documents', App\Http\Controllers\VehicleManagement\VehicleDocumentController::class);
+    //Route::get('vehicle-documents-list', [App\Http\Controllers\VehicleManagement\VehicleDocumentController::class, 'list'])->name('vehicle-documents.list');
     // Vehicle Management: Vehicle Document Attributes CRUD
-    Route::get('vehicle-document-attributes/list', [\App\Http\Controllers\VehicleManagement\VehicleDocumentAttributeController::class, 'list'])->name('vehicle-document-attributes.list');
-    Route::resource('vehicle-document-attributes', \App\Http\Controllers\VehicleManagement\VehicleDocumentAttributeController::class);
-    // Vehicle Management: Vehicle Document Categories CRUD
-    Route::get('vehicle-document-categories/list', [\App\Http\Controllers\VehicleManagement\VehicleDocumentCategoryController::class, 'list'])->name('vehicle-document-categories.list');
-    Route::resource('vehicle-document-categories', \App\Http\Controllers\VehicleManagement\VehicleDocumentCategoryController::class);
+    // Route::get('vehicle-document-attributes/list', [\App\Http\Controllers\VehicleManagement\VehicleDocumentAttributeController::class, 'list'])->name('vehicle-document-attributes.list');
+    // Route::resource('vehicle-document-attributes', \App\Http\Controllers\VehicleManagement\VehicleDocumentAttributeController::class);
+    // // Vehicle Management: Vehicle Document Categories CRUD
+    // Route::get('vehicle-document-categories/list', [\App\Http\Controllers\VehicleManagement\VehicleDocumentCategoryController::class, 'list'])->name('vehicle-document-categories.list');
+    // Route::resource('vehicle-document-categories', \App\Http\Controllers\VehicleManagement\VehicleDocumentCategoryController::class);
     // Vehicle Management: Vehicles CRUD
     Route::get('vehicles/list', [\App\Http\Controllers\VehicleManagement\VehicleController::class, 'list'])->name('vehicles.list');
     Route::resource('vehicles', \App\Http\Controllers\VehicleManagement\VehicleController::class);

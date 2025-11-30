@@ -60,13 +60,13 @@ class GenericDocumentAttributeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category_id' => 'required|exists:Generic_document_categories,id',
+            'category_id' => 'required|exists:generic_document_categories,id',
             'attribute_name' => 'required',
             'attribute_type' => 'required|in:string,number,date,boolean,select',
             'options' => 'nullable',
         ]);
         GenericDocumentAttribute::create($validated);
-        return redirect()->route('Generic-document-attributes.index')->with('success', 'Attribute created successfully.');
+        return redirect()->route('generic-document-attributes.index')->with('success', 'Attribute created successfully.');
     }
 
     public function show($id)
@@ -86,19 +86,19 @@ class GenericDocumentAttributeController extends Controller
     {
         $attribute = GenericDocumentAttribute::findOrFail($id);
         $validated = $request->validate([
-            'category_id' => 'required|exists:Generic_document_categories,id',
+            'category_id' => 'required|exists:generic_document_categories,id',
             'attribute_name' => 'required',
             'attribute_type' => 'required|in:string,number,date,boolean,select',
             'options' => 'nullable',
         ]);
         $attribute->update($validated);
-        return redirect()->route('Generic-document-attributes.index')->with('success', 'Attribute updated successfully.');
+        return redirect()->route('generic-document-attributes.index')->with('success', 'Attribute updated successfully.');
     }
 
     public function destroy($id)
     {
         $attribute = GenericDocumentAttribute::findOrFail($id);
         $attribute->delete();
-        return redirect()->route('Generic-document-attributes.index')->with('success', 'Attribute deleted successfully.');
+        return redirect()->route('generic-document-attributes.index')->with('success', 'Attribute deleted successfully.');
     }
 }

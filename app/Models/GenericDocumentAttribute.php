@@ -17,7 +17,7 @@ class GenericDocumentAttribute extends Model
     ];
     public function category()
     {
-        return $this->belongsTo(GenericeDocumentCategory::class, 'category_id');
+        return $this->belongsTo(GenericDocumentCategory::class, 'category_id');
     }
     public function values()
     {

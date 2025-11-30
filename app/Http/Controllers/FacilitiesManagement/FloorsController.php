@@ -34,7 +34,7 @@ class FloorsController extends Controller
         $query = PropertiesFloor::with(['building', 'agreement']);
         return DataTables::of($query)
             ->addColumn('building', function ($floor) {
-                return $floor->building ? $floor->building->code : '';
+                return $floor->building ? $floor->building->site_name : '';
             })
             ->addColumn('agreement', function ($floor) {
                 return $floor->agreement ? $floor->agreement->agreement_ref_no : '';

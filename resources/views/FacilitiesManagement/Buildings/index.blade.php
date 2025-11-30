@@ -41,7 +41,7 @@
                             <tr>
                                 <th class="text-center all">ID</th>
                                 <th class="all">Code</th>
-                                <th class="all">Site Name</th>
+                                <th class="all">Name</th>
                                 <th class="all">Division</th>
                                 <th class="all">District</th>
                                 <th class="all">Upazila</th>

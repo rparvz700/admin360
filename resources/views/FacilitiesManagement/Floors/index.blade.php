@@ -36,10 +36,10 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Building</th>
-                                <th>Agreement</th>
                                 <th>Floor Label</th>
                                 <th>Area (sft)</th>
                                 <th>Status</th>
+                                <th>Agreement</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -110,10 +110,10 @@
                         columns: [
                             { data: 'id' },
                             { data: 'building' },
-                            { data: 'agreement' },
-                            { data: 'floor_label' },
+                            { data: 'floor_label' },                            
                             { data: 'floor_area_sft' },
                             { data: 'status' },
+                            { data: 'agreement' },                            
                             { data: 'actions', orderable: false, searchable: false }
                         ],
                     });
