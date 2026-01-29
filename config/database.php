@@ -112,6 +112,15 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'databaseHrDb' => [
+            'driver' => 'mysql',
+            'host' => env('DB_HOST_HR_NEW'),
+            'port' => env('DB_PORT_HR_NEW'),
+            'database' => env('DB_DATABASE_HR_NEW'),
+            'username' => env('DB_USERNAME_HR_NEW'),
+            'password' => env('DB_PASSWORD_HR_NEW'),
+        ],
+
     ],
 
     /*
