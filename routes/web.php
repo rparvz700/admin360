@@ -18,8 +18,13 @@ use App\Http\Controllers\VehicleManagement\DriverController;
 
 use App\Http\Controllers\GenericDocumentManagement\GenericDocumentController;
 
+use App\Http\Controllers\TicketManagement\TicketController;
+use App\Http\Controllers\TicketManagement\AdminTicketController;
+use App\Http\Controllers\TicketManagement\VehicleAssignmentController;
+
 
 use App\Http\Controllers\ProfileController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -109,4 +114,49 @@ Auth::routes(['register' => false]);
 Route::get('document-manager/prototype', function () {
     return view('DocumentManagement.document_manager');
 })->name('document-manager.prototype');
+
+
+// User Ticket Routes
+Route::middleware(['auth'])->prefix('tickets')->name('tickets.')->group(function () {
+    Route::get('/', [TicketController::class, 'index'])->name('index');
+    Route::get('/create', [TicketController::class, 'create'])->name('create');
+    Route::post('/', [TicketController::class, 'store'])->name('store');
+    Route::get('/{ticket}', [TicketController::class, 'show'])->name('show');
+    Route::post('/{ticket}/update', [TicketController::class, 'addUpdate'])->name('addUpdate');
+    Route::post('/{ticket}/cancel', [TicketController::class, 'cancel'])->name('cancel');
+});
+
+// Admin Ticket Routes
+Route::middleware(['auth'])->prefix('admin/tickets')->name('admin.tickets.')->group(function () {
+    Route::get('/', [AdminTicketController::class, 'index'])->name('index');
+    Route::get('/{ticket}', [AdminTicketController::class, 'show'])->name('show');
+    Route::post('/{ticket}/assign', [AdminTicketController::class, 'assign'])->name('assign');
+    
+    Route::post('/{ticket}/update-status', [AdminTicketController::class, 'updateStatus'])->name('updateStatus');
+    Route::post('/{ticket}/update', [AdminTicketController::class, 'addUpdate'])->name('addUpdate');
+
+    // Vehicle Assignment Routes
+    Route::get('/assignment/resources', [VehicleAssignmentController::class, 'getAvailableResources'])->name('assignment.resources');
+    Route::post('/assignment-assign/', [VehicleAssignmentController::class, 'assignToTicket'])->name('assignment.assign');
+    Route::get('/assignment/schedule', [VehicleAssignmentController::class, 'getResourceSchedule'])->name('assignment.schedule');
+});
+
+
+//openstreet proxy route
+Route::get('/api/reverse-geocode', function (Request $request) {
+    $lat = $request->lat;
+    $lon = $request->lon;
+
+    $response = Http::withHeaders([
+        'User-Agent' => 'YourAppName/1.0 (contact@yourdomain.com)',
+        'Accept-Language' => 'en'
+    ])->get('https://nominatim.openstreetmap.org/reverse', [
+        'format' => 'json',
+        'lat' => $lat,
+        'lon' => $lon,
+    ]);
+
+    return response()->json($response->json());
+})->name('api.reverse-geocode');
+
 
