@@ -121,4 +121,79 @@ class Vehicle extends Model
         return $this->isRented ? 'Rented' : 'Owned';
     }
 
+    // ─── NEW: Maintenance module relationships ───────────
+    public function operationalLogs()
+    {
+        return $this->hasMany(VehicleOperationalLog::class);
+    }
+
+    public function maintenances()
+    {
+        return $this->hasMany(VehicleMaintenance::class);
+    }
+
+    public function maintenanceParts()
+    {
+        return $this->hasMany(VehicleMaintenancePart::class);
+    }
+
+    // ─── NEW: Helper methods ─────────────────────────────
+    public function getCurrentMeterReading()
+    {
+        return VehicleOperationalLog::getCurrentMeterReading($this->id);
+    }
+
+    public function getCurrentVehicleStatus()
+    {
+        return VehicleOperationalLog::getCurrentStatus($this->id);
+    }
+
+    public function getCurrentAssignment()
+    {
+        return VehicleOperationalLog::getCurrentAssignment($this->id);
+    }
+
+    public function getLatestMaintenance()
+    {
+        return $this->maintenances()->orderByDesc('service_date')->first();
+    }
+
+    public function getTotalMaintenanceCost($startDate = null, $endDate = null)
+    {
+        $query = $this->maintenances();
+        if ($startDate) $query = $query->where('start_datetime', '>=', $startDate);
+        if ($endDate)   $query = $query->where('start_datetime', '<=', $endDate);
+        return $query->sum('total_service_cost');
+    }
+
+    /**
+     * Get all parts that are due for replacement on this vehicle.
+     */
+    public function getPartsDue()
+    {
+        return $this->maintenanceParts()
+            ->with('part')
+            ->where(function ($q) {
+                $currentKm = $this->getCurrentMeterReading();
+                $q->where('next_replacement_due_date', '<=', now()->toDateString())
+                  ->orWhere('next_replacement_due_km', '<=', $currentKm);
+            })
+            ->get();
+    }
+
+    /**
+     * Check if this vehicle is due for next service.
+     */
+    public function isServiceDue()
+    {
+        $latest = $this->getLatestMaintenance();
+        if (!$latest) return false;
+        return $latest->isDue();
+    }
+
+    public function getDisplayName()
+    {
+        return $this->brand . ' ' . $this->model . ' (' . $this->registration_number . ')';
+    }
+
 }

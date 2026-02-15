@@ -22,6 +22,13 @@ use App\Http\Controllers\TicketManagement\TicketController;
 use App\Http\Controllers\TicketManagement\AdminTicketController;
 use App\Http\Controllers\TicketManagement\VehicleAssignmentController;
 
+use App\Http\Controllers\VehicleMaintenanceManagement\VendorController;
+use App\Http\Controllers\VehicleMaintenanceManagement\VehicleMaintenanceController;
+use App\Http\Controllers\VehicleMaintenanceManagement\VehiclePartController;
+use App\Http\Controllers\VehicleMaintenanceManagement\VehicleOperationalLogController;
+use App\Http\Controllers\VehicleMaintenanceManagement\InvoiceController;
+use App\Http\Controllers\VehicleMaintenanceManagement\MaintenanceReportController;
+
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
@@ -158,5 +165,46 @@ Route::get('/api/reverse-geocode', function (Request $request) {
 
     return response()->json($response->json());
 })->name('api.reverse-geocode');
+
+Route::prefix('maintenance')->name('maintenance.')->middleware(['auth'])->group(function () {
+    
+    // Dashboard
+    Route::get('/dashboard', [MaintenanceReportController::class, 'dashboard'])->name('dashboard');
+    
+    // Vendors
+    Route::resource('vendors', VendorController::class);
+    Route::get('vendors/{vendor}/history', [VendorController::class, 'history'])->name('vendors.history');
+    
+    // Vehicle Parts Master
+    Route::resource('parts', VehiclePartController::class);
+    Route::get('parts/{part}/history/{vehicle}', [VehiclePartController::class, 'partHistory'])->name('parts.history');
+    
+    // Vehicle Maintenance Records
+    Route::resource('maintenances', VehicleMaintenanceController::class);
+    Route::post('maintenances/{maintenance}/approve', [VehicleMaintenanceController::class, 'approve'])->name('maintenances.approve');
+    Route::get('maintenances/{maintenance}/invoice', [VehicleMaintenanceController::class, 'generateInvoice'])->name('maintenances.invoice');
+    
+    // Operational Logs
+    Route::resource('operational-logs', VehicleOperationalLogController::class);
+    Route::post('operational-logs/meter-reading', [VehicleOperationalLogController::class, 'quickMeterReading'])->name('operational-logs.meter-reading');
+    
+    // Invoices
+    Route::resource('invoices', InvoiceController::class);
+    Route::post('invoices/{invoice}/pay', [InvoiceController::class, 'recordPayment'])->name('invoices.pay');
+    Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
+    
+    // Reports
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', function () {
+            return view('VehicleManagement.VehicleMaintenance.Reports.index');
+        })->name('index');
+        Route::get('/vehicle-cost', [MaintenanceReportController::class, 'vehicleCost'])->name('vehicle-cost');
+        Route::get('/vendor-cost', [MaintenanceReportController::class, 'vendorCost'])->name('vendor-cost');
+        Route::get('/monthly-expenses', [MaintenanceReportController::class, 'monthlyExpenses'])->name('monthly-expenses');
+        Route::get('/parts-history', [MaintenanceReportController::class, 'partsHistory'])->name('parts-history');
+        Route::get('/service-due', [MaintenanceReportController::class, 'serviceDue'])->name('service-due');
+        Route::get('/vendor-comparison', [MaintenanceReportController::class, 'vendorComparison'])->name('vendor-comparison');
+    });
+});
 
 

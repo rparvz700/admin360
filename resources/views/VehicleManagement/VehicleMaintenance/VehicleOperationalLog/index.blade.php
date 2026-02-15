@@ -1,0 +1,79 @@
+@extends('Partials.app', ['activeMenu' => 'operational-logs'])
+@section('title') Vehicle Operational Logs @endsection
+@section('styles')
+    <link rel="stylesheet" href="{{ asset('js/plugins/datatables-bs5/css/dataTables.bootstrap5.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('js/plugins/datatables-buttons-bs5/css/buttons.bootstrap5.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('js/plugins/datatables-responsive-bs5/css/responsive.bootstrap5.min.css') }}">
+@endsection
+@section('content')
+<div class="content">
+    <div class="block block-rounded">
+        @if (Session::has('success'))
+            <div class="alert alert-success alert-dismissible" role="alert">
+                <small class="mb-0">
+                    {{ Session::get('success') }}
+                </small>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        @if (Session::has('error'))
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                <small class="mb-0">
+                    {{ Session::get('error') }}
+                </small>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        <div class="block-header block-header-default">
+            <h3 class="block-title">Vehicle Operational Logs</h3>
+            <a href="{{ route('maintenance.operational-logs.create') }}" class="btn btn-primary btn-sm float-end">Add Log</a>
+        </div>
+        <div class="block-content fs-sm data-content">
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive" id="logs-table">
+                    <thead>
+                        <tr>
+                            <th class="all">Vehicle</th>
+                            <th class="all">Log Type</th>
+                            <th class="all">Date & Time</th>
+                            <th class="all">Meter Reading</th>
+                            <th class="all">Vehicle Status</th>
+                            <th class="all">Assigned To</th>
+                            <th class="all">Logged By</th>
+                            <th class="all">Actions</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+@section('scripts')
+    <script src="{{ asset('js/lib/jquery.min.js') }}"></script>
+    <script src="{{ asset('js/plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('js/plugins/datatables-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset('js/plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('js/plugins/datatables-responsive-bs5/js/responsive.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset('js/plugins/datatables-buttons/dataTables.buttons.min.js') }}"></script>
+    <script>
+        $(function() {
+            $('#logs-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: '{{ route('maintenance.operational-logs.index') }}',
+                columns: [
+                    { data: 'vehicle' },
+                    { data: 'log_type' },
+                    { data: 'logged_at' },
+                    { data: 'meter_reading' },
+                    { data: 'vehicle_status' },
+                    { data: 'assigned_to' },
+                    { data: 'logged_by' },
+                    { data: 'actions', orderable: false, searchable: false },
+                ],
+                order: [[2, 'desc']]
+            });
+        });
+    </script>
+@endsection
