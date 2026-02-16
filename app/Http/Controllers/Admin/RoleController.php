@@ -67,7 +67,7 @@ class RoleController extends Controller
             ->pluck('permission_id')
             ->all();
 
-        return view('Admin.roles.edit', compact('role', 'permissions', 'rolePermissions', 'activeMenu'));
+        return view('Admin.Roles.edit', compact('role', 'permissions', 'rolePermissions', 'activeMenu'));
     }
 
 
