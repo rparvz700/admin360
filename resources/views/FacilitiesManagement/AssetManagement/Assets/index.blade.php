@@ -23,15 +23,15 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Tag</th>
-                                <th>Name</th>
-                                <th>Building Floor</th>
+                                {{-- <th>Name</th> --}}
+                                <th>Site Name</th>
+                                <th>Floor</th>
                                 <th>Category</th>
                                 <th>Brand</th>
                                 <th>Model</th>
                                 <th>Serial No</th>
                                 <th>Purchase Date</th>
                                 <th>Warranty Expiry</th>
-                                <th>Floor</th>
                                 <th>Location</th>
                                 <th>Parent</th>
                                 <th>Status</th>
@@ -68,13 +68,17 @@
                         data: 'asset_tag',
                         name: 'asset_tag'
                     },
-                    {
-                        data: 'asset_name',
-                        name: 'asset_name'
-                    },
+                    // {
+                    //     data: 'asset_name',
+                    //     name: 'asset_name'
+                    // },
                     {
                         data: 'building_floor',
                         name: 'building_floor'
+                    },
+                    {
+                        data: 'floor',
+                        name: 'floor'
                     },
                     {
                         data: 'category',
@@ -100,10 +104,7 @@
                         data: 'warranty_expiry',
                         name: 'warranty_expiry'
                     },
-                    {
-                        data: 'floor',
-                        name: 'floor'
-                    },
+
                     {
                         data: 'location_within_floor',
                         name: 'location_within_floor'
