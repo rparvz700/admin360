@@ -78,7 +78,16 @@
                                     </li>
                                     {{-- -------------------------Facilities Management------------------------- --}}
                                     <li
-                                        class="nav-main-item {{ isset($activeMenu) && $activeMenu == 'buildings' ? 'open' : '' }}">
+                                        class="nav-main-item {{ isset($activeMenu) &&
+                                        ($activeMenu == 'buildings' ||
+                                            $activeMenu == 'floors' ||
+                                            $activeMenu == 'agreements' ||
+                                            $activeMenu == 'rent' ||
+                                            $activeMenu == 'assets' ||
+                                            $activeMenu == 'asset-categories' ||
+                                            $activeMenu == 'asset-attributes')
+                                            ? 'open'
+                                            : '' }}">
                                         <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                             aria-haspopup="true" aria-expanded="false" href="#">
                                             <i class="nav-main-link-icon fa fa-building"></i>
@@ -86,7 +95,8 @@
                                         </a>
                                         <ul class="nav-main-submenu">
 
-                                            <li class="nav-main-item">
+                                            <li
+                                                class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'buildings' || $activeMenu == 'floors' || $activeMenu == 'agreements' || $activeMenu == 'rent') ? 'open' : '' }}">
                                                 <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                     aria-haspopup="true" aria-expanded="false" href="#">
                                                     <i class="nav-main-link-icon fa fa-home"></i>
@@ -128,7 +138,8 @@
                                                 </ul>
                                             </li>
 
-                                            <li class="nav-main-item">
+                                            <li
+                                                class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'assets' || $activeMenu == 'asset-categories' || $activeMenu == 'asset-attributes') ? 'open' : '' }}">
                                                 <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                     aria-haspopup="true" aria-expanded="false" href="#">
                                                     <i class="nav-main-link-icon fa fa-box"></i>
@@ -141,7 +152,8 @@
                                                             <span class="nav-main-link-name">Assets</span>
                                                         </a>
                                                     </li>
-                                                    <li class="nav-main-item">
+                                                    <li
+                                                        class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'asset-categories' || $activeMenu == 'asset-attributes') ? 'open' : '' }}">
                                                         <a class="nav-main-link nav-main-link-submenu"
                                                             data-toggle="submenu" aria-haspopup="true"
                                                             aria-expanded="false" href="#">
@@ -173,7 +185,7 @@
 
                                     {{-- -------------------------Vehicle Management------------------------- --}}
                                     <li
-                                        class="nav-main-item {{ isset($activeMenu) && (in_array($activeMenu, ['drivers', 'vehicle-types', 'vehicles']) ? 'open' : '') }}">
+                                        class="nav-main-item {{ isset($activeMenu) && in_array($activeMenu, ['drivers', 'vehicle-types', 'vehicles']) ? 'open' : '' }}">
                                         <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                             aria-haspopup="true" aria-expanded="false" href="#">
                                             <i class="nav-main-link-icon fa fa-car"></i>
@@ -193,7 +205,8 @@
                                                 </a>
                                             </li>
 
-                                            <li class="nav-main-item">
+                                            <li
+                                                class="nav-main-item {{ isset($activeMenu) && $activeMenu == 'vehicle-types' ? 'open' : '' }}">
                                                 <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                     aria-haspopup="true" aria-expanded="false" href="#">
                                                     <i class="nav-main-link-icon fa fa-cog"></i>
@@ -213,7 +226,7 @@
                                     </li>
                                     {{-- ------------------------------Start GenericDocument Management-------------------------- --}}
                                     <li
-                                        class="nav-main-item {{ isset($activeMenu) && (in_array($activeMenu, ['generic-documents', 'generic-document-categories', 'generic-document-attributes']) ? 'open' : '') }}">
+                                        class="nav-main-item {{ isset($activeMenu) && in_array($activeMenu, ['generic-documents', 'generic-document-categories', 'generic-document-attributes']) ? 'open' : '' }}">
                                         <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                             aria-haspopup="true" aria-expanded="false" href="#">
                                             <i class="nav-main-link-icon fa fa-file-text"></i>
@@ -227,7 +240,8 @@
                                                     <span class="nav-main-link-name">Generic Documents</span>
                                                 </a>
                                             </li>
-                                            <li class="nav-main-item">
+                                            <li
+                                                class="nav-main-item {{ isset($activeMenu) && in_array($activeMenu, ['generic-document-categories', 'generic-document-attributes']) ? 'open' : '' }}">
                                                 <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                     aria-haspopup="true" aria-expanded="false" href="#">
                                                     <i class="nav-main-link-icon fa fa-cog"></i>

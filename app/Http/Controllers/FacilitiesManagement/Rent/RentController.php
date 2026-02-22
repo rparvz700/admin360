@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\FacilitiesManagement\Rent;
 
 use App\Http\Controllers\Controller;
+use App\Models\Agreement;
 use Illuminate\Http\Request;
 use App\Models\RentBase;
 use App\Models\RentIncrement;
@@ -22,6 +23,9 @@ class RentController extends Controller
             ->addColumn('actions', function($row) {
                 return view('FacilitiesManagement.Rent.partials.actions', compact('row'))->render();
             })
+            ->addColumn('agreement', function($row) {
+                return ($row->agreement ? $row->agreement->agreement_ref_no : '');
+            })
             ->rawColumns(['actions'])
             ->make(true);
     }
@@ -32,7 +36,9 @@ class RentController extends Controller
 
     public function create()
     {
-        return view('FacilitiesManagement.Rent.create');
+        $agreements = Agreement::where('status', 1)->get();
+
+        return view('FacilitiesManagement.Rent.create', compact('agreements'));
     }
 
     public function store(Request $request)
@@ -58,6 +64,9 @@ class RentController extends Controller
         if ($request->has('deposits')) {
             foreach ($request->deposits as $deposit) {
                 $deposit['agreement_id'] = $base->agreement_id;
+                $deposit['security_deposit_total'] = $request->security_deposit_total;
+                $deposit['security_deposit_absorbable'] = $request->security_deposit_absorbable;
+                $deposit['security_deposit_non_absorbable'] = $request->security_deposit_non_absorbable;
                 \App\Models\SecurityDeposit::create($deposit);
             }
         }
@@ -67,7 +76,9 @@ class RentController extends Controller
     public function edit($id)
     {
         $base = RentBase::with('increments')->findOrFail($id);
-        return view('FacilitiesManagement.Rent.edit', compact('base'));
+        $agreements = Agreement::where('status', 1)->get();
+
+        return view('FacilitiesManagement.Rent.edit', compact('base', 'agreements'));
     }
 
     public function update(Request $request, $id)
@@ -96,6 +107,9 @@ class RentController extends Controller
         if ($request->has('deposits')) {
             foreach ($request->deposits as $deposit) {
                 $deposit['agreement_id'] = $base->agreement_id;
+                $deposit['security_deposit_total'] = $request->security_deposit_total;
+                $deposit['security_deposit_absorbable'] = $request->security_deposit_absorbable;
+                $deposit['security_deposit_non_absorbable'] = $request->security_deposit_non_absorbable;
                 \App\Models\SecurityDeposit::create($deposit);
             }
         }
