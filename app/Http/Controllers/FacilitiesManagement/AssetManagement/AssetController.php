@@ -20,6 +20,9 @@ class AssetController extends Controller
                 ->addColumn('category', function ($asset) {
                     return $asset->category ? $asset->category->name : '';
                 })
+                ->addColumn('building_floor', function ($asset) {
+                    return $asset->floor->building->site_name ?? '';
+                })
                 ->addColumn('floor', function ($asset) {
                     return $asset->floor ? $asset->floor->floor_label : '';
                 })
@@ -29,7 +32,7 @@ class AssetController extends Controller
                 ->addColumn('actions', function ($asset) {
                     return view('FacilitiesManagement.AssetManagement.Assets.partials.actions', compact('asset'))->render();
                 })
-                ->rawColumns(['actions'])
+                ->rawColumns(['actions', 'building_floor'])
                 ->make(true);
         }
         return view('FacilitiesManagement.AssetManagement.Assets.index');

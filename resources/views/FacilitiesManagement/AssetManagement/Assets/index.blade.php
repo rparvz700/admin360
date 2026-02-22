@@ -1,7 +1,7 @@
 @extends('Partials.app', ['activeMenu' => 'assets'])
 
 @section('title')
-    {{ config('app.name') }} 
+    {{ config('app.name') }}
 @endsection
 
 @section('page_title')
@@ -17,12 +17,14 @@
             </div>
             <div class="block-content fs-sm data-content">
                 <div class="table-responsive">
-                    <table id="assets-table" class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive">
+                    <table id="assets-table"
+                        class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive">
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Tag</th>
                                 <th>Name</th>
+                                <th>Building Floor</th>
                                 <th>Category</th>
                                 <th>Brand</th>
                                 <th>Model</th>
@@ -53,26 +55,73 @@
     <script src="{{ asset('js/plugins/datatables-buttons/dataTables.buttons.min.js') }}"></script>
     <script src="{{ asset('js/plugins/datatables-buttons-bs5/js/buttons.bootstrap5.min.js') }}"></script>
     <script>
-        $(function () {
+        $(function() {
             $('#assets-table').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: '{{ route('assets.index') }}',
-                columns: [
-                    { data: 'id', name: 'id' },
-                    { data: 'asset_tag', name: 'asset_tag' },
-                    { data: 'asset_name', name: 'asset_name' },
-                    { data: 'category', name: 'category' },
-                    { data: 'brand', name: 'brand' },
-                    { data: 'model', name: 'model' },
-                    { data: 'serial_number', name: 'serial_number' },
-                    { data: 'purchase_date', name: 'purchase_date' },
-                    { data: 'warranty_expiry', name: 'warranty_expiry' },
-                    { data: 'floor', name: 'floor' },
-                    { data: 'location_within_floor', name: 'location_within_floor' },
-                    { data: 'parent', name: 'parent' },
-                    { data: 'status', name: 'status' },
-                    { data: 'actions', name: 'actions', orderable: false, searchable: false },
+                columns: [{
+                        data: 'id',
+                        name: 'id'
+                    },
+                    {
+                        data: 'asset_tag',
+                        name: 'asset_tag'
+                    },
+                    {
+                        data: 'asset_name',
+                        name: 'asset_name'
+                    },
+                    {
+                        data: 'building_floor',
+                        name: 'building_floor'
+                    },
+                    {
+                        data: 'category',
+                        name: 'category'
+                    },
+                    {
+                        data: 'brand',
+                        name: 'brand'
+                    },
+                    {
+                        data: 'model',
+                        name: 'model'
+                    },
+                    {
+                        data: 'serial_number',
+                        name: 'serial_number'
+                    },
+                    {
+                        data: 'purchase_date',
+                        name: 'purchase_date'
+                    },
+                    {
+                        data: 'warranty_expiry',
+                        name: 'warranty_expiry'
+                    },
+                    {
+                        data: 'floor',
+                        name: 'floor'
+                    },
+                    {
+                        data: 'location_within_floor',
+                        name: 'location_within_floor'
+                    },
+                    {
+                        data: 'parent',
+                        name: 'parent'
+                    },
+                    {
+                        data: 'status',
+                        name: 'status'
+                    },
+                    {
+                        data: 'actions',
+                        name: 'actions',
+                        orderable: false,
+                        searchable: false
+                    },
                 ]
             });
         });
