@@ -98,7 +98,7 @@
                                 <th>Absorb End</th>
                                 <th>Absorb Amount</th>
                                 <th>Absorb %</th>
-                                <th>Absorb Freq</th>
+                                {{-- <th>Absorb Freq</th> --}}
                                 <th>Method Desc</th>
                             </tr>
                         </thead>
@@ -112,7 +112,7 @@
                                     <td>{{ $dep->absorb_end_date }}</td>
                                     <td>{{ $dep->absorb_amount }}</td>
                                     <td>{{ $dep->absorb_amount_percentage }}</td>
-                                    <td>{{ $dep->absorb_frequency }}</td>
+                                    {{-- <td>{{ $dep->absorb_frequency }}</td> --}}
                                     <td>{{ $dep->method_description }}</td>
                                 </tr>
                             @endforeach

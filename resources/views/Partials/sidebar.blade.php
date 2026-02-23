@@ -103,6 +103,14 @@
                                                     <span class="nav-main-link-name">Property Management</span>
                                                 </a>
                                                 <ul class="nav-main-submenu">
+                                                    @canany(['create-agreement', 'edit-agreement', 'delete-agreement'])
+                                                        <li class="nav-main-item">
+                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'agreements' ? 'active' : '' }}"
+                                                                href="{{ route('agreements.index') }}">
+                                                                <span class="nav-main-link-name">Agreements</span>
+                                                            </a>
+                                                        </li>
+                                                    @endcanany
                                                     @canany(['create-building', 'edit-building', 'delete-building'])
                                                         <li class="nav-main-item">
                                                             <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'buildings' ? 'active' : '' }}"
@@ -119,14 +127,7 @@
                                                             </a>
                                                         </li>
                                                     @endcanany
-                                                    @canany(['create-agreement', 'edit-agreement', 'delete-agreement'])
-                                                        <li class="nav-main-item">
-                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'agreements' ? 'active' : '' }}"
-                                                                href="{{ route('agreements.index') }}">
-                                                                <span class="nav-main-link-name">Agreements</span>
-                                                            </a>
-                                                        </li>
-                                                    @endcanany
+
                                                     @canany(['create-rent', 'edit-rent', 'delete-rent'])
                                                         <li class="nav-main-item">
                                                             <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'rent' ? 'active' : '' }}"

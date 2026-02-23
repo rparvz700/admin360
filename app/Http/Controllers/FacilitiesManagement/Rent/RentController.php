@@ -7,6 +7,7 @@ use App\Models\Agreement;
 use Illuminate\Http\Request;
 use App\Models\RentBase;
 use App\Models\RentIncrement;
+use App\Models\VatTax;
 
 class RentController extends Controller
 {
@@ -26,7 +27,17 @@ class RentController extends Controller
             ->addColumn('agreement', function($row) {
                 return ($row->agreement ? $row->agreement->agreement_ref_no : '');
             })
-            ->rawColumns(['actions'])
+            ->editColumn('status', function ($row) {
+                $badge = '<span class="badge bg-' . ($row->agreement->status == 1 ? 'success' : 'danger') . '">' . (($row->agreement->status == 1) ? 'Active' : 'Inactive') . '</span>';
+                return $badge;
+            })
+            ->filterColumn('agreement', function ($query, $keyword) {
+                $query->whereHas('agreement', function ($q) use ($keyword) {
+                    $q->where('agreement_ref_no', 'like', "%{$keyword}%");
+                });
+            })
+            
+            ->rawColumns(['actions', 'status'])
             ->make(true);
     }
     public function index()
@@ -43,7 +54,30 @@ class RentController extends Controller
 
     public function store(Request $request)
     {
-        $base = RentBase::create($request->only(['agreement_id', 'base_rent', 'vat', 'tax', 'is_at_source', 'rent_type', 'start_date', 'end_date', 'remarks']));
+        $vatTax = VatTax::where('type', 'rent')
+            ->where('status', 1)
+            ->firstOrFail();
+
+        $baseRent = $request->base_rent;
+
+        $vatPercent = $vatTax->vat;
+        $taxPercent = $vatTax->tax;
+
+        $vatAmount = ($baseRent * $vatPercent) / 100;
+        $taxAmount = ($baseRent * $taxPercent) / 100;
+
+        $base = RentBase::create([
+            'agreement_id' => $request->agreement_id,
+            'base_rent'    => $baseRent,
+            'vat'          => $vatAmount,
+            'tax'          => $taxAmount,
+            'is_at_source' => $request->is_at_source,
+            'rent_type'    => $request->rent_type,
+            'start_date'   => $request->start_date,
+            'end_date'     => $request->end_date,
+            'remarks'      => $request->remarks,
+        ]);
+        
         if ($request->has('increments')) {
             foreach ($request->increments as $increment) {
                 $increment['base_rent_id'] = $base->id;
@@ -83,8 +117,32 @@ class RentController extends Controller
 
     public function update(Request $request, $id)
     {
+        $vatTax = VatTax::where('type', 'rent')
+            ->where('status', 1)
+            ->firstOrFail();
+
+        $baseRent = $request->base_rent;
+
+        $vatPercent = $vatTax->vat;
+        $taxPercent = $vatTax->tax;
+
+        $vatAmount = ($baseRent * $vatPercent) / 100;
+        $taxAmount = ($baseRent * $taxPercent) / 100;
+
         $base = RentBase::findOrFail($id);
-        $base->update($request->only(['agreement_id', 'base_rent', 'vat', 'tax', 'is_at_source', 'rent_type', 'start_date', 'end_date', 'remarks']));
+        $base->update(
+            [
+                'agreement_id' => $request->agreement_id,
+                'base_rent'    => $baseRent,
+                'vat'          => $vatAmount,
+                'tax'          => $taxAmount,
+                'is_at_source' => $request->is_at_source,
+                'rent_type'    => $request->rent_type,
+                'start_date'   => $request->start_date,
+                'end_date'     => $request->end_date,
+                'remarks'      => $request->remarks,
+            ]
+        );
         $base->increments()->delete();
         if ($request->has('increments')) {
             foreach ($request->increments as $increment) {

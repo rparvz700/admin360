@@ -1,13 +1,19 @@
 @extends('Partials.app', ['activeMenu' => 'agreements'])
 
 @section('title')
-    {{ config('app.name') }} 
+    {{ config('app.name') }}
 @endsection
 
 @section('page_title')
     Agreement List
 @endsection
 
+@section('styles')
+    <!-- Page JS Plugins CSS for datatable -->
+    <link rel="stylesheet" href="{{ asset('js/plugins/datatables-bs5/css/dataTables.bootstrap5.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('js/plugins/datatables-buttons-bs5/css/buttons.bootstrap5.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('js/plugins/datatables-responsive-bs5/css/responsive.bootstrap5.min.css') }}">
+@endsection
 
 @section('content')
     <div class="content">
@@ -26,7 +32,8 @@
             </div>
             <div class="block-content fs-sm data-content">
                 <div class="table-responsive">
-                    <table id="agreements-table" class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive">
+                    <table id="agreements-table"
+                        class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive">
                         <thead>
                             <tr>
                                 <th class="text-center all">ID</th>
@@ -56,20 +63,49 @@
     <script src="{{ asset('js/plugins/datatables-buttons/dataTables.buttons.min.js') }}"></script>
     <script src="{{ asset('js/plugins/datatables-buttons-bs5/js/buttons.bootstrap5.min.js') }}"></script>
     <script>
-        $(function () {
+        $(function() {
             $('#agreements-table').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: '{{ route('agreements.index') }}',
-                columns: [
-                    { data: 'id', name: 'id', className: 'text-center' },
-                    { data: 'agreement_ref_no', name: 'agreement_ref_no' },
-                    { data: 'agreement_date', name: 'agreement_date' },
-                    { data: 'from_date', name: 'from_date' },
-                    { data: 'to_date', name: 'to_date' },
-                    { data: 'status', name: 'status' },
-                    { data: 'remarks', name: 'remarks' },
-                    { data: 'actions', name: 'actions', orderable: false, searchable: false },
+                order: [
+                    [0, 'desc']
+                ],
+                columns: [{
+                        data: 'id',
+                        name: 'id',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'agreement_ref_no',
+                        name: 'agreement_ref_no'
+                    },
+                    {
+                        data: 'agreement_date',
+                        name: 'agreement_date'
+                    },
+                    {
+                        data: 'from_date',
+                        name: 'from_date'
+                    },
+                    {
+                        data: 'to_date',
+                        name: 'to_date'
+                    },
+                    {
+                        data: 'status',
+                        name: 'status'
+                    },
+                    {
+                        data: 'remarks',
+                        name: 'remarks'
+                    },
+                    {
+                        data: 'actions',
+                        name: 'actions',
+                        orderable: false,
+                        searchable: false
+                    },
                 ]
             });
         });

@@ -18,7 +18,7 @@ class AssetController extends Controller
             $query = Asset::with(['category', 'floor', 'parent']);
             return \Yajra\DataTables\DataTables::of($query)
                 ->addColumn('category', function ($asset) {
-                    return $asset->category ? $asset->category->name : '';
+                    return $asset->category ? $asset->category->category_name : '';
                 })
                 ->addColumn('building_floor', function ($asset) {
                     return $asset->floor->building->site_name ?? '';
@@ -29,10 +29,14 @@ class AssetController extends Controller
                 ->addColumn('parent', function ($asset) {
                     return $asset->parent ? ($asset->parent->asset_tag . ' - ' . $asset->parent->asset_name) : '';
                 })
+                ->editColumn('status', function ($row) {
+                    $badge = '<span class="badge bg-' . ($row->status == 'active' ? 'success' : 'danger') . '">' . (($row->status == 'active') ? 'Active' : 'Inactive') . '</span>';
+                    return $badge;
+                })
                 ->addColumn('actions', function ($asset) {
                     return view('FacilitiesManagement.AssetManagement.Assets.partials.actions', compact('asset'))->render();
                 })
-                ->rawColumns(['actions', 'building_floor'])
+                ->rawColumns(['actions', 'building_floor', 'status'])
                 ->make(true);
         }
         return view('FacilitiesManagement.AssetManagement.Assets.index');

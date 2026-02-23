@@ -29,6 +29,7 @@ class FloorsController extends Controller
         }
         return view('FacilitiesManagement.Floors.show', compact('floor', 'building', 'agreement', 'rentBase', 'rentIncrements', 'securityDeposits'));
     }
+
     public function list(Request $request)
     {
         $query = PropertiesFloor::with(['building', 'agreement']);
@@ -41,6 +42,11 @@ class FloorsController extends Controller
             })
             ->addColumn('actions', function ($floor) {
                 return view('FacilitiesManagement.Floors.partials.actions', compact('floor'))->render();
+            })
+            ->filterColumn('building', function ($query, $keyword) {
+                $query->whereHas('building', function ($q) use ($keyword) {
+                    $q->where('site_name', 'like', "%{$keyword}%");
+                });
             })
             ->rawColumns(['actions'])
             ->make(true);

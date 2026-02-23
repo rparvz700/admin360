@@ -40,6 +40,7 @@
                                 <th>Base Rent</th>
                                 <th>Agreement Start Date</th>
                                 <th>Agreement End Date</th>
+                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -121,6 +122,11 @@
                                 },
                                 {
                                     data: 'agreement_end_date'
+                                },
+                                {
+                                    data: 'status',
+                                    searchable: false,
+                                    orderable: false,
                                 },
                                 {
                                     data: 'actions',

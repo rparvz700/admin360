@@ -50,7 +50,7 @@
                                 <input type="number" step="0.01" class="form-control" id="base_rent" name="base_rent"
                                     value="{{ old('base_rent', $base->base_rent) }}" required>
                             </div>
-                            <div class="col-md-6 col-sm-12 mb-4">
+                            {{-- <div class="col-md-6 col-sm-12 mb-4">
                                 <label class="form-label" for="vat">VAT</label>
                                 <input type="number" step="0.01" class="form-control" id="vat" name="vat"
                                     value="{{ old('vat', $base->vat) }}">
@@ -59,7 +59,7 @@
                                 <label class="form-label" for="tax">Tax</label>
                                 <input type="number" step="0.01" class="form-control" id="tax" name="tax"
                                     value="{{ old('tax', $base->tax) }}">
-                            </div>
+                            </div> --}}
                             <div class="col-md-6 col-sm-12 mb-4">
                                 <label class="form-label" for="is_at_source">Is At Source</label>
                                 <select class="form-control" id="is_at_source" name="is_at_source">
@@ -76,8 +76,19 @@
                             </div>
                             <div class="col-md-6 col-sm-12 mb-4">
                                 <label class="form-label" for="rent_type">Rent Type</label>
-                                <input type="text" class="form-control" id="rent_type" name="rent_type"
-                                    value="{{ old('rent_type', $base->rent_type) }}">
+                                {{-- <input type="text" class="form-control" id="rent_type" name="rent_type"
+                                    value="{{ old('rent_type', $base->rent_type) }}"> --}}
+                                <select class="form-control" id="rent_type" name="rent_type">
+                                    <option value="">Select</option>
+                                    <option value="Monthly" {{ $base->rent_type == 'Monthly' ? 'selected' : '' }}>Monthly
+                                    </option>
+                                    <option value="Quarterly" {{ $base->rent_type == 'Quarterly' ? 'selected' : '' }}>
+                                        Quarterly</option>
+                                    <option value="Half Yearly" {{ $base->rent_type == 'Half Yearly' ? 'selected' : '' }}>
+                                        Half Yearly</option>
+                                    <option value="Yearly" {{ $base->rent_type == 'Yearly' ? 'selected' : '' }}>Yearly
+                                    </option>
+                                </select>
                             </div>
                             {{-- <div class="col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="start_date">Start Date</label>
@@ -122,10 +133,12 @@
                                                 class="form-control" value="{{ $inc->increment_end_date }}"></td>
                                         <td><input type="number" step="0.01"
                                                 name="increments[{{ $ikey }}][increment_amount]"
-                                                class="form-control" value="{{ $inc->increment_amount }}" required></td>
+                                                class="form-control inc-amount" value="{{ $inc->increment_amount }}"
+                                                required></td>
                                         <td><input type="number" step="0.01"
                                                 name="increments[{{ $ikey }}][increment_percentage]"
-                                                class="form-control" value="{{ $inc->increment_percentage }}"></td>
+                                                class="form-control inc-percent" value="{{ $inc->increment_percentage }}">
+                                        </td>
                                         <td><input type="text"
                                                 name="increments[{{ $ikey }}][method_description]"
                                                 class="form-control" value="{{ $inc->method_description }}"></td>
@@ -168,7 +181,7 @@
                                     <th>Absorb %</th>
                                     <th>Absorb Start</th>
                                     <th>Absorb End</th>
-                                    <th>Absorb Freq</th>
+                                    {{-- <th>Absorb Freq</th> --}}
                                     <th>Method Desc</th>
                                     <th>Action</th>
                                 </tr>
@@ -179,10 +192,11 @@
                                         <tr>
                                             <td><input type="number" step="0.01"
                                                     name="deposits[{{ $dkey }}][absorb_amount]"
-                                                    class="form-control" value="{{ $deposit->absorb_amount }}"></td>
+                                                    class="form-control abs-amount"
+                                                    value="{{ $deposit->absorb_amount }}"></td>
                                             <td><input type="number" step="0.01"
                                                     name="deposits[{{ $dkey }}][absorb_amount_percentage]"
-                                                    class="form-control"
+                                                    class="form-control abs-percent"
                                                     value="{{ $deposit->absorb_amount_percentage }}"></td>
                                             <td><input type="date"
                                                     name="deposits[{{ $dkey }}][absorb_start_date]"
@@ -190,9 +204,9 @@
                                             <td><input type="date"
                                                     name="deposits[{{ $dkey }}][absorb_end_date]"
                                                     class="form-control" value="{{ $deposit->absorb_end_date }}"></td>
-                                            <td><input type="text"
+                                            {{-- <td><input type="text"
                                                     name="deposits[{{ $dkey }}][absorb_frequency]"
-                                                    class="form-control" value="{{ $deposit->absorb_frequency }}"></td>
+                                                    class="form-control" value="{{ $deposit->absorb_frequency }}"></td> --}}
                                             <td><input type="text"
                                                     name="deposits[{{ $dkey }}][method_description]"
                                                     class="form-control" value="{{ $deposit->method_description }}"></td>
@@ -246,8 +260,8 @@
                         <tr>
                             <td><input type="date" name="increments[${incrementIndex}][increment_start_date]" class="form-control" required></td>
                             <td><input type="date" name="increments[${incrementIndex}][increment_end_date]" class="form-control"></td>
-                            <td><input type="number" step="0.01" name="increments[${incrementIndex}][increment_amount]" class="form-control" required></td>
-                            <td><input type="number" step="0.01" name="increments[${incrementIndex}][increment_percentage]" class="form-control"></td>
+                            <td><input type="number" step="0.01" name="increments[${incrementIndex}][increment_amount]" class="form-control inc-amount" required></td>
+                            <td><input type="number" step="0.01" name="increments[${incrementIndex}][increment_percentage]" class="form-control inc-percent"></td>
                             <td><input type="text" name="increments[${incrementIndex}][method_description]" class="form-control"></td>
                             <td><button type="button" class="btn btn-danger btn-sm remove-increment">Remove</button></td>
                         </tr>
@@ -266,11 +280,10 @@
 
                     $('#depositsTable tbody').append(`
                         <tr>
-                            <td><input type="number" step="0.01" name="deposits[${depositIndex}][absorb_amount]" class="form-control"></td>
-                            <td><input type="number" step="0.01" name="deposits[${depositIndex}][absorb_amount_percentage]" class="form-control"></td>
+                            <td><input type="number" step="0.01" name="deposits[${depositIndex}][absorb_amount]" class="form-control abs-amount"></td>
+                            <td><input type="number" step="0.01" name="deposits[${depositIndex}][absorb_amount_percentage]" class="form-control abs-percent"></td>
                             <td><input type="date" name="deposits[${depositIndex}][absorb_start_date]" class="form-control"></td>
                             <td><input type="date" name="deposits[${depositIndex}][absorb_end_date]" class="form-control"></td>
-                            <td><input type="text" name="deposits[${depositIndex}][absorb_frequency]" class="form-control"></td>
                             <td><input type="text" name="deposits[${depositIndex}][method_description]" class="form-control"></td>
                             <td><button type="button" class="btn btn-danger btn-sm remove-deposit">Remove</button></td>
                         </tr>
@@ -320,5 +333,81 @@
                 // IMPORTANT → Run on page load (Edit page needs this)
                 updateAgreementLink();
             });
+
+            function getBaseRent() {
+                return parseFloat($('#base_rent').val()) || 0;
+            }
+
+            // If Amount is typed, calculate Percentage
+            $(document).on('input', '.inc-amount', function() {
+                let baseRent = getBaseRent();
+                let amount = parseFloat($(this).val()) || 0;
+                let row = $(this).closest('tr');
+
+                if (baseRent > 0) {
+                    let percentage = (amount / baseRent) * 100;
+                    row.find('.inc-percent').val(percentage.toFixed(2));
+                }
+            });
+
+            // If Percentage is typed, calculate Amount
+            $(document).on('input', '.inc-percent', function() {
+                let baseRent = getBaseRent();
+                let percentage = parseFloat($(this).val()) || 0;
+                let row = $(this).closest('tr');
+
+                if (baseRent > 0) {
+                    let amount = (percentage / 100) * baseRent;
+                    row.find('.inc-amount').val(amount.toFixed(2));
+                }
+            });
+
+            $(document).on('input', '.abs-amount', function() {
+                let baseRent = getBaseRent();
+                let amount = parseFloat($(this).val()) || 0;
+                let row = $(this).closest('tr');
+
+                if (baseRent > 0) {
+                    let percentage = (amount / baseRent) * 100;
+                    row.find('.abs-percent').val(percentage.toFixed(2));
+                }
+            });
+
+            $(document).on('input', '.abs-percent', function() {
+                let baseRent = getBaseRent();
+                let percentage = parseFloat($(this).val()) || 0;
+                let row = $(this).closest('tr');
+
+                if (baseRent > 0) {
+                    let amount = (percentage / 100) * baseRent;
+                    row.find('.abs-amount').val(amount.toFixed(2));
+                }
+            });
+
+            // Optional: Re-calculate all rows if Base Rent changes
+            $('#base_rent').on('input', function() {
+                let baseRent = parseFloat($(this).val()) || 0;
+                if (baseRent > 0) {
+                    $('.inc-percent').each(function() {
+                        let row = $(this).closest('tr');
+                        let percentage = parseFloat($(this).val()) || 0;
+                        if (percentage > 0) {
+                            let amount = (percentage / 100) * baseRent;
+                            row.find('.inc-amount').val(amount.toFixed(2));
+                        }
+                    });
+
+                    $('.abs-percent').each(function() {
+                        let row = $(this).closest('tr');
+                        let percentage = parseFloat($(this).val()) || 0;
+                        if (percentage > 0) {
+                            let amount = (percentage / 100) * baseRent;
+                            row.find('.abs-amount').val(amount.toFixed(2));
+                        }
+                    });
+                }
+            });
+
+            // --- End Calculation Logic ---
         </script>
     @endsection
