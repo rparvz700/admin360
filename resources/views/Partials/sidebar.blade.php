@@ -140,7 +140,13 @@
                                             </li>
 
                                             <li
-                                                class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'assets' || $activeMenu == 'asset-categories' || $activeMenu == 'asset-attributes') ? 'open' : '' }}">
+                                                class="nav-main-item {{ isset($activeMenu) &&
+                                                ($activeMenu == 'assets' ||
+                                                    $activeMenu == 'asset-categories' ||
+                                                    $activeMenu == 'projects' ||
+                                                    $activeMenu == 'asset-attributes')
+                                                    ? 'open'
+                                                    : '' }}">
                                                 <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                     aria-haspopup="true" aria-expanded="false" href="#">
                                                     <i class="nav-main-link-icon fa fa-box"></i>
@@ -154,7 +160,7 @@
                                                         </a>
                                                     </li>
                                                     <li
-                                                        class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'asset-categories' || $activeMenu == 'asset-attributes') ? 'open' : '' }}">
+                                                        class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'asset-categories' || $activeMenu == 'asset-attributes' || $activeMenu == 'projects') ? 'open' : '' }}">
                                                         <a class="nav-main-link nav-main-link-submenu"
                                                             data-toggle="submenu" aria-haspopup="true"
                                                             aria-expanded="false" href="#">
@@ -174,6 +180,12 @@
                                                                     href="{{ route('asset-attributes.index') }}">
                                                                     <span class="nav-main-link-name">Asset
                                                                         Attributes</span>
+                                                                </a>
+                                                            </li>
+                                                            <li class="nav-main-item">
+                                                                <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'projects' ? 'active' : '' }}"
+                                                                    href="{{ route('projects.index') }}">
+                                                                    <span class="nav-main-link-name">Projects</span>
                                                                 </a>
                                                             </li>
                                                         </ul>

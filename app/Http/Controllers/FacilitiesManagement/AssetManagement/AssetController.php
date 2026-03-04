@@ -8,37 +8,75 @@ use App\Models\Asset;
 use App\Models\AssetCategory;
 use App\Models\AssetAttribute;
 use App\Models\AssetAttributeValue;
+use App\Models\Project;
+use Illuminate\Support\Facades\Log;
 
 class AssetController extends Controller
 {
     // List all assets
     public function index(Request $request)
     {
+        $upazillaUrl = config('app.baseline_base_url').'api/upazilla';
+        $token = 'Authorization: Bearer '.config('app.baseline_api_token');
+
+        $upazillaApiRes = $this->callAPI('GET', $upazillaUrl, '', $token);
+        $upazillaApiResArr = json_decode($upazillaApiRes, true);
+        $upazillas = $upazillaApiResArr['data'];
+
+        $upazillaMap = collect($upazillas)
+            ->mapWithKeys(function ($item) {
+                $key = strtolower(trim($item['district'])) . '|' . strtolower(trim($item['upazilla']));
+                return [$key => $item['subcenter']];
+            })
+            ->toArray();
+
         if ($request->ajax()) {
-            $query = Asset::with(['category', 'floor', 'parent']);
-            return \Yajra\DataTables\DataTables::of($query)
-                ->addColumn('category', function ($asset) {
-                    return $asset->category ? $asset->category->category_name : '';
+            $categoryId = $request->get('category_id');
+
+            $attributes = [];
+            if (is_numeric($categoryId)) {
+                $attributes = \App\Models\AssetAttribute::where('category_id', $categoryId)->get();
+            }
+
+            $query = Asset::with(['category', 'floor.building', 'parent', 'project', 'attributeValues']);
+
+            if ($request->filled('category_id') && $categoryId !== 'all') {
+                $query->where('category_id', $categoryId);
+            }
+
+            $dataTable = \Yajra\DataTables\DataTables::of($query)
+                ->addColumn('category', fn($asset) => $asset->category->category_name ?? '')
+                ->addColumn('project', fn($asset) => $asset->project->name ?? '')
+                ->addColumn('building_floor', fn($asset) => $asset->floor->building->site_name ?? '')
+                ->addColumn('site_code', fn($asset) => $asset->floor->building->code ?? '')
+                ->addColumn('subcenter', function ($asset) use ($upazillaMap) {
+                    $key = strtolower(trim($asset->floor->building->district ?? '')) . '|' . strtolower(trim($asset->floor->building->upazila ?? ''));
+                    return $upazillaMap[$key] ?? '';
                 })
-                ->addColumn('building_floor', function ($asset) {
-                    return $asset->floor->building->site_name ?? '';
-                })
-                ->addColumn('floor', function ($asset) {
-                    return $asset->floor ? $asset->floor->floor_label : '';
-                })
-                ->addColumn('parent', function ($asset) {
-                    return $asset->parent ? ($asset->parent->asset_tag . ' - ' . $asset->parent->asset_name) : '';
-                })
+                ->addColumn('floor', fn($asset) => $asset->floor->floor_label ?? '')
+                ->addColumn('parent', fn($asset) => $asset->parent ? ($asset->parent->asset_tag . ' - ' . $asset->parent->asset_name) : '')
                 ->editColumn('status', function ($row) {
-                    $badge = '<span class="badge bg-' . ($row->status == 'active' ? 'success' : 'danger') . '">' . (($row->status == 'active') ? 'Active' : 'Inactive') . '</span>';
-                    return $badge;
+                    return '<span class="badge bg-' . ($row->status == 'active' ? 'success' : 'danger') . '">' . ucfirst($row->status) . '</span>';
                 })
                 ->addColumn('actions', function ($asset) {
                     return view('FacilitiesManagement.AssetManagement.Assets.partials.actions', compact('asset'))->render();
-                })
-                ->rawColumns(['actions', 'building_floor', 'status'])
+                });
+
+            // 3. Dynamically add Attribute Columns
+            foreach ($attributes as $attr) {
+                $dataTable->addColumn('attr_' . $attr->id, function ($asset) use ($attr) {
+                    // Find the value for this specific attribute
+                    $val = $asset->attributeValues->where('attribute_id', $attr->id)->where('asset_id', $asset->id)->first();
+                    return $val ? $val->value : '-';
+                });
+            }
+
+            // 4. Attach attribute metadata to the JSON response
+            return $dataTable->with('dynamic_attributes', $attributes)
+                ->rawColumns(['actions', 'status'])
                 ->make(true);
         }
+
         return view('FacilitiesManagement.AssetManagement.Assets.index');
     }
 
@@ -49,7 +87,9 @@ class AssetController extends Controller
         $floors = \App\Models\PropertiesFloor::all();
         $assets = Asset::all();
         $attributes = \App\Models\AssetAttribute::all();
-        return view('FacilitiesManagement.AssetManagement.Assets.create', compact('categories', 'floors', 'assets', 'attributes'));
+        $projects = Project::where('status', 1)->get();
+
+        return view('FacilitiesManagement.AssetManagement.Assets.create', compact('categories', 'floors', 'assets', 'attributes', 'projects'));
     }
 
     // Store new asset
@@ -68,6 +108,7 @@ class AssetController extends Controller
             'location_within_floor' => 'nullable',
             'parent_id' => 'nullable|exists:assets,id',
             'status' => 'required',
+            'project_id' => 'nullable',
         ]);
         $asset = Asset::create($validated);
         // Store attribute values
@@ -102,7 +143,8 @@ class AssetController extends Controller
         $floors = \App\Models\PropertiesFloor::all();
         $assets = Asset::all();
         $attributes = \App\Models\AssetAttribute::all();
-        return view('FacilitiesManagement.AssetManagement.Assets.edit', compact('asset', 'categories', 'floors', 'assets', 'attributes'));
+        $projects = Project::where('status', 1)->get();
+        return view('FacilitiesManagement.AssetManagement.Assets.edit', compact('asset', 'categories', 'floors', 'assets', 'attributes', 'projects'));
     }
 
     // Update asset
@@ -121,6 +163,7 @@ class AssetController extends Controller
             'location_within_floor' => 'nullable',
             'parent_id' => 'nullable|exists:assets,id',
             'status' => 'required',
+            'project_id' => 'nullable',
         ]);
         $asset = Asset::findOrFail($id);
         $asset->update($validated);
@@ -155,4 +198,63 @@ class AssetController extends Controller
         $asset->delete();
         return redirect()->route('assets.index')->with('success', 'Asset deleted successfully.');
     }
+
+
+    private function callAPI($method, $url, $data, $accessToken = null)
+    {
+        try{
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+
+            switch ($method) {
+                case "GET":
+                    curl_setopt($curl, CURLOPT_POST, 0);
+                    break;
+
+                case "POST":
+                    curl_setopt($curl, CURLOPT_POST, 1);
+                    if ($data)
+                        curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+                    break;
+                case "PUT":
+                    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PUT");
+                    if ($data)
+                        curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+                    break;
+                default:
+                    if ($data)
+                        $url = sprintf("%s?%s", $url, http_build_query($data));
+            }
+
+            // OPTIONS:
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                $accessToken
+            ));
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+
+            // EXECUTE:
+            $result = curl_exec($curl);
+            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            if (!$result) {
+                throw new \Exception("API responded with failure. HTTP Code: $httpCode. Response: " . $result);
+                // die("Connection Failure");
+            }
+            curl_close($curl);
+            return $result;
+
+        }catch (\Exception $e) {
+            Log::channel('custom_api_error')->error('Externel API call error : ' . $e->getMessage(), [
+                'apiUrl' => $url,
+                'class' => 'Helper',
+                'function' => 'callAPI',
+                'timestamp' => now(),
+            ]);
+            // return null;
+            throw $e;
+        }
+    }
+
 }

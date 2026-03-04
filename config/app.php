@@ -143,5 +143,8 @@ return [
         ],
     ],
 
+    'baseline_base_url' => env('BASELINE_BASE_URL'),
+    'baseline_api_token' => env('BASELINE_API_TOKEN')
+
 
 ];

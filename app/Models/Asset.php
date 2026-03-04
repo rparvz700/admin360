@@ -24,11 +24,17 @@ class Asset extends Model
         'location_within_floor',
         'parent_id',
         'status',
+        'project_id',
     ];
 
     public function category()
     {
         return $this->belongsTo(AssetCategory::class, 'category_id');
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'project_id');
     }
 
     public function floor()

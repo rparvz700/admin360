@@ -13,7 +13,7 @@ use App\Http\Controllers\FacilitiesManagement\Rent\RentController;
 use App\Http\Controllers\FacilitiesManagement\AssetManagement\AssetController;
 use App\Http\Controllers\FacilitiesManagement\AssetManagement\AssetCategoryController;
 use App\Http\Controllers\FacilitiesManagement\AssetManagement\AssetAttributeController;
-
+use App\Http\Controllers\FacilitiesManagement\AssetManagement\ProjectController;
 use App\Http\Controllers\VehicleManagement\DriverController;
 
 use App\Http\Controllers\GenericDocumentManagement\GenericDocumentController;
@@ -69,6 +69,7 @@ Route::middleware(['auth'])->group(function(){
         'agreements' => AgreementsController::class,
         'rent' => RentController::class,
         'assets' => AssetController::class,
+        'projects' => ProjectController::class,
         'asset-categories' => AssetCategoryController::class,
         'asset-attributes' => AssetAttributeController::class,
     ]);

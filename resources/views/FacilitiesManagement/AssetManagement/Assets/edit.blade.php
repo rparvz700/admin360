@@ -117,6 +117,18 @@
                                     </option>
                                 </select>
                             </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="project">Project</label>
+                                <select class="form-control" id="project" name="project_id" required>
+                                    <option value="">Select project</option>
+                                    @foreach ($projects as $project)
+                                        <option value="{{ $project->id }}"
+                                            {{ $asset->project_id == $project->id ? 'selected' : '' }}>
+                                            {{ $project->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <hr>
                             <h5>Attribute Values</h5>
                             <div id="attribute-fields">

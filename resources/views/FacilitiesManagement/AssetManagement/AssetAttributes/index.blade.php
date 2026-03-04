@@ -1,11 +1,17 @@
 @extends('Partials.app', ['activeMenu' => 'asset-attributes'])
 
 @section('title')
-    {{ config('app.name') }} 
+    {{ config('app.name') }}
 @endsection
 
 @section('page_title')
     Asset Attributes
+@endsection
+
+@section('styles')
+    <link rel="stylesheet" href="{{ asset('js/plugins/datatables-bs5/css/dataTables.bootstrap5.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('js/plugins/datatables-buttons-bs5/css/buttons.bootstrap5.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('js/plugins/datatables-responsive-bs5/css/responsive.bootstrap5.min.css') }}">
 @endsection
 
 @section('content')
@@ -16,8 +22,9 @@
                 <a href="{{ route('asset-attributes.create') }}" class="btn btn-sm btn-primary">Add Attribute</a>
             </div>
             <div class="block-content fs-sm data-content">
-                <div class="table-responsive">
-                    <table id="asset-attributes-table" class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive">
+                <div class="">
+                    <table id="asset-attributes-table"
+                        class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -37,7 +44,7 @@
 @endsection
 
 @section('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ asset('js/lib/jquery.min.js') }}"></script>
     <script src="{{ asset('js/plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('js/plugins/datatables-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
     <script src="{{ asset('js/plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
@@ -45,18 +52,34 @@
     <script src="{{ asset('js/plugins/datatables-buttons/dataTables.buttons.min.js') }}"></script>
     <script src="{{ asset('js/plugins/datatables-buttons-bs5/js/buttons.bootstrap5.min.js') }}"></script>
     <script>
-        $(function () {
+        $(function() {
             $('#asset-attributes-table').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: '{{ route('asset-attributes.index') }}',
-                columns: [
-                    { data: 'id', name: 'id' },
-                    { data: 'category', name: 'category' },
-                    { data: 'attribute_name', name: 'attribute_name' },
-                    { data: 'attribute_type', name: 'attribute_type' },
+                columns: [{
+                        data: 'id',
+                        name: 'id'
+                    },
+                    {
+                        data: 'category',
+                        name: 'category'
+                    },
+                    {
+                        data: 'attribute_name',
+                        name: 'attribute_name'
+                    },
+                    {
+                        data: 'attribute_type',
+                        name: 'attribute_type'
+                    },
                     // { data: 'options', name: 'options' },
-                    { data: 'actions', name: 'actions', orderable: false, searchable: false },
+                    {
+                        data: 'actions',
+                        name: 'actions',
+                        orderable: false,
+                        searchable: false
+                    },
                 ]
             });
         });

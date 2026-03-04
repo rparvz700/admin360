@@ -5,7 +5,7 @@
 @endsection
 
 @section('page_title')
-    Asset Categories
+    Projects
 @endsection
 
 @section('styles')
@@ -26,8 +26,8 @@
                 </div>
             @endif
             <div class="block-header block-header-default">
-                <h3 class="block-title">Asset Categories</h3>
-                <a href="{{ route('asset-categories.create') }}" class="btn btn-sm btn-primary">Add Category</a>
+                <h3 class="block-title">Projects</h3>
+                <a href="{{ route('projects.create') }}" class="btn btn-sm btn-primary">Add Project</a>
             </div>
             <div class="block-content fs-sm data-content">
                 <div class="">
@@ -38,6 +38,7 @@
                                 <th>ID</th>
                                 <th>Name</th>
                                 <th>Description</th>
+                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -61,18 +62,22 @@
             $('#asset-categories-table').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: '{{ route('asset-categories.index') }}',
+                ajax: '{{ route('projects.index') }}',
                 columns: [{
                         data: 'id',
                         name: 'id'
                     },
                     {
-                        data: 'category_name',
-                        name: 'category_name'
+                        data: 'name',
+                        name: 'name'
                     },
                     {
                         data: 'description',
                         name: 'description'
+                    },
+                    {
+                        data: 'status',
+                        name: 'status'
                     },
                     {
                         data: 'actions',
