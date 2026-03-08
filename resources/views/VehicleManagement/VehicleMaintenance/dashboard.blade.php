@@ -228,7 +228,7 @@
                                 </a>
                             </div>
                             <div class="col-md-2">
-                                <a href="{{ route('maintenance.invoices.index') }}" class="btn btn-outline-primary btn-block">
+                                <a href="{{ route('invoices.index') }}" class="btn btn-outline-primary btn-block">
                                     <i class="fas fa-file-invoice-dollar fa-2x mb-2"></i>
                                     <br>Invoices
                                 </a>

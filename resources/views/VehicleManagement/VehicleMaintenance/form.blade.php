@@ -1,7 +1,7 @@
 <div class="row">
     <div class="col-md-6 mb-3">
         <label class="form-label" for="vehicle_id">Vehicle <span class="text-danger">*</span></label>
-        <select class="form-select" id="vehicle_id" name="vehicle_id" required>
+        <select class="form-select js-select2" id="vehicle_id" name="vehicle_id" required>
             <option value="">Select Vehicle</option>
             @foreach($vehicles as $vehicle)
                 <option value="{{ $vehicle->id }}" {{ old('vehicle_id', $maintenance->vehicle_id ?? '') == $vehicle->id ? 'selected' : '' }}>
@@ -24,7 +24,7 @@
 
     <div class="col-md-6 mb-3">
         <label class="form-label" for="vendor_id">Vendor <span class="text-danger">*</span></label>
-        <select class="form-select" id="vendor_id" name="vendor_id" required>
+        <select class="form-select js-select2" id="vendor_id" name="vendor_id" required>
             <option value="">Select Vendor</option>
             @foreach($vendors as $vendor)
                 <option value="{{ $vendor->id }}" {{ old('vendor_id', $maintenance->vendor_id ?? '') == $vendor->id ? 'selected' : '' }}>
@@ -152,6 +152,10 @@
                             <input type="number" class="form-control" name="parts[{{ $index }}][warranty_period_months]" value="{{ $existingPart->warranty_period_months }}">
                         </div>
                         <div class="col-md-4 mb-2">
+                            <label class="form-label">Next Replacement Date</label>
+                            <input type="date" class="form-control" name="parts[{{ $index }}][next_replacement_due_date]" value="{{ $existingPart->next_replacement_due_date }}">
+                        </div>
+                        <div class="col-md-4 mb-2">
                             <label class="form-label">Next Replacement KM</label>
                             <input type="number" class="form-control" name="parts[{{ $index }}][next_replacement_due_km]" value="{{ $existingPart->next_replacement_due_km }}">
                         </div>
@@ -167,14 +171,21 @@
     <div class="part-row border rounded p-3 mb-3">
         <div class="row">
             <div class="col-md-4 mb-2">
-                <label class="form-label">Part <span class="text-danger">*</span></label>
-                <select class="form-select" name="parts[INDEX][vehicle_part_id]" required>
+                <label class="form-label">
+                    Part <span class="text-danger">*</span>
+                </label>
+
+                <select class="form-select js-select2" name="parts[INDEX][vehicle_part_id]" required>
                     <option value="">Select Part</option>
                     @foreach($parts as $part)
-                        <option value="{{ $part->id }}">{{ $part->part_name }} ({{ $part->part_code }})</option>
+                        <option value="{{ $part->id }}">
+                            {{ $part->part_name }} ({{ $part->part_code }})
+                        </option>
                     @endforeach
                 </select>
+
             </div>
+
             <div class="col-md-2 mb-2">
                 <label class="form-label">Action</label>
                 <select class="form-select" name="parts[INDEX][action_type]">
@@ -192,15 +203,15 @@
                 <input type="number" step="0.01" class="form-control part-cost" name="parts[INDEX][part_cost]" value="0">
             </div>
             <div class="col-md-1 mb-2 d-flex align-items-end">
-                <button type="button" class="btn btn-sm btn-danger remove-part w-100">Remove</button>
+                <button type="button" class="btn btn-sm btn-danger remove-part w-100">X</button>
             </div>
             <div class="col-md-4 mb-2">
                 <label class="form-label">Warranty (Months)</label>
                 <input type="number" class="form-control" name="parts[INDEX][warranty_period_months]" value="0">
             </div>
             <div class="col-md-4 mb-2">
-                <label class="form-label">Tyre Position</label>
-                <input type="text" class="form-control" name="parts[INDEX][tyre_position]" placeholder="e.g., Front Left">
+                <label class="form-label">Next Replacement Date</label>
+                <input type="date" class="form-control" name="parts[INDEX][next_replacement_due_date]">
             </div>
             <div class="col-md-4 mb-2">
                 <label class="form-label">Next Replacement KM</label>
@@ -211,9 +222,16 @@
 </template>
 
 @section('scripts')
-<script src="{{ asset('js/lib/jquery.min.js') }}"></script>
+
 <script>
+
 $(document).ready(function() {
+
+    //Initialize all select2
+    $(".js-select2").each(function(index, value) {
+        var temp = $(value).select2();
+        temp.select2();
+    });       
     let partIndex = {{ isset($maintenance) && $maintenance->maintenanceParts->count() > 0 ? $maintenance->maintenanceParts->count() : 0 }};
 
     // Add part row
@@ -221,6 +239,15 @@ $(document).ready(function() {
         let template = $('#partRowTemplate').html();
         template = template.replace(/INDEX/g, partIndex);
         $('#partsContainer').append(template);
+        $(".js-select2").each(function(index, value) {
+            var temp_selecte2 = $(value).select2();
+            temp_selecte2.select2('destroy');
+        });
+        //Re-initialize all select2
+        $(".js-select2").each(function(index, value) {
+            var temp = $(value).select2();
+            temp.select2();
+        });
         partIndex++;
     });
 

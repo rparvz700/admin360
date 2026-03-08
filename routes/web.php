@@ -26,7 +26,7 @@ use App\Http\Controllers\VehicleMaintenanceManagement\VendorController;
 use App\Http\Controllers\VehicleMaintenanceManagement\VehicleMaintenanceController;
 use App\Http\Controllers\VehicleMaintenanceManagement\VehiclePartController;
 use App\Http\Controllers\VehicleMaintenanceManagement\VehicleOperationalLogController;
-use App\Http\Controllers\VehicleMaintenanceManagement\InvoiceController;
+use App\Http\Controllers\InvoiceManagement\InvoiceController;
 use App\Http\Controllers\VehicleMaintenanceManagement\MaintenanceReportController;
 
 
@@ -166,6 +166,13 @@ Route::get('/api/reverse-geocode', function (Request $request) {
     return response()->json($response->json());
 })->name('api.reverse-geocode');
 
+Route::middleware(['auth'])->group(function () {
+// Invoices
+    Route::resource('invoices', InvoiceController::class);
+    Route::post('invoices/{invoice}/pay', [InvoiceController::class, 'recordPayment'])->name('invoices.pay');
+    Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
+});
+
 Route::prefix('maintenance')->name('maintenance.')->middleware(['auth'])->group(function () {
     
     // Dashboard
@@ -188,11 +195,6 @@ Route::prefix('maintenance')->name('maintenance.')->middleware(['auth'])->group(
     Route::resource('operational-logs', VehicleOperationalLogController::class);
     Route::post('operational-logs/meter-reading', [VehicleOperationalLogController::class, 'quickMeterReading'])->name('operational-logs.meter-reading');
     
-    // Invoices
-    Route::resource('invoices', InvoiceController::class);
-    Route::post('invoices/{invoice}/pay', [InvoiceController::class, 'recordPayment'])->name('invoices.pay');
-    Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
-    
     // Reports
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', function () {
@@ -200,6 +202,9 @@ Route::prefix('maintenance')->name('maintenance.')->middleware(['auth'])->group(
         })->name('index');
         Route::get('/vehicle-cost', [MaintenanceReportController::class, 'vehicleCost'])->name('vehicle-cost');
         Route::get('/vendor-cost', [MaintenanceReportController::class, 'vendorCost'])->name('vendor-cost');
+        Route::get('/vendor-bill', [MaintenanceReportController::class, 'vendorBill'])->name('vendor-bill');
+        Route::get('/vendor-bill/export', [MaintenanceReportController::class, 'vendorBillExport'])
+     ->name('vendor-bill.export');
         Route::get('/monthly-expenses', [MaintenanceReportController::class, 'monthlyExpenses'])->name('monthly-expenses');
         Route::get('/parts-history', [MaintenanceReportController::class, 'partsHistory'])->name('parts-history');
         Route::get('/service-due', [MaintenanceReportController::class, 'serviceDue'])->name('service-due');

@@ -55,6 +55,27 @@
                 </a>
             </div>
 
+            <!-- Vendor Cost Report -->
+            <div class="col-md-4 mb-4">
+                <a href="{{ route('maintenance.reports.vendor-bill') }}" class="text-decoration-none">
+                    <div class="card shadow h-100 border-left-success">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col">
+                                    <h5 class="font-weight-bold text-success">Vendor Bill Report</h5>
+                                    <p class="mb-0 text-muted small">
+                                        Analyze Bill by vendor.
+                                    </p>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fa fa-file-invoice-dollar fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
             <!-- Monthly Expenses -->
             <div class="col-md-4 mb-4">
                 <a href="{{ route('maintenance.reports.monthly-expenses') }}" class="text-decoration-none">

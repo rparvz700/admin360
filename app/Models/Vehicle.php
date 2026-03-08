@@ -25,6 +25,9 @@ class Vehicle extends Model
         'purchase_price',
         'purchase_date',
         'status',
+        'reg_year',
+        'engine_cc',
+        'vehicle_weight'
     ];
     public function vehicleType()
     {

@@ -11,6 +11,7 @@ use App\Models\VehicleMaintenancePart;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class MaintenanceReportController extends Controller
 {
@@ -335,5 +336,210 @@ class MaintenanceReportController extends Controller
             ->sortByDesc('total_cost');
 
         return view('VehicleManagement.VehicleMaintenance.Reports.vendor-comparison', compact('vendors', 'startDate', 'endDate'));
+    }
+
+    // =========================================================================
+    // VENDOR MONTHLY BILL — PREVIEW
+    // =========================================================================
+
+    public function vendorBill(Request $request)
+    {
+        $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
+
+        if (!$request->filled('vendor_id')) {
+            return view('VehicleManagement.VehicleMaintenance.Reports.vendor-bill', compact('vendors'));
+        }
+
+        $request->validate([
+            'vendor_id' => 'required|exists:vendors,id',
+            'month'     => 'required|integer|min:1|max:12',
+            'year'      => 'required|integer|min:2000|max:2100',
+        ]);
+
+        $data = $this->buildBillData($request);
+
+        return view('VehicleManagement.VehicleMaintenance.Reports.vendor-bill', array_merge(['vendors' => $vendors], $data));
+    }
+
+    // =========================================================================
+    // VENDOR MONTHLY BILL — EXCEL EXPORT
+    // =========================================================================
+
+    public function vendorBillExport(Request $request)
+    {
+        $request->validate([
+            'vendor_id' => 'required|exists:vendors,id',
+            'month'     => 'required|integer|min:1|max:12',
+            'year'      => 'required|integer|min:2000|max:2100',
+        ]);
+
+        $data     = $this->buildBillData($request);
+        $filename = 'vendor_bill_'
+            . str_replace(' ', '_', $data['vendor']->name)
+            . '_' . $data['monthName']
+            . '_' . $data['year']
+            . '.xlsx';
+
+        $tmpPath = tempnam(sys_get_temp_dir(), 'vendor_bill_') . '.xlsx';
+
+        $this->generateBillExcel($tmpPath, $data);
+
+        return response()->download($tmpPath, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+    }
+
+    // =========================================================================
+    // PRIVATE — BILL DATA BUILDER
+    // =========================================================================
+
+    private function buildBillData(Request $request): array
+    {
+        $vendor      = Vendor::findOrFail($request->vendor_id);
+        $month       = (int) $request->month;
+        $year        = (int) $request->year;
+        $paymentType = $request->input('payment_type', 'BEFTN');
+        $monthName   = date('F', mktime(0, 0, 0, $month, 1));
+
+        $maintenances = VehicleMaintenance::with(['vehicle',  'maintenanceParts.part', 'invoice'])
+            ->where('vendor_id', $vendor->id)
+            ->whereYear('start_datetime', $year)
+            ->whereMonth('start_datetime', $month)
+            ->orderBy('start_datetime')
+            ->get();
+
+        $rows = collect();
+        $sl   = 1;
+
+        foreach ($maintenances as $maintenance) {
+            $vehicle = $maintenance->vehicle;
+            
+            $parts   = $maintenance->maintenanceParts;
+
+            // Parts row
+            $particulars = $parts
+                ->map(fn($p) => $p->part->part_name ?? '')
+                ->filter()
+                ->implode(', ');
+
+            if ($particulars) {
+                $taka      = (float) $parts->sum('part_cost');
+                $vatRate   = 0.15;
+                $vatAmount = $taka * $vatRate;
+                $rows->push($this->makeBillRow($sl++, $maintenance, $vehicle, $particulars, $taka, $vatRate, $vatAmount));
+            }
+
+            // Service charge row
+            $labor = (float) $maintenance->labor_cost;
+            if ($labor > 0) {
+                $vatRate   = 0.10;
+                $vatAmount = $labor * $vatRate;
+                $rows->push($this->makeBillRow($sl++, $maintenance, $vehicle, 'Service Charge', $labor, $vatRate, $vatAmount));
+            }
+        }
+
+        $totals = [
+            'taka'         => $rows->sum('taka'),
+            'vat_amount'   => $rows->sum('vat_amount'),
+            'total_amount' => $rows->sum('total_amount'),
+        ];
+
+        $amountInWords = $this->numberToWords($totals['total_amount']);
+
+        return compact('rows', 'totals', 'amountInWords', 'vendor', 'monthName', 'year', 'paymentType');
+    }
+
+    // =========================================================================
+    // PRIVATE — BILL ROW BUILDER
+    // =========================================================================
+
+    private function makeBillRow(
+        int $sl,
+        VehicleMaintenance $maintenance,
+        $vehicle,
+        string $particulars,
+        float $taka,
+        float $vatRate,
+        float $vatAmount
+    ): array {
+        return [
+            'sl'             => $sl,
+            'date'           => $maintenance->start_datetime->format('Y-m-d'),
+            'particulars'    => $particulars,
+            'vehicle_no'     => $vehicle->registration_number  ?? '',
+            'vehicle_type'   => $vehicle->vehicleType->type_name.' '.$vehicle->brand ?? '',
+            'reg_year'       => $vehicle->reg_year    ?? '',
+            'engine_cc'      => $vehicle->engine_cc            ?? '',
+            'vehicle_weight' => $vehicle->vehicle_weight              ?? '',
+            'location'       => $vehicle->location             ?? '',
+            'present_km'     => $maintenance->meter_reading_at_service ?? 0,
+            'previous_km'    => 0,
+            'consumption'    => 0,
+            'vo_ref_no'      => $maintenance->invoice?->invoice_number ?? '',
+            'price'          => '',
+            'qty'            => '',
+            'taka'           => $taka,
+            'vat_rate'       => $vatRate,
+            'vat_amount'     => $vatAmount,
+            'total_amount'   => $taka + $vatAmount,
+            'remarks'        => '',
+        ];
+    }
+
+    // =========================================================================
+    // PRIVATE — EXCEL GENERATOR
+    // =========================================================================
+
+    private function generateBillExcel(string $outputPath, array $data): void
+    {
+        $jsonPath = tempnam(sys_get_temp_dir(), 'bill_data_') . '.json';
+
+        file_put_contents($jsonPath, json_encode([
+            'output_path'     => $outputPath,
+            'vendor_name'     => $data['vendor']->name,
+            'month_name'      => $data['monthName'],
+            'year'            => $data['year'],
+            'payment_type'    => $data['paymentType'],
+            'rows'            => $data['rows']->values()->toArray(),
+            'totals'          => $data['totals'],
+            'amount_in_words' => $data['amountInWords'],
+            'report_date'     => now()->format('d.m.Y'),
+        ], JSON_UNESCAPED_UNICODE));
+
+        $scriptPath = base_path('scripts/vendor_bill_excel.py');
+        $result     = shell_exec("python3 {$scriptPath} " . escapeshellarg($jsonPath) . " 2>&1");
+
+        @unlink($jsonPath);
+
+        if (!file_exists($outputPath)) {
+            throw new \RuntimeException('Excel generation failed: ' . $result);
+        }
+    }
+
+    // =========================================================================
+    // PRIVATE — NUMBER TO WORDS  (Crore / Lac / Thousand, Taka)
+    // =========================================================================
+
+    private function numberToWords(float $number): string
+    {
+        $n    = (int) round($number);
+        $ones = [
+            '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+            'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
+            'Seventeen', 'Eighteen', 'Nineteen',
+        ];
+        $tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+        $convert = function (int $n) use (&$convert, $ones, $tens): string {
+            if ($n === 0)      return '';
+            if ($n < 20)       return $ones[$n];
+            if ($n < 100)      return $tens[(int) ($n / 10)] . ($n % 10 ? ' ' . $ones[$n % 10] : '');
+            if ($n < 1000)     return $ones[(int) ($n / 100)] . ' Hundred' . ($n % 100 ? ' ' . $convert($n % 100) : '');
+            if ($n < 100000)   return $convert((int) ($n / 1000)) . ' Thousand' . ($n % 1000 ? ' ' . $convert($n % 1000) : '');
+            if ($n < 10000000) return $convert((int) ($n / 100000)) . ' Lac' . ($n % 100000 ? ' ' . $convert($n % 100000) : '');
+            return $convert((int) ($n / 10000000)) . ' Crore' . ($n % 10000000 ? ' ' . $convert($n % 10000000) : '');
+        };
+
+        return 'Amount in words: ' . $convert($n) . ' Taka Only.';
     }
 }

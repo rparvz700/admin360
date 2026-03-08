@@ -37,6 +37,9 @@ class VehicleMaintenanceController extends Controller
                         'parts_cost' => '৳ ' . number_format($maintenance->parts_cost, 2),
                         'total_cost' => '৳ ' . number_format($maintenance->total_service_cost, 2),
                         'status' => '<span class="badge bg-secondary">' . ucfirst($maintenance->status) . '</span>',
+                        'invoice' => $maintenance->invoice_id
+                        ? '<a href="' . route('invoices.show', $maintenance->invoice_id) . '" class="btn btn-sm btn-success"><i class="fa fa-file-invoice"></i> View</a>'
+                        : '<a href="' . route('invoices.create', ['maintenance_id' => $maintenance->id]) . '" class="btn btn-sm btn-warning"><i class="fa fa-plus"></i> Create</a>',
                         'actions' => view('VehicleManagement.VehicleMaintenance.partials.actions', compact('maintenance'))->render(),
                     ];
                 });
@@ -54,7 +57,7 @@ class VehicleMaintenanceController extends Controller
     {
         $vehicles = Vehicle::where('status', 'active')->get();
         $vendors = Vendor::active()->get();
-        $parts = VehiclePart::active()->get();
+        $parts = VehiclePart::active()->orderBy('part_name')->get();
 
         return view('VehicleManagement.VehicleMaintenance.create', compact('vehicles', 'vendors', 'parts'));
     }

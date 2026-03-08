@@ -215,7 +215,7 @@
 
                 <li class="nav-main-item {{ request()->routeIs('maintenance.*') ? 'open' : '' }}">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
-                        <i class="nav-main-link-icon fa fa-car"></i>
+                        <i class="nav-main-link-icon si si-wrench"></i>
                         <span class="nav-main-link-name">Vehicle Maintenence Management</span>
                     </a>
                     <ul class="nav-main-submenu">
@@ -229,11 +229,7 @@
                                 <span class="nav-main-link-name">Maintenances</span>
                             </a>
                         </li>
-                        <li class="nav-main-item">
-                            <a class="nav-main-link {{ request()->routeIs('maintenance.vendors.*') ? 'active' : '' }}" href="{{ route('maintenance.vendors.index') }}">
-                                <span class="nav-main-link-name">Vendors</span>
-                            </a>
-                        </li>
+                        
                         <li class="nav-main-item">
                             <a class="nav-main-link {{ request()->routeIs('maintenance.operational-logs.*') ? 'active' : '' }}" href="{{ route('maintenance.operational-logs.index') }}">
                                 <span class="nav-main-link-name">Operational Logs</span>
@@ -331,41 +327,47 @@
                             </li>
                     </ul>
                 </li>
-                    {{-- ------------------------------Start GenericDocument Management-------------------------- --}}
-                <li class="nav-main-item {{ isset($activeMenu) && (in_array($activeMenu, ['generic-documents', 'generic-document-categories', 'generic-document-attributes']) ? 'open' : '') }}">
+                                    {{-- -------------------------Invoice Management------------------------- --}}
+
+                <li class="nav-main-item {{ request()->routeIs('invoices.*','maintenance.vendors.*') ? 'open' : '' }}">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
-                        <i class="nav-main-link-icon fa fa-file-text"></i>
-                        <span class="nav-main-link-name">Generic Document Management</span>
+                        <i class="nav-main-link-icon fa fa-file-invoice-dollar"></i>
+                        <span class="nav-main-link-name">Invoice Management</span>
                     </a>
                     <ul class="nav-main-submenu">
-                        
                         <li class="nav-main-item">
-                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'generic-documents' ? 'active' : '' }}" href="{{ route('generic-documents.index') }}">
-                                <span class="nav-main-link-name">Generic Documents</span>
+                            <a class="nav-main-link {{ request()->routeIs('invoices.index') ? 'active' : '' }}" href="{{ route('invoices.index') }}">
+                                <span class="nav-main-link-name">Dashboard</span>
                             </a>
                         </li>
                         <li class="nav-main-item">
+                            <a class="nav-main-link {{ request()->routeIs('invoices.index') ? 'active' : '' }}" href="{{ route('invoices.index') }}">
+                                <span class="nav-main-link-name">Invoices</span>
+                            </a>
+                        </li>
+                        
+                        <li class="nav-main-item">
+                            <a class="nav-main-link {{ request()->routeIs('invoices.index') ? 'active' : '' }}" href="{{ route('invoices.index') }}">
+                                <span class="nav-main-link-name">Reports</span>
+                            </a>
+                        </li>
+                        
+                        <li class="nav-main-item {{ request()->routeIs('maintenance.vendors.*') ? 'open' : '' }}">
                             <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
                                 <i class="nav-main-link-icon fa fa-cog"></i>
                                 <span class="nav-main-link-name">Settings</span>
                             </a>
                             <ul class="nav-main-submenu">
+                                <li class="nav-main-item">
+                                    <a class="nav-main-link {{ request()->routeIs('maintenance.vendors.*') ? 'active' : '' }}" href="{{ route('maintenance.vendors.index') }}">
+                                        <span class="nav-main-link-name">Vendors</span>
+                                    </a>
+                                </li>
                                 
-                                <li class="nav-main-item">
-                                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'generic-document-categories' ? 'active' : '' }}" href="{{ route('generic-document-categories.index') }}">
-                                        <span class="nav-main-link-name">Generic Document Categories</span>
-                                    </a>
-                                </li>
-                                <li class="nav-main-item">
-                                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'generic-document-attributes' ? 'active' : '' }}" href="{{ route('generic-document-attributes.index') }}">
-                                        <span class="nav-main-link-name">Generic Document Attributes</span>
-                                    </a>
-                                </li>
                             </ul>
                         </li>
                     </ul>
                 </li>
-                {{-- ------------------------------End GenericDocument Management-------------------------- --}}
                                     {{-- ----------------------Settings------------------- --}}
                                     <li
                                         class="nav-main-item {{ isset($activeMenu) && $activeMenu == 'roles' ? 'open' : '' }}">

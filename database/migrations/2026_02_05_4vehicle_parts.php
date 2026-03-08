@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('part_name');
             $table->string('part_code')->unique();
-            $table->enum('category', ['engine', 'tyre', 'battery', 'oil', 'brake', 'body', 'transmission', 'electrical', 'other']);
+            $table->string('category');
             $table->text('description')->nullable();
             $table->integer('typical_lifespan_km')->nullable();
             $table->integer('typical_lifespan_months')->nullable();
@@ -21,7 +21,6 @@ return new class extends Migration
             $table->softDeletes();
             
             $table->index('part_code');
-            $table->index('category');
             $table->index('is_active');
         });
     }

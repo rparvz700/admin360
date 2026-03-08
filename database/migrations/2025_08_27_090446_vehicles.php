@@ -35,6 +35,9 @@ return new class extends Migration
 
             // Lifecycle status
             $table->string('status')->default('active'); // active, inactive, scrapped
+            $table->year('reg_year')->nullable();
+            $table->integer('engine_cc')->nullable();
+            $table->decimal('vehicle_weight', 12, 2)->nullable();
 
             $table->timestamps();
         });

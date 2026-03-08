@@ -13,6 +13,8 @@
     <link rel="shortcut icon" href="{{ asset('media/favicons/favicon.png') }}">
     <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('media/favicons/favicon-192x192.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('media/favicons/apple-touch-icon-180x180.png') }}">
+    <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">
+    
     <!-- END Icons -->
 
     @yield('styles')
@@ -51,9 +53,16 @@
         webpack is putting everything together at assets/_js/main/app.js
     -->
         <script src="{{ asset('js/lib/jquery.min.js') }}"></script>
+        
         <script src="{{ asset('js/oneui.app.min.js') }}"></script>
 
+        <script src="{{ asset('js/plugins/select2/js/select2.full.js') }}"></script>
+
+        <script>One.helpersOnLoad(['jq-select2', 'jq-notify']);</script>
+
         @yield('scripts')
+
+        
 
 </body>
 
