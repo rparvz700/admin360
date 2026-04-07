@@ -98,6 +98,7 @@
 
                         // 3. Load Layout from Database (Global for everyone)
                         stateSave: true,
+                        stateDuration: -1,
                         stateLoadCallback: function(settings) {
                             try {
                                 return JSON.parse(globalConfig);

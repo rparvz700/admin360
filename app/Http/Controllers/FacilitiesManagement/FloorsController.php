@@ -33,7 +33,7 @@ class FloorsController extends Controller
 
     public function list(Request $request)
     {
-        $query = PropertiesFloor::with(['building', 'agreement']);
+        $query = PropertiesFloor::with(['building', 'agreement'])->orderBy('id', 'desc');
         return DataTables::of($query)
             ->addIndexColumn()
             ->addColumn('building', function ($floor) {
@@ -121,5 +121,48 @@ class FloorsController extends Controller
         $floor = PropertiesFloor::findOrFail($id);
         $floor->delete();
         return redirect()->route('floors.index')->with('success', 'Floor deleted successfully.');
+    }
+
+
+    public function getHistory($id)
+    {
+        $floor = PropertiesFloor::findOrFail($id);
+
+        // Fetch all logs for this specific floor
+        $activities = $floor->activities()->with('causer')->get();
+
+        $history = $activities->map(function ($activity) {
+            $oldValue = $activity->changes['old'] ?? [];
+            $newValue = $activity->changes['attributes'] ?? [];
+
+            $details = [];
+            foreach ($newValue as $key => $val) {
+                $oldVal = $oldValue[$key] ?? 'None';
+                
+                // Special logic for Agreement IDs to make them readable
+                if ($key === 'agreement_id') {
+                    $oldAg = Agreement::find($oldVal);
+                    $newAg = Agreement::find($val);
+                    
+                    $oldVal = $oldAg ? $oldAg->agreement_ref_no : 'None';
+                    $val = $newAg ? $newAg->agreement_ref_no : 'None';
+                    $key = 'Agreement';
+                }
+
+                $details[] = [
+                    'field' => ucfirst(str_replace('_', ' ', $key)),
+                    'from'  => $oldVal,
+                    'to'    => $val
+                ];
+            }
+
+            return [
+                'user' => $activity->causer->name ?? 'System',
+                'date' => $activity->created_at->format('d M Y, h:i A'),
+                'changes' => $details
+            ];
+        });
+
+        return response()->json($history);
     }
 }

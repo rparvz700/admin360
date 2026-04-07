@@ -255,6 +255,7 @@
                         table = $('#assets-table').DataTable({
                             processing: true,
                             serverSide: true,
+                            stateDuration: -1,
 
                             // 2. Admin Reorder Control
                             colReorder: isAdmin ? {

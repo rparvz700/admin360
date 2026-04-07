@@ -106,6 +106,7 @@
 
                         // 2. State management
                         stateSave: true,
+                        stateDuration: -1,
                         stateLoadCallback: function(settings) {
                             // Everyone loads the settings from the Database (passed via controller)
                             try {

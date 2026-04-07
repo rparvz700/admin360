@@ -80,6 +80,7 @@ Route::middleware(['auth'])->group(function(){
     Route::get('rent-list', [RentController::class, 'list'])->name('rent.list');
     Route::get('floors-list', [FloorsController::class, 'list'])->name('floors.list');
     Route::get('floors/{floor}', [FloorsController::class, 'show'])->name('floors.show');
+    Route::get('floors/{id}/history', [FloorsController::class, 'getHistory'])->name('floors.history');
     Route::get('buildings-list', [BuildingsController::class, 'list'])->name('buildings.list');
     //-----------------Subcenter extra routes---------------
     Route::get('subcenter-list', [SubcenterController::class, 'subcenterList'])->name('subcenterList');

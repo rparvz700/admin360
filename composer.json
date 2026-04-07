@@ -10,6 +10,7 @@
         "laravel/framework": "^11.0",
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.6",
+        "spatie/laravel-activitylog": "^4.12",
         "spatie/laravel-permission": "^6.18",
         "yajra/laravel-datatables-oracle": "^11.1"
     },
