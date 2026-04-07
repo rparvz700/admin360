@@ -1,7 +1,7 @@
 @extends('Partials.app', ['activeMenu' => 'floors'])
 
 @section('title')
-    {{ config('app.name') }} 
+    {{ config('app.name') }}
 @endsection
 
 @section('page_title')
@@ -12,6 +12,10 @@
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-bs5/css/dataTables.bootstrap5.min.css') }}">
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-buttons-bs5/css/buttons.bootstrap5.min.css') }}">
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-responsive-bs5/css/responsive.bootstrap5.min.css') }}">
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.7.0/css/colReorder.bootstrap5.min.css">
+
+    <link rel="stylesheet" href="{{ asset('css/column_settings.css') }}">
 @endsection
 
 @section('content')
@@ -31,7 +35,8 @@
             </div>
             <div class="block-content fs-sm data-content">
                 <div class="table-responsive">
-                    <table class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive">
+                    <table
+                        class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -48,81 +53,122 @@
             </div>
         </div>
     </div>
+
+    <!-- Column Settings Modal -->
+    @include('Partials.column_settings_modal')
 @endsection
 
 @section('scripts')
     <script src="{{ asset('js/lib/jquery.min.js') }}"></script>
+
+    <!-- Core DataTables -->
     <script src="{{ asset('js/plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('js/plugins/datatables-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
     <script src="{{ asset('js/plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('js/plugins/datatables-responsive-bs5/js/responsive.bootstrap5.min.js') }}"></script>
+
+    <!-- Buttons Core + BS5 Integration -->
     <script src="{{ asset('js/plugins/datatables-buttons/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('js/plugins/datatables-buttons-bs5/js/buttons.bootstrap5.min.js') }}"></script>
+
+    <!-- Buttons Extensions -->
+    <script src="{{ asset('js/plugins/datatables-buttons/buttons.colVis.min.js') }}"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/colreorder/1.7.0/js/dataTables.colReorder.min.js"></script>
+
     <script>
         !(function() {
-            class e {
-                static initDataTables() {
-                    jQuery.extend(
-                        jQuery.fn.DataTable.ext.classes, {
-                            sWrapper: "dataTables_wrapper dt-bootstrap5",
-                            sFilterInput: "form-control form-control-sm",
-                            sLengthSelect: "form-select form-select-sm"
-                        }
-                    ),
-                    jQuery.extend(!0, jQuery.fn.DataTable.defaults, {
-                        language: {
-                            lengthMenu: "_MENU_",
-                            search: "_INPUT_",
-                            searchPlaceholder: "Search..",
-                            info: "Page <strong>_PAGE_</strong> of <strong>_PAGES_</strong>",
-                            paginate: {
-                                first: '<i class="fa fa-angle-double-left"></i>',
-                                previous: '<i class="fa fa-angle-left"></i>',
-                                next: '<i class="fa fa-angle-right"></i>',
-                                last: '<i class="fa fa-angle-double-right"></i>'
-                            },
-                        },
-                    }),
-                    jQuery.extend(
-                        !0,
-                        jQuery.fn.DataTable.Buttons.defaults, {
-                            dom: {
-                                button: {
-                                    className: "btn btn-sm btn-primary"
-                                }
-                            }
-                        }
-                    ),
-                    jQuery(".js-dataTable-responsive").DataTable({
+            class UserTable {
+                static init() {
+                    const tableElement = jQuery(".js-dataTable-responsive");
+
+                    let dt = tableElement.DataTable({
                         ajax: '{{ route('floors.list') }}',
                         processing: true,
                         serverSide: true,
+                        colReorder: true,
+                        stateSave: true,
+                        autoWidth: false,
+                        responsive: true,
                         pagingType: "full_numbers",
-                        pageLength: 10,
-                        lengthMenu: [
-                            [5, 10, 15, 20],
-                            [5, 10, 15, 20],
+                        dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'<'d-flex justify-content-end gap-2'Bf>>>" +
+                            "<'row'<'col-sm-12'tr>>" +
+                            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                        buttons: [{
+                            text: '<i class="fa fa-cog me-1"></i> Column Settings',
+                            className: 'btn btn-sm btn-alt-secondary',
+                            action: function(e, dt, node, config) {
+                                $('#modal-column-settings').modal('show');
+                            }
+                        }],
+                        columns: [{
+                                data: 'DT_RowIndex',
+                                name: 'SI',
+                                orderable: false,
+                                searchable: false
+                            },
+                            {
+                                data: 'building'
+                            },
+                            {
+                                data: 'floor_label'
+                            },
+                            {
+                                data: 'floor_area_sft'
+                            },
+                            {
+                                data: 'status'
+                            },
+                            {
+                                data: 'agreement'
+                            },
+                            {
+                                data: 'actions',
+                                orderable: false,
+                                searchable: false
+                            }
                         ],
-                        order: [
-                            [0, 'desc']
-                        ],
-                        autoWidth: !1,
-                        responsive: !0,
-                        columns: [
-                            { data: 'id' },
-                            { data: 'building' },
-                            { data: 'floor_label' },                            
-                            { data: 'floor_area_sft' },
-                            { data: 'status' },
-                            { data: 'agreement' },                            
-                            { data: 'actions', orderable: false, searchable: false }
-                        ],
+                        // Build the settings list when the table is ready
+                        initComplete: function() {
+                            const api = this.api();
+                            const container = $('#column-toggle-container');
+                            container.empty();
+
+                            api.columns().every(function(index) {
+                                const column = this;
+                                const title = $(column.header()).text().trim();
+
+                                // Don't allow hiding SI or Actions
+                                if (title === 'SI' || title === 'Actions' || title === '')
+                                    return;
+
+                                const isChecked = column.visible() ? 'checked' : '';
+
+                                const switchHtml = `
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input col-toggle-input" type="checkbox" 
+                                           id="col_toggle_${index}" data-column="${index}" ${isChecked}>
+                                    <label class="form-check-label" for="col_toggle_${index}">${title}</label>
+                                </div>`;
+                                container.append(switchHtml);
+                            });
+                        }
+                    });
+
+                    // Handle Toggle Clicks
+                    $(document).on('change', '.col-toggle-input', function() {
+                        const columnIdx = $(this).data('column');
+                        dt.column(columnIdx).visible(this.checked);
+                    });
+
+                    // Handle Reset
+                    $('#btn-reset-layout').on('click', function() {
+                        dt.state.clear();
+                        window.location.reload();
                     });
                 }
-                static init() {
-                    this.initDataTables();
-                }
             }
-            One.onLoad(() => e.init());
+            $(document).ready(() => UserTable.init());
         })();
     </script>
 @endsection

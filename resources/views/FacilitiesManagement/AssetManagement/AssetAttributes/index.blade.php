@@ -62,8 +62,9 @@
                         name: 'id'
                     },
                     {
-                        data: 'category',
-                        name: 'category'
+                        data: 'category.category_name',
+                        name: 'category.category_name',
+                        defaultContent: ''
                     },
                     {
                         data: 'attribute_name',
@@ -73,7 +74,6 @@
                         data: 'attribute_type',
                         name: 'attribute_type'
                     },
-                    // { data: 'options', name: 'options' },
                     {
                         data: 'actions',
                         name: 'actions',

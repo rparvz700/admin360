@@ -10,6 +10,8 @@ use App\Models\AssetAttribute;
 use App\Models\AssetAttributeValue;
 use App\Models\Project;
 use Illuminate\Support\Facades\Log;
+use Yajra\DataTables\Contracts\DataTable;
+use Yajra\DataTables\DataTables;
 
 class AssetController extends Controller
 {
@@ -31,7 +33,8 @@ class AssetController extends Controller
             ->toArray();
 
         if ($request->ajax()) {
-            $categoryId = $request->get('category_id');
+            $categoryName = $request->get('category_id');
+            $categoryId = $categoryName === 'all' ? 'all' : AssetCategory::where('category_name', $categoryName)->first()->id;
 
             $attributes = [];
             if (is_numeric($categoryId)) {
@@ -44,7 +47,8 @@ class AssetController extends Controller
                 $query->where('category_id', $categoryId);
             }
 
-            $dataTable = \Yajra\DataTables\DataTables::of($query)
+            $dataTable = DataTables::of($query)
+                ->addIndexColumn()
                 ->addColumn('category', fn($asset) => $asset->category->category_name ?? '')
                 ->addColumn('project', fn($asset) => $asset->project->name ?? '')
                 ->addColumn('building_floor', fn($asset) => $asset->floor->building->site_name ?? '')

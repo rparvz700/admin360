@@ -12,17 +12,12 @@ class AssetAttributeController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = AssetAttribute::with('category');
+            // Use with() to eager load the relationship
+            $query = AssetAttribute::with('category')->select('asset_attributes.*'); 
+            
             return \Yajra\DataTables\DataTables::of($query)
-                ->addColumn('category', function ($attribute) {
-                    return $attribute->category ? $attribute->category->category_name : '';
-                })
-                ->addColumn('attribute_name', function ($attribute) {
-                    return $attribute->attribute_name;
-                })
-                ->addColumn('attribute_type', function ($attribute) {
-                    return $attribute->attribute_type;
-                })
+                // We only need to define 'actions' because it's HTML
+                // We don't need addColumn for attribute_name/type if the names match the DB
                 ->addColumn('actions', function ($attribute) {
                     return view('FacilitiesManagement.AssetManagement.AssetAttributes.partials.actions', compact('attribute'))->render();
                 })

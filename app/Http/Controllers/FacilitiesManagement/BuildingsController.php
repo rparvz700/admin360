@@ -15,6 +15,7 @@ class BuildingsController extends Controller
     {
         $query = PropertiesBuilding::query();
         return DataTables::of($query)
+            ->addIndexColumn()
             ->addColumn('actions', function ($building) {
                 return view('FacilitiesManagement.Buildings.partials.actions', compact('building'))->render();
             })

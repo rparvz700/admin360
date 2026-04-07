@@ -1,0 +1,16 @@
+.modal-dialog-right {
+            margin-right: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            height: 100vh;
+        }
+
+        .modal-dialog-right .modal-content {
+            height: 100vh;
+            border-radius: 0;
+        }
+
+        .form-check-input:checked {
+            background-color: #0665d0;
+            border-color: #0665d0;
+        }

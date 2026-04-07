@@ -15,6 +15,7 @@ class AgreementsController extends Controller
         if ($request->ajax()) {
             $query = Agreement::query();
             return DataTables::of($query)
+                ->addIndexColumn()
                 ->addColumn('agreement_date', function($row) { return $row->agreement_date; })
                 ->addColumn('from_date', function($row) { return $row->from_date; })
                 ->addColumn('to_date', function($row) { return $row->to_date; })

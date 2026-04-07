@@ -11,11 +11,12 @@ class AssetCategoryController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = AssetCategory::query();
+            // Select the columns explicitly for better performance
+            $query = AssetCategory::select(['id', 'category_name', 'description']);
+
             return \Yajra\DataTables\DataTables::of($query)
-                ->addColumn('category_name', function ($category) {
-                    return $category->category_name;
-                })
+                // REMOVED addColumn for category_name. 
+                // Yajra will now see it as a real DB column and search it automatically.
                 ->addColumn('actions', function ($category) {
                     return view('FacilitiesManagement.AssetManagement.AssetCategories.partials.actions', compact('category'))->render();
                 })

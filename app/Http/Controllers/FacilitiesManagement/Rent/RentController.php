@@ -15,6 +15,7 @@ class RentController extends Controller
     {
         $query = RentBase::with('agreement');
         return datatables()->of($query)
+            ->addIndexColumn()
             ->addColumn('agreement_start_date', function($row) {
                 return $row->agreement_start_date;
             })

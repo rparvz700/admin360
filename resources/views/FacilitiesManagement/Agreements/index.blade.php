@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-bs5/css/dataTables.bootstrap5.min.css') }}">
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-buttons-bs5/css/buttons.bootstrap5.min.css') }}">
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-responsive-bs5/css/responsive.bootstrap5.min.css') }}">
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.7.0/css/colReorder.bootstrap5.min.css">
+    <link rel="stylesheet" href="{{ asset('css/column_settings.css') }}">
 @endsection
 
 @section('content')
@@ -52,62 +55,133 @@
             </div>
         </div>
     </div>
+
+    <!-- Column Settings Modal -->
+    @include('Partials.column_settings_modal')
 @endsection
 
 @section('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ asset('js/lib/jquery.min.js') }}"></script>
+
+    <!-- Core DataTables -->
     <script src="{{ asset('js/plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('js/plugins/datatables-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
     <script src="{{ asset('js/plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('js/plugins/datatables-responsive-bs5/js/responsive.bootstrap5.min.js') }}"></script>
+
+    <!-- Buttons Core + BS5 Integration -->
     <script src="{{ asset('js/plugins/datatables-buttons/dataTables.buttons.min.js') }}"></script>
     <script src="{{ asset('js/plugins/datatables-buttons-bs5/js/buttons.bootstrap5.min.js') }}"></script>
+
+    <!-- Buttons Extensions -->
+    <script src="{{ asset('js/plugins/datatables-buttons/buttons.colVis.min.js') }}"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/colreorder/1.7.0/js/dataTables.colReorder.min.js"></script>
+
+
     <script>
-        $(function() {
-            $('#agreements-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: '{{ route('agreements.index') }}',
-                order: [
-                    [0, 'desc']
-                ],
-                columns: [{
-                        data: 'id',
-                        name: 'id',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'agreement_ref_no',
-                        name: 'agreement_ref_no'
-                    },
-                    {
-                        data: 'agreement_date',
-                        name: 'agreement_date'
-                    },
-                    {
-                        data: 'from_date',
-                        name: 'from_date'
-                    },
-                    {
-                        data: 'to_date',
-                        name: 'to_date'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status'
-                    },
-                    {
-                        data: 'remarks',
-                        name: 'remarks'
-                    },
-                    {
-                        data: 'actions',
-                        name: 'actions',
-                        orderable: false,
-                        searchable: false
-                    },
-                ]
-            });
-        });
+        !(function() {
+            class UserTable {
+                static init() {
+                    const tableElement = jQuery(".js-dataTable-responsive");
+
+                    let dt = tableElement.DataTable({
+                        ajax: '{{ route('agreements.index') }}',
+                        processing: true,
+                        serverSide: true,
+                        colReorder: true,
+                        stateSave: true,
+                        autoWidth: false,
+                        responsive: true,
+                        pagingType: "full_numbers",
+                        dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'<'d-flex justify-content-end gap-2'Bf>>>" +
+                            "<'row'<'col-sm-12'tr>>" +
+                            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                        buttons: [{
+                            text: '<i class="fa fa-cog me-1"></i> Column Settings',
+                            className: 'btn btn-sm btn-alt-secondary',
+                            action: function(e, dt, node, config) {
+                                $('#modal-column-settings').modal('show');
+                            }
+                        }],
+                        columns: [{
+                                data: 'DT_RowIndex',
+                                name: 'SI',
+                                orderable: false,
+                                searchable: false
+                            },
+                            {
+                                data: 'agreement_ref_no',
+                                name: 'agreement_ref_no'
+                            },
+                            {
+                                data: 'agreement_date',
+                                name: 'agreement_date'
+                            },
+                            {
+                                data: 'from_date',
+                                name: 'from_date'
+                            },
+                            {
+                                data: 'to_date',
+                                name: 'to_date'
+                            },
+                            {
+                                data: 'status',
+                                name: 'status'
+                            },
+                            {
+                                data: 'remarks',
+                                name: 'remarks'
+                            },
+                            {
+                                data: 'actions',
+                                name: 'actions',
+                                orderable: false,
+                                searchable: false
+                            },
+                        ],
+                        // Build the settings list when the table is ready
+                        initComplete: function() {
+                            const api = this.api();
+                            const container = $('#column-toggle-container');
+                            container.empty();
+
+                            api.columns().every(function(index) {
+                                const column = this;
+                                const title = $(column.header()).text().trim();
+
+                                // Don't allow hiding SI or Actions
+                                if (title === 'SI' || title === 'Actions' || title === '')
+                                    return;
+
+                                const isChecked = column.visible() ? 'checked' : '';
+
+                                const switchHtml = `
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input col-toggle-input" type="checkbox" 
+                                           id="col_toggle_${index}" data-column="${index}" ${isChecked}>
+                                    <label class="form-check-label" for="col_toggle_${index}">${title}</label>
+                                </div>`;
+                                container.append(switchHtml);
+                            });
+                        }
+                    });
+
+                    // Handle Toggle Clicks
+                    $(document).on('change', '.col-toggle-input', function() {
+                        const columnIdx = $(this).data('column');
+                        dt.column(columnIdx).visible(this.checked);
+                    });
+
+                    // Handle Reset
+                    $('#btn-reset-layout').on('click', function() {
+                        dt.state.clear();
+                        window.location.reload();
+                    });
+                }
+            }
+            $(document).ready(() => UserTable.init());
+        })();
     </script>
 @endsection

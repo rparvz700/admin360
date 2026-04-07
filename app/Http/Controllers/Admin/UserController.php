@@ -34,44 +34,74 @@ class UserController extends Controller
     }
 
 
+    // public function userList()
+    // {
+    //     $model = User::query();
+    //     $datatable = DataTables::of($model);
+    //     $datatable
+    //         ->editColumn('actions', function ($row) {
+    //             $buttons = '';
+    //             if (auth()->user()->can('edit-user') && !$row->hasRole('Super Admin')
+    //             ) {
+    //                 $buttons .= '<a href="' . route('users.edit', $row->id) . '"
+    //                     style="margin-right: 3px;" class="btn btn-sm btn-primary p-1 py-0">
+    //                     <i class="fa fa-pen-to-square"></i>
+    //                 </a>';
+    //             }
+
+    //             if (auth()->user()->can('delete-user') && Auth::user()->id != $row->id && !$row->hasRole('Super Admin')) {
+    //                 $buttons .= '<form id="deleteForm' . $row->id . '" action="' . route('users.destroy', $row->id) . '" method="post">
+    //                     <input type="hidden" name="_token" value="' . csrf_token() . '">
+    //                     <input type="hidden" name="_method" value="DELETE">
+    //                     <button type="button" class="btn btn-danger btn-sm p-1 py-0 delete-button" data-user-id="' . $row->id . '">
+    //                     <i class="fa fa-trash-can"></i>
+    //                 </button>
+    //                 </form>';
+    //             }
+
+    //             return '<div class="d-flex" style="justify-content: start;">' . $buttons . '</div>';
+    //         })
+    //         ->editColumn('roles', function ($row) {
+    //             return (!empty($row->getRoleNames()) ? $row->getRoleNames()[0] : '');
+    //         })
+    //         ->editColumn('status', function ($row) {
+    //             // return (($row->status == 1) ? 'Active' : 'Inactive');
+    //             $badge = '<span class="badge bg-' . ($row->status == 1 ? 'success' : 'danger') . '">' . (($row->status == 1) ? 'Active' : 'Inactive') . '</span>';
+    //             return $badge;
+    //         })
+    //         ->rawColumns(['actions', 'roles', 'status']);
+
+    //     return $datatable->toJson();
+    // }
+
+
     public function userList()
     {
         $model = User::query();
-        $datatable = DataTables::of($model);
-        $datatable
+        return DataTables::of($model)
+            ->addIndexColumn() // This creates the 'DT_RowIndex' column
             ->editColumn('actions', function ($row) {
                 $buttons = '';
-                if (auth()->user()->can('edit-user') && !$row->hasRole('Super Admin')
-                ) {
-                    $buttons .= '<a href="' . route('users.edit', $row->id) . '"
-                        style="margin-right: 3px;" class="btn btn-sm btn-primary p-1 py-0">
-                        <i class="fa fa-pen-to-square"></i>
-                    </a>';
+                if (auth()->user()->can('edit-user') && !$row->hasRole('Super Admin')) {
+                    $buttons .= '<a href="' . route('users.edit', $row->id) . '" style="margin-right: 3px;" class="btn btn-sm btn-primary p-1 py-0"><i class="fa fa-pen-to-square"></i></a>';
                 }
-
-                if (auth()->user()->can('delete-user') && Auth::user()->id != $row->id && !$row->hasRole('Super Admin')) {
-                    $buttons .= '<form id="deleteForm' . $row->id . '" action="' . route('users.destroy', $row->id) . '" method="post">
-                        <input type="hidden" name="_token" value="' . csrf_token() . '">
+                if (auth()->user()->can('delete-user') && Auth::id() != $row->id && !$row->hasRole('Super Admin')) {
+                    $buttons .= '<form id="deleteForm' . $row->id . '" action="' . route('users.destroy', $row->id) . '" method="post" style="display:inline;">
+                        ' . csrf_field() . '
                         <input type="hidden" name="_method" value="DELETE">
-                        <button type="button" class="btn btn-danger btn-sm p-1 py-0 delete-button" data-user-id="' . $row->id . '">
-                        <i class="fa fa-trash-can"></i>
-                    </button>
+                        <button type="button" class="btn btn-danger btn-sm p-1 py-0 delete-button" data-user-id="' . $row->id . '"><i class="fa fa-trash-can"></i></button>
                     </form>';
                 }
-
-                return '<div class="d-flex" style="justify-content: start;">' . $buttons . '</div>';
+                return '<div class="d-flex">' . $buttons . '</div>';
             })
             ->editColumn('roles', function ($row) {
-                return (!empty($row->getRoleNames()) ? $row->getRoleNames()[0] : '');
+                return $row->getRoleNames()->first() ?? '';
             })
             ->editColumn('status', function ($row) {
-                // return (($row->status == 1) ? 'Active' : 'Inactive');
-                $badge = '<span class="badge bg-' . ($row->status == 1 ? 'success' : 'danger') . '">' . (($row->status == 1) ? 'Active' : 'Inactive') . '</span>';
-                return $badge;
+                return '<span class="badge bg-' . ($row->status == 1 ? 'success' : 'danger') . '">' . ($row->status == 1 ? 'Active' : 'Inactive') . '</span>';
             })
-            ->rawColumns(['actions', 'roles', 'status']);
-
-        return $datatable->toJson();
+            ->rawColumns(['actions', 'roles', 'status'])
+            ->make(true);
     }
 
 
