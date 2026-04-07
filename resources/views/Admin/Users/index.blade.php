@@ -49,11 +49,6 @@
                                 <th class="text-center all">SI</th>
                                 <th class="all">Name</th>
                                 <th class="all">Email</th>
-                                {{-- <th class="">Phone</th>
-                                <th class="all">HR ID</th>
-                                <th class="all">Designation</th>
-                                <th class="all">Department</th>
-                                <th class="all">Subcenter</th> --}}
                                 <th class="">Role</th>
                                 <th class="all">Status</th>
                                 <th class="all">Actions</th>
