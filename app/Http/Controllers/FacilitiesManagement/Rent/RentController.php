@@ -7,6 +7,7 @@ use App\Models\Agreement;
 use Illuminate\Http\Request;
 use App\Models\RentBase;
 use App\Models\RentIncrement;
+use App\Models\TableSetting;
 use App\Models\VatTax;
 
 class RentController extends Controller
@@ -43,7 +44,10 @@ class RentController extends Controller
     }
     public function index()
     {
-        return view('FacilitiesManagement.Rent.index');
+        $globalSettings = TableSetting::where('table_identifier', 'rent_table')->first();
+        $tableConfig = $globalSettings ? $globalSettings->settings : null;
+
+        return view('FacilitiesManagement.Rent.index', compact('tableConfig'));
     }
 
     public function create()

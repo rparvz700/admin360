@@ -7,6 +7,7 @@ use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\Department;
 use App\Models\Subcenter;
+use App\Models\TableSetting;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,50 +31,12 @@ class UserController extends Controller
     {
         $activeMenu = "users";
         $listRoute = route('userList');
-        return view('Admin.Users.index', compact('activeMenu', 'listRoute'));
+
+        $globalSettings = TableSetting::where('table_identifier', 'users_table')->first();
+        $tableConfig = $globalSettings ? $globalSettings->settings : null;
+
+        return view('Admin.Users.index', compact('activeMenu', 'listRoute', 'tableConfig'));
     }
-
-
-    // public function userList()
-    // {
-    //     $model = User::query();
-    //     $datatable = DataTables::of($model);
-    //     $datatable
-    //         ->editColumn('actions', function ($row) {
-    //             $buttons = '';
-    //             if (auth()->user()->can('edit-user') && !$row->hasRole('Super Admin')
-    //             ) {
-    //                 $buttons .= '<a href="' . route('users.edit', $row->id) . '"
-    //                     style="margin-right: 3px;" class="btn btn-sm btn-primary p-1 py-0">
-    //                     <i class="fa fa-pen-to-square"></i>
-    //                 </a>';
-    //             }
-
-    //             if (auth()->user()->can('delete-user') && Auth::user()->id != $row->id && !$row->hasRole('Super Admin')) {
-    //                 $buttons .= '<form id="deleteForm' . $row->id . '" action="' . route('users.destroy', $row->id) . '" method="post">
-    //                     <input type="hidden" name="_token" value="' . csrf_token() . '">
-    //                     <input type="hidden" name="_method" value="DELETE">
-    //                     <button type="button" class="btn btn-danger btn-sm p-1 py-0 delete-button" data-user-id="' . $row->id . '">
-    //                     <i class="fa fa-trash-can"></i>
-    //                 </button>
-    //                 </form>';
-    //             }
-
-    //             return '<div class="d-flex" style="justify-content: start;">' . $buttons . '</div>';
-    //         })
-    //         ->editColumn('roles', function ($row) {
-    //             return (!empty($row->getRoleNames()) ? $row->getRoleNames()[0] : '');
-    //         })
-    //         ->editColumn('status', function ($row) {
-    //             // return (($row->status == 1) ? 'Active' : 'Inactive');
-    //             $badge = '<span class="badge bg-' . ($row->status == 1 ? 'success' : 'danger') . '">' . (($row->status == 1) ? 'Active' : 'Inactive') . '</span>';
-    //             return $badge;
-    //         })
-    //         ->rawColumns(['actions', 'roles', 'status']);
-
-    //     return $datatable->toJson();
-    // }
-
 
     public function userList()
     {

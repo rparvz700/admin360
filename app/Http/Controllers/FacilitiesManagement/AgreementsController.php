@@ -7,11 +7,15 @@ use App\Models\Agreement;
 use Yajra\DataTables\DataTables;
 use Illuminate\Http\Request;
 use App\Models\GenericDocument;
+use App\Models\TableSetting;
 
 class AgreementsController extends Controller
 {
     public function index(Request $request)
     {
+        $globalSettings = TableSetting::where('table_identifier', 'agreements_table')->first();
+        $tableConfig = $globalSettings ? $globalSettings->settings : null;
+
         if ($request->ajax()) {
             $query = Agreement::query();
             return DataTables::of($query)
@@ -32,7 +36,7 @@ class AgreementsController extends Controller
                 ->rawColumns(['actions', 'status'])
                 ->make(true);
         }
-        return view('FacilitiesManagement.Agreements.index');
+        return view('FacilitiesManagement.Agreements.index', compact('tableConfig'));
     }
 
     public function show($id)

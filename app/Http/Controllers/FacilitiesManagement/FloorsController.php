@@ -8,6 +8,7 @@ use App\Models\PropertiesBuilding;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use App\Http\Controllers\Controller;
+use App\Models\TableSetting;
 
 class FloorsController extends Controller
 {
@@ -55,7 +56,10 @@ class FloorsController extends Controller
 
     public function index()
     {
-        return view('FacilitiesManagement.Floors.index');
+        $globalSettings = TableSetting::where('table_identifier', 'floors_table')->first();
+        $tableConfig = $globalSettings ? $globalSettings->settings : null;
+
+        return view('FacilitiesManagement.Floors.index', compact('tableConfig'));
     }
 
     public function create()

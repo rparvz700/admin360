@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SubcenterController;
+use App\Http\Controllers\Admin\TableSettingController;
 use App\Http\Controllers\Admin\UserController;
 
 use App\Http\Controllers\FacilitiesManagement\BuildingsController;
@@ -100,6 +101,8 @@ Route::middleware(['auth'])->group(function(){
     Route::resource('generic-document-categories', \App\Http\Controllers\GenericDocumentManagement\GenericDocumentCategoryController::class);
     Route::get('/fetch-documentable-records', [GenericDocumentController::class, 'fetchDocumentables'])
     ->name('documentable.fetch');
+
+    Route::post('/table-settings/save', [TableSettingController::class, 'save'])->name('table_settings.save');
 
 });
 

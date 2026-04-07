@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 
 use App\Http\Controllers\Controller;
+use App\Models\TableSetting;
 use Illuminate\Support\Facades\Log;
 
 class BuildingsController extends Controller
@@ -25,7 +26,10 @@ class BuildingsController extends Controller
     public function index()
     {
         $buildings = PropertiesBuilding::all();
-        return view('FacilitiesManagement.Buildings.index', compact('buildings'));
+        $globalSettings = TableSetting::where('table_identifier', 'buildings_table')->first();
+        $tableConfig = $globalSettings ? $globalSettings->settings : null;
+
+        return view('FacilitiesManagement.Buildings.index', compact('buildings', 'tableConfig'));
     }
 
     public function create()

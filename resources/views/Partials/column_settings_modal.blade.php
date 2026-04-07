@@ -15,8 +15,8 @@
                     <!-- Dynamic switches will be injected here -->
                 </div>
                 <div class="block-content block-content-full block-content-sm text-end border-top">
-                    <button type="button" class="btn btn-alt-secondary" id="btn-reset-layout">Reset Layout</button>
-                    <button type="button" class="btn btn-alt-primary" data-bs-dismiss="modal">Done</button>
+                    {{-- <button type="button" class="btn btn-alt-secondary" id="btn-reset-layout">Reset Layout</button> --}}
+                    {{-- <button type="button" class="btn btn-alt-primary" data-bs-dismiss="modal">Done</button> --}}
                 </div>
             </div>
         </div>

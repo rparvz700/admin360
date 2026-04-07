@@ -99,7 +99,7 @@
         <div class="block block-rounded">
             <div class="block-header block-header-default">
                 <h3 class="block-title">Assets Management</h3>
-                <a href="{{ route('assets.create') }}" class="btn btn-sm btn-primary">Add Asset</a>
+                <a href="{{ route('assets.create') }}" id="btn-add-asset" class="btn btn-sm btn-primary">Add Asset</a>
             </div>
             <div class="block-content fs-sm">
                 <div class="table-responsive">
@@ -115,32 +115,7 @@
     </div>
 
     <!-- Column Settings Modal (Standard Bootstrap 5 Modal) -->
-    <div class="modal fade" id="modal-column-settings" tabindex="-1" role="dialog" aria-labelledby="modal-column-settings"
-        aria-hidden="true">
-        <div class="modal-dialog modal-sm modal-dialog-right" role="document">
-            <div class="modal-content">
-                <div class="block block-rounded shadow-none mb-0">
-                    <div class="block-header block-header-default">
-                        <h3 class="block-title">Display Columns</h3>
-                        <div class="block-options">
-                            <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
-                                <i class="fa fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="block-content overflow-auto" style="max-height: 80vh;">
-                        <div id="column-toggle-container">
-                            <!-- Switches injected here via JS -->
-                        </div>
-                    </div>
-                    <div class="block-content block-content-full block-content-sm text-end border-top">
-                        <button type="button" class="btn btn-alt-secondary" id="btn-reset-layout">Reset Layout</button>
-                        <button type="button" class="btn btn-alt-primary" data-bs-dismiss="modal">Done</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('Partials.column_settings_modal')
 @endsection
 
 @section('scripts')
@@ -157,8 +132,12 @@
     <script>
         $(function() {
             let table = null;
+            let selectedCategoryId = 'all'; // Track currently selected category
 
-            // 1. Define Static Base Columns
+            // 1. Permissions and Database Config
+            const isAdmin = @json(auth()->user()->hasRole('Super Admin'));
+            const globalSettingsMap = @json($assetSettings); // Map of all category settings
+
             const baseColumns = [{
                     data: 'id',
                     name: 'id',
@@ -243,8 +222,9 @@
                 }
             ];
 
-            // 2. Function to Initialize/Rebuild DataTable
             function refreshTableWithDynamicColumns(categoryId) {
+                selectedCategoryId = categoryId; // Update global tracker
+
                 $.ajax({
                     url: '{{ route('assets.index') }}',
                     data: {
@@ -255,7 +235,6 @@
                     success: function(response) {
                         let columns = [...baseColumns];
 
-                        // 1. Inject dynamic attributes
                         if (response.dynamic_attributes && response.dynamic_attributes.length > 0) {
                             response.dynamic_attributes.forEach(attr => {
                                 columns.splice(columns.length - 1, 0, {
@@ -263,34 +242,35 @@
                                     name: 'attr_' + attr.id,
                                     title: attr.attribute_name,
                                     searchable: false,
-                                    visible: true // Ensure they are visible by default
+                                    visible: true
                                 });
                             });
                         }
 
-                        // 2. Destroy previous instance and CLEAN the table
                         if ($.fn.DataTable.isDataTable('#assets-table')) {
                             table.destroy();
                             $('#assets-table').empty();
                         }
 
-                        // 3. Re-initialize
                         table = $('#assets-table').DataTable({
                             processing: true,
                             serverSide: true,
 
-                            colReorder: {
-                                fixedColumnsLeft: 1 // Keeps the 'SI' column from being moved
-                            },
-                            stateSave: true,
+                            // 2. Admin Reorder Control
+                            colReorder: isAdmin ? {
+                                fixedColumnsLeft: 1
+                            } : false,
 
-                            stateSaveCallback: function(settings, data) {
-                                localStorage.setItem('DataTables_Assets_' + categoryId, JSON
-                                    .stringify(data));
-                            },
+                            // 3. Load Layout from Database based on Category
+                            stateSave: true,
                             stateLoadCallback: function(settings) {
-                                return JSON.parse(localStorage.getItem(
-                                    'DataTables_Assets_' + categoryId));
+                                const key = 'assets_table_' + categoryId;
+                                try {
+                                    return globalSettingsMap[key] ? JSON.parse(
+                                        globalSettingsMap[key]) : null;
+                                } catch (e) {
+                                    return null;
+                                }
                             },
 
                             scrollX: true,
@@ -305,72 +285,99 @@
                             dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'<'d-flex justify-content-end gap-2'Bf>>>" +
                                 "<'row'<'col-sm-12'tr>>" +
                                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                            buttons: [{
+
+                            // 4. Admin Settings Button
+                            buttons: isAdmin ? [{
                                 text: '<i class="fa fa-cog me-1"></i> Column Settings',
                                 className: 'btn btn-sm btn-alt-secondary',
                                 action: function() {
-                                    // Build the modal logic right before showing it
                                     buildSettingsModal(table);
                                     $('#modal-column-settings').modal('show');
                                 }
-                            }],
+                            }] : [],
+
                             initComplete: function() {
-                                // Force the modal switches to match the loaded state
-                                buildSettingsModal(this.api());
+                                if (isAdmin) {
+                                    buildSettingsModal(this.api());
+                                    injectSaveButton();
+                                }
                             }
                         });
                     }
                 });
             }
 
-            // 3. Populate Settings Modal with switches
             function buildSettingsModal(dtInstance) {
                 const container = $('#column-toggle-container');
                 container.empty();
-
-                // Get all columns from the instance
                 dtInstance.columns().every(function(index) {
                     const column = this;
-                    // Use settings to get the title defined in JS, more reliable than header text
                     const title = dtInstance.settings()[0].aoColumns[index].sTitle;
-
-                    // Skip ID and Actions
                     if (title === 'ID' || title === 'Actions' || title === 'SI' || !title) return;
 
                     const isChecked = column.visible() ? 'checked' : '';
                     const switchHtml = `
-            <div class="form-check form-switch mb-3">
-                <input class="form-check-input col-toggle-input" type="checkbox" 
-                       id="asset_col_${index}" data-column="${index}" ${isChecked}>
-                <label class="form-check-label fw-medium" for="asset_col_${index}">${title}</label>
-            </div>`;
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input col-toggle-input" type="checkbox" 
+                                   id="asset_col_${index}" data-column="${index}" ${isChecked}>
+                            <label class="form-check-label fw-medium" for="asset_col_${index}">${title}</label>
+                        </div>`;
                     container.append(switchHtml);
                 });
             }
 
-            // 4. Handle Show/Hide Switch Events
+            // Admin only: Save Global Config for this Category
+            function injectSaveButton() {
+                if ($('#btn-save-global').length === 0) {
+                    $('<button type="button" id="btn-save-global" class="btn btn-alt-success me-1">Save for All Users</button>')
+                        .prependTo('#modal-column-settings .modal-content .block-content-full')
+                        .on('click', function() {
+                            const state = table.state();
+                            $.ajax({
+                                url: '{{ route('table_settings.save') }}',
+                                method: 'POST',
+                                data: {
+                                    _token: '{{ csrf_token() }}',
+                                    table_identifier: 'assets_table_' + selectedCategoryId,
+                                    settings: JSON.stringify(state)
+                                },
+                                success: function() {
+                                    alert('Layout for ' + selectedCategoryId +
+                                        ' saved for all users!');
+                                    window.location.reload();
+                                }
+                            });
+                        });
+                }
+            }
+
             $(document).on('change', '.col-toggle-input', function() {
                 const columnIdx = $(this).data('column');
                 table.column(columnIdx).visible(this.checked);
             });
 
-            // 5. Handle Reset Layout
             $('#btn-reset-layout').on('click', function() {
-                // Remove the setup for the currently active category only
-                localStorage.removeItem('DataTables_Assets_' + selectedCategoryId);
+                // To reset, we send a request to delete the DB entry or just clear local
+                table.state.clear();
                 window.location.reload();
             });
 
-            // 6. Filter Card Click Events
             $('.category-filter').on('click', function() {
                 $('.category-filter').removeClass('active');
                 $(this).addClass('active');
 
                 const categoryId = $(this).data('category-id');
+
+                // UPDATE: Change the Add Asset button URL
+                let createUrl = "{{ route('assets.create') }}";
+                if (categoryId !== 'all') {
+                    createUrl += "?category=" + encodeURIComponent(categoryId);
+                }
+                $('#btn-add-asset').attr('href', createUrl);
+
                 refreshTableWithDynamicColumns(categoryId);
             });
 
-            // Initial Load
             refreshTableWithDynamicColumns('all');
         });
     </script>

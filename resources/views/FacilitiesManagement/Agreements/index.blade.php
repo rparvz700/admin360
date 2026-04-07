@@ -81,29 +81,48 @@
 
     <script>
         !(function() {
-            class UserTable {
+            // 1. Check permissions and load database config
+            const isAdmin = @json(auth()->user()->hasRole('Super Admin')); // Adjust role name as needed
+            const globalConfig = @json($tableConfig);
+
+            class AgreementTable {
                 static init() {
-                    const tableElement = jQuery(".js-dataTable-responsive");
+                    const tableElement = $("#agreements-table");
 
                     let dt = tableElement.DataTable({
                         ajax: '{{ route('agreements.index') }}',
                         processing: true,
                         serverSide: true,
-                        colReorder: true,
-                        stateSave: true,
                         autoWidth: false,
                         responsive: true,
+
+                        // 2. Only Admin can reorder
+                        colReorder: isAdmin,
+
+                        // 3. Load layout from Database
+                        stateSave: true,
+                        stateLoadCallback: function(settings) {
+                            try {
+                                return JSON.parse(globalConfig);
+                            } catch (e) {
+                                return null;
+                            }
+                        },
+
                         pagingType: "full_numbers",
                         dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'<'d-flex justify-content-end gap-2'Bf>>>" +
                             "<'row'<'col-sm-12'tr>>" +
                             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                        buttons: [{
+
+                        // 4. Only show the Settings button to Admin
+                        buttons: isAdmin ? [{
                             text: '<i class="fa fa-cog me-1"></i> Column Settings',
                             className: 'btn btn-sm btn-alt-secondary',
                             action: function(e, dt, node, config) {
                                 $('#modal-column-settings').modal('show');
                             }
-                        }],
+                        }] : [],
+
                         columns: [{
                                 data: 'DT_RowIndex',
                                 name: 'SI',
@@ -141,47 +160,78 @@
                                 searchable: false
                             },
                         ],
-                        // Build the settings list when the table is ready
                         initComplete: function() {
-                            const api = this.api();
-                            const container = $('#column-toggle-container');
-                            container.empty();
-
-                            api.columns().every(function(index) {
-                                const column = this;
-                                const title = $(column.header()).text().trim();
-
-                                // Don't allow hiding SI or Actions
-                                if (title === 'SI' || title === 'Actions' || title === '')
-                                    return;
-
-                                const isChecked = column.visible() ? 'checked' : '';
-
-                                const switchHtml = `
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input col-toggle-input" type="checkbox" 
-                                           id="col_toggle_${index}" data-column="${index}" ${isChecked}>
-                                    <label class="form-check-label" for="col_toggle_${index}">${title}</label>
-                                </div>`;
-                                container.append(switchHtml);
-                            });
+                            if (isAdmin) {
+                                buildSettingsModal(this.api());
+                                injectSaveButton();
+                            }
                         }
                     });
 
-                    // Handle Toggle Clicks
+                    // Build switches for Admin
+                    function buildSettingsModal(api) {
+                        const container = $('#column-toggle-container');
+                        container.empty();
+
+                        api.columns().every(function(index) {
+                            const column = this;
+                            const title = $(column.header()).text().trim();
+
+                            if (title === 'SI' || title === 'Actions' || title === '' || title === 'ID')
+                                return;
+
+                            const isChecked = column.visible() ? 'checked' : '';
+                            const switchHtml = `
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input col-toggle-input" type="checkbox" 
+                                           id="at_col_${index}" data-column="${index}" ${isChecked}>
+                                    <label class="form-check-label" for="at_col_${index}">${title}</label>
+                                </div>`;
+                            container.append(switchHtml);
+                        });
+                    }
+
+                    // Inject the "Save for All" button into the modal footer (Admin only)
+                    function injectSaveButton() {
+                        if ($('#btn-save-global').length === 0) {
+                            $('<button type="button" id="btn-save-global" class="btn btn-alt-success me-1">Save for All Users</button>')
+                                .prependTo('#modal-column-settings .modal-content .block-content-full')
+                                .on('click', function() {
+                                    const state = dt.state();
+                                    $.ajax({
+                                        url: '{{ route('table_settings.save') }}',
+                                        method: 'POST',
+                                        data: {
+                                            _token: '{{ csrf_token() }}',
+                                            table_identifier: 'agreements_table',
+                                            settings: JSON.stringify(state)
+                                        },
+                                        success: function() {
+                                            alert('Agreement layout saved for all users!');
+                                            window.location.reload();
+                                        },
+                                        error: function() {
+                                            alert('Error saving settings.');
+                                        }
+                                    });
+                                });
+                        }
+                    }
+
+                    // Admin: Handle Toggle Clicks
                     $(document).on('change', '.col-toggle-input', function() {
                         const columnIdx = $(this).data('column');
                         dt.column(columnIdx).visible(this.checked);
                     });
 
-                    // Handle Reset
+                    // Admin: Handle Reset
                     $('#btn-reset-layout').on('click', function() {
                         dt.state.clear();
                         window.location.reload();
                     });
                 }
             }
-            $(document).ready(() => UserTable.init());
+            $(document).ready(() => AgreementTable.init());
         })();
     </script>
 @endsection

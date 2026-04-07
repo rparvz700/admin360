@@ -9,6 +9,7 @@ use App\Models\AssetCategory;
 use App\Models\AssetAttribute;
 use App\Models\AssetAttributeValue;
 use App\Models\Project;
+use App\Models\TableSetting;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Contracts\DataTable;
 use Yajra\DataTables\DataTables;
@@ -81,11 +82,15 @@ class AssetController extends Controller
                 ->make(true);
         }
 
-        return view('FacilitiesManagement.AssetManagement.Assets.index');
+        $assetSettings = TableSetting::where('table_identifier', 'like', 'assets_table_%')
+                                                    ->get()
+                                                    ->pluck('settings', 'table_identifier');
+
+        return view('FacilitiesManagement.AssetManagement.Assets.index', compact('assetSettings'));
     }
 
     // Show create asset form
-    public function create()
+    public function create(Request $request)
     {
         $categories = AssetCategory::all();
         $floors = \App\Models\PropertiesFloor::all();
@@ -93,7 +98,15 @@ class AssetController extends Controller
         $attributes = \App\Models\AssetAttribute::all();
         $projects = Project::where('status', 1)->get();
 
-        return view('FacilitiesManagement.AssetManagement.Assets.create', compact('categories', 'floors', 'assets', 'attributes', 'projects'));
+        $preselectedCategoryId = null;
+        if ($request->has('category')) {
+            $cat = AssetCategory::where('category_name', $request->category)->first();
+            if ($cat) {
+                $preselectedCategoryId = $cat->id;
+            }
+        }
+
+        return view('FacilitiesManagement.AssetManagement.Assets.create', compact('categories', 'floors', 'assets', 'attributes', 'projects', 'preselectedCategoryId'));
     }
 
     // Store new asset
