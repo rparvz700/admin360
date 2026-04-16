@@ -53,7 +53,7 @@
                             <label class="form-label" for="remarks">Remarks</label>
                             <textarea class="form-control" id="remarks" name="remarks">{{ old('remarks', $agreement->remarks ?? '') }}</textarea>
                         </div>
-                        @include('components.select-generic-document', ['documents' => $documents])
+                        {{-- @include('components.select-generic-document', ['documents' => $documents]) --}}
 
                     </div>
                     <button type="submit" class="btn btn-primary">Save</button>

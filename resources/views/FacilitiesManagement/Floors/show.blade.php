@@ -102,7 +102,7 @@
                                         <div class="p-3 rounded"
                                             style="background-color: rgba(255, 193, 7, 0.05); border-left: 3px solid #ffc107;">
                                             <small class="text-muted d-block mb-1">Project Name</small>
-                                            <strong>{{ $floor->project_name }}</strong>
+                                            <strong>{{ $floor->project->name ?? '' }}</strong>
                                         </div>
                                     </div>
                                     <div class="col-md-6">

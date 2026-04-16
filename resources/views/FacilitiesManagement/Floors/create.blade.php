@@ -1,7 +1,7 @@
 @extends('Partials.app', ['activeMenu' => 'floors'])
 
 @section('title')
-    {{ config('app.name') }} 
+    {{ config('app.name') }}
 @endsection
 
 @section('page_title')
@@ -22,7 +22,7 @@
                             <label class="form-label" for="building_id">Building<span class="text-danger">*</span></label>
                             <select class="form-control select2" id="building_id" name="building_id" required>
                                 <option value="">Select Building</option>
-                                @foreach($buildings as $building)
+                                @foreach ($buildings as $building)
                                     <option value="{{ $building->id }}">{{ $building->site_name }}</option>
                                 @endforeach
                             </select>
@@ -31,44 +31,66 @@
                             <label class="form-label" for="agreement_id">Agreement</label>
                             <select class="form-control select2" id="agreement_id" name="agreement_id">
                                 <option value="">Select Agreement</option>
-                                @foreach($agreements as $agreement)
+                                @foreach ($agreements as $agreement)
                                     <option value="{{ $agreement->id }}">{{ $agreement->agreement_ref_no }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="floor_label">Floor Label</label>
-                            <input type="text" class="form-control" id="floor_label" name="floor_label" value="{{ old('floor_label') }}">
+                            <input type="text" class="form-control" id="floor_label" name="floor_label"
+                                value="{{ old('floor_label') }}">
                         </div>
                         <div class="col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="floor_area_sft">Floor Area (sft)</label>
-                            <input type="number" step="0.01" class="form-control" id="floor_area_sft" name="floor_area_sft" value="{{ old('floor_area_sft') }}">
+                            <input type="number" step="0.01" class="form-control" id="floor_area_sft"
+                                name="floor_area_sft" value="{{ old('floor_area_sft') }}">
                         </div>
                         <div class="col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="premises_type">Premises Type</label>
-                            <input type="text" class="form-control" id="premises_type" name="premises_type" value="{{ old('premises_type') }}">
+                            {{-- <input type="text" class="form-control" id="premises_type" name="premises_type"
+                                value="{{ old('premises_type') }}"> --}}
+                            <select class="form-control" id="premises_type" name="premises_type">
+                                <option value="">Select Premises Type</option>
+                                <option value="Office Room">Office Room</option>
+                                <option value="PoP Room">PoP Room</option>
+                                <option value="DG Room">DG Room</option>
+                                <option value="Store Room">Store Room</option>
+                                <option value="Power Room">Power Room</option>
+                                <option value="Client Room">Client Room</option>
+                            </select>
                         </div>
                         <div class="col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="car_parking">Car Parking</label>
-                            <input type="number" class="form-control" id="car_parking" name="car_parking" value="{{ old('car_parking') }}">
+                            <input type="number" class="form-control" id="car_parking" name="car_parking"
+                                value="{{ old('car_parking') }}">
                         </div>
                         <div class="col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="dg_space_sft">DG Space (sft)</label>
-                            <input type="number" step="0.01" class="form-control" id="dg_space_sft" name="dg_space_sft" value="{{ old('dg_space_sft') }}">
+                            <input type="number" step="0.01" class="form-control" id="dg_space_sft" name="dg_space_sft"
+                                value="{{ old('dg_space_sft') }}">
                         </div>
                         <div class="col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="store_space_sft">Store Space (sft)</label>
-                            <input type="number" step="0.01" class="form-control" id="store_space_sft" name="store_space_sft" value="{{ old('store_space_sft') }}">
+                            <input type="number" step="0.01" class="form-control" id="store_space_sft"
+                                name="store_space_sft" value="{{ old('store_space_sft') }}">
                         </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="project_name">Project Name</label>
-                            <input type="text" class="form-control" id="project_name" name="project_name" value="{{ old('project_name') }}">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label" for="project">Project</label>
+                            <select class="form-control" id="project" name="project_id">
+                                <option value="">Select project</option>
+                                @foreach ($projects as $project)
+                                    <option value="{{ $project->id }}">{{ $project->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="status">Status</label>
                             <select class="form-control select2" id="status" name="status">
                                 <option value="Active" {{ old('status') == 'Active' ? 'selected' : '' }}>Active</option>
-                                <option value="Cancelled" {{ old('status') == 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                <option value="Cancelled" {{ old('status') == 'Cancelled' ? 'selected' : '' }}>Cancelled
+                                </option>
                             </select>
                         </div>
                     </div>
@@ -90,20 +112,23 @@
             padding: 0.375rem 0.75rem !important;
             background-color: #fff !important;
             box-shadow: none !important;
-            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out !important;
+            transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out !important;
         }
+
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             line-height: 26px !important;
             color: #212529 !important;
         }
+
         .select2-container--default .select2-selection--single .select2-selection__arrow {
             height: 36px !important;
             right: 10px !important;
         }
+
         .select2-container--default.select2-container--focus .select2-selection--single {
             border-color: #86b7fe !important;
             outline: 0 !important;
-            box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25) !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .25) !important;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\FacilitiesManagement\AssetManagement;
 
+use App\Helpers\Helpers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Asset;
@@ -272,6 +273,13 @@ class AssetController extends Controller
             // return null;
             throw $e;
         }
+    }
+
+
+    public function getHistory($id)
+    {
+        $history = Helpers::getHistory(Asset::class, $id);
+        return $history;
     }
 
 }

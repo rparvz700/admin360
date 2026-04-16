@@ -14,7 +14,7 @@ class BuildingsController extends Controller
 {
     public function list(Request $request)
     {
-        $query = PropertiesBuilding::query();
+        $query = PropertiesBuilding::orderBy('id', 'desc');
         return DataTables::of($query)
             ->addIndexColumn()
             ->addColumn('actions', function ($building) {

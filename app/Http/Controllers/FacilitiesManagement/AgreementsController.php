@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\FacilitiesManagement;
 
+use App\Helpers\Helpers;
 use App\Http\Controllers\Controller;
 use App\Models\Agreement;
 use Yajra\DataTables\DataTables;
@@ -17,7 +18,7 @@ class AgreementsController extends Controller
         $tableConfig = $globalSettings ? $globalSettings->settings : null;
 
         if ($request->ajax()) {
-            $query = Agreement::query();
+            $query = Agreement::orderBy('id', 'desc')->get();
             return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('agreement_date', function($row) { return $row->agreement_date; })
@@ -74,8 +75,9 @@ class AgreementsController extends Controller
 
     public function edit($id)
     {
+        $documents = GenericDocument::with('category')->get();
         $agreement = Agreement::findOrFail($id);
-        return view('FacilitiesManagement.Agreements.edit', compact('agreement'));
+        return view('FacilitiesManagement.Agreements.edit', compact('agreement', 'documents'));
     }
 
     public function update(Request $request, $id)
@@ -104,5 +106,12 @@ class AgreementsController extends Controller
         $agreement = Agreement::findOrFail($id);
         $agreement->delete();
         return redirect()->route('agreements.index')->with('success', 'Agreement deleted successfully.');
+    }
+
+
+    public function getHistory($id)
+    {
+        $history = Helpers::getHistory(Agreement::class, $id);
+        return $history;
     }
 }

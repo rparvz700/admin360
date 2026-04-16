@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Agreement extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $table = 'agreements';
 
@@ -39,7 +41,7 @@ class Agreement extends Model
 
     public function advanceSettlements()
     {
-        return $this->hasMany(AdvanceSettlement::class, 'agreement_id');
+        // return $this->hasMany(advanceSettlements::class, 'agreement_id');
     }
 
     public function securityDeposits()
@@ -50,5 +52,20 @@ class Agreement extends Model
     public function maintenance()
     {
         return $this->hasMany(Maintenance::class, 'agreement_id');
+    }
+
+    public function documents()
+    {
+        return $this->morphMany(GenericDocument::class, 'documentable');
+    }
+
+     public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            // ->logOnly(['agreement_id', 'building_id'])
+            ->logAll()
+            ->logExcept(['updated_at'])
+            ->logOnlyDirty() 
+            ->dontSubmitEmptyLogs(); 
     }
 }

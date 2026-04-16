@@ -26,13 +26,13 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label" for="asset_tag">Asset Tag<span
+                                <label class="form-label" for="asset_tag">Asset Tag / Unique Code<span
                                         class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="asset_tag" name="asset_tag"
                                     value="{{ old('asset_tag', $asset->asset_tag) }}" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label" for="asset_name">Asset Name<span
+                                <label class="form-label" for="asset_name">Asset Description<span
                                         class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="asset_name" name="asset_name"
                                     value="{{ old('asset_name', $asset->asset_name) }}" required>

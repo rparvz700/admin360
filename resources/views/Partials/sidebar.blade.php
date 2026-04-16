@@ -96,13 +96,21 @@
                                         <ul class="nav-main-submenu">
 
                                             <li
-                                                class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'buildings' || $activeMenu == 'floors' || $activeMenu == 'agreements' || $activeMenu == 'rent') ? 'open' : '' }}">
+                                                class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'buildings' || $activeMenu == 'floors' || $activeMenu == 'agreements' || $activeMenu == 'rent' || $activeMenu == 'wizard.property') ? 'open' : '' }}">
                                                 <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                     aria-haspopup="true" aria-expanded="false" href="#">
                                                     <i class="nav-main-link-icon fa fa-home"></i>
                                                     <span class="nav-main-link-name">Property Management</span>
                                                 </a>
                                                 <ul class="nav-main-submenu">
+                                                    @canany(['property-wizard'])
+                                                        <li class="nav-main-item">
+                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'wizard.property' ? 'active' : '' }}"
+                                                                href="{{ route('wizard.property.create') }}">
+                                                                <span class="nav-main-link-name">Create All</span>
+                                                            </a>
+                                                        </li>
+                                                    @endcanany
                                                     @canany(['create-agreement', 'edit-agreement', 'delete-agreement'])
                                                         <li class="nav-main-item">
                                                             <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'agreements' ? 'active' : '' }}"

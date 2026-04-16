@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\FacilitiesManagement\Rent;
 
+use App\Helpers\Helpers;
 use App\Http\Controllers\Controller;
 use App\Models\Agreement;
 use Illuminate\Http\Request;
@@ -14,7 +15,7 @@ class RentController extends Controller
 {
     public function list(Request $request)
     {
-        $query = RentBase::with('agreement');
+        $query = RentBase::with('agreement')->orderBy('id', 'desc');
         return datatables()->of($query)
             ->addIndexColumn()
             ->addColumn('agreement_start_date', function($row) {
@@ -191,5 +192,11 @@ class RentController extends Controller
     {
         $base = RentBase::with(['increments', 'securityDeposits'])->findOrFail($id);
         return view('FacilitiesManagement.Rent.show', compact('base'));
+    }
+
+    public function getHistory($id)
+    {
+        $history = Helpers::getHistory(RentBase::class, $id);
+        return $history;
     }
 }

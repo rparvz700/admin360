@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class RentBase extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     // Relationship: securityDeposits
     public function securityDeposits()
@@ -46,5 +48,15 @@ class RentBase extends Model
     public function increments()
     {
         return $this->hasMany(RentIncrement::class, 'base_rent_id');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            // ->logOnly(['agreement_id', 'building_id'])
+            ->logAll()
+            ->logExcept(['updated_at'])
+            ->logOnlyDirty() 
+            ->dontSubmitEmptyLogs(); 
     }
 }

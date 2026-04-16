@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Asset extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $table = 'assets';
 
@@ -60,5 +62,15 @@ class Asset extends Model
     public function documents()
     {
         return $this->morphMany(GenericDocument::class, 'documentable');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            // ->logOnly(['category_id', 'floor_id'])
+            ->logAll()
+            ->logExcept(['updated_at'])
+            ->logOnlyDirty() 
+            ->dontSubmitEmptyLogs(); 
     }
 }

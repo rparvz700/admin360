@@ -21,6 +21,7 @@ use App\Http\Controllers\GenericDocumentManagement\GenericDocumentController;
 
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PropertyWizardController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -75,6 +76,13 @@ Route::middleware(['auth'])->group(function(){
         'asset-attributes' => AssetAttributeController::class,
     ]);
 
+    // Asset
+    Route::get('assets/{id}/history', [AssetController::class, 'getHistory'])->name('assets.history');
+    // Agreement
+    Route::get('agreements/{id}/history', [AgreementsController::class, 'getHistory'])->name('agreements.history');
+    // Rent
+    Route::get('rent/{id}/history', [RentController::class, 'getHistory'])->name('rent.history');
+
     // Vehicle Management
     Route::resource('drivers', DriverController::class);
     Route::get('rent-list', [RentController::class, 'list'])->name('rent.list');
@@ -104,6 +112,9 @@ Route::middleware(['auth'])->group(function(){
     ->name('documentable.fetch');
 
     Route::post('/table-settings/save', [TableSettingController::class, 'save'])->name('table_settings.save');
+
+    Route::get('wizard/create', [PropertyWizardController::class, 'create'])->name('wizard.property.create');
+    Route::post('wizard/store', [PropertyWizardController::class, 'store'])->name('wizard.property.store');
 
 });
 

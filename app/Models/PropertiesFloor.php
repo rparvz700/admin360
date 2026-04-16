@@ -23,7 +23,7 @@ class PropertiesFloor extends Model
         'car_parking',
         'dg_space_sft',
         'store_space_sft',
-        'project_name',
+        'project_id',
         'status',
         'created_at',
         'updated_at',
@@ -44,11 +44,18 @@ class PropertiesFloor extends Model
         return $this->belongsTo(Agreement::class, 'agreement_id');
     }
 
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'project_id');
+    }
+
 
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['agreement_id', 'building_id'])
+            // ->logOnly(['agreement_id', 'building_id'])
+            ->logAll()
+            ->logExcept(['updated_at'])
             ->logOnlyDirty() 
             ->dontSubmitEmptyLogs(); 
     }

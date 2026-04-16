@@ -154,6 +154,11 @@
                     title: 'Site Name'
                 },
                 {
+                    data: 'asset_tag',
+                    name: 'asset_tag',
+                    title: 'Unique Code'
+                },
+                {
                     data: 'floor',
                     name: 'floor',
                     title: 'Floor'
