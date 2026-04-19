@@ -28,4 +28,9 @@ class PropertiesBuilding extends Model
     {
         return $this->hasMany(PropertiesFloor::class, 'building_id');
     }
+
+    public function location()
+{
+    return $this->belongsTo(Location::class, 'upazila', 'upazilla');
+}
 }

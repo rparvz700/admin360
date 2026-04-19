@@ -9,6 +9,7 @@ use App\Models\Asset;
 use App\Models\AssetCategory;
 use App\Models\AssetAttribute;
 use App\Models\AssetAttributeValue;
+use App\Models\Location;
 use App\Models\Project;
 use App\Models\TableSetting;
 use Illuminate\Support\Facades\Log;
@@ -20,19 +21,6 @@ class AssetController extends Controller
     // List all assets
     public function index(Request $request)
     {
-        $upazillaUrl = config('app.baseline_base_url').'api/upazilla';
-        $token = 'Authorization: Bearer '.config('app.baseline_api_token');
-
-        $upazillaApiRes = $this->callAPI('GET', $upazillaUrl, '', $token);
-        $upazillaApiResArr = json_decode($upazillaApiRes, true);
-        $upazillas = $upazillaApiResArr['data'];
-
-        $upazillaMap = collect($upazillas)
-            ->mapWithKeys(function ($item) {
-                $key = strtolower(trim($item['district'])) . '|' . strtolower(trim($item['upazilla']));
-                return [$key => $item['subcenter']];
-            })
-            ->toArray();
 
         if ($request->ajax()) {
             $categoryName = $request->get('category_id');
@@ -55,10 +43,11 @@ class AssetController extends Controller
                 ->addColumn('project', fn($asset) => $asset->project->name ?? '')
                 ->addColumn('building_floor', fn($asset) => $asset->floor->building->site_name ?? '')
                 ->addColumn('site_code', fn($asset) => $asset->floor->building->code ?? '')
-                ->addColumn('subcenter', function ($asset) use ($upazillaMap) {
-                    $key = strtolower(trim($asset->floor->building->district ?? '')) . '|' . strtolower(trim($asset->floor->building->upazila ?? ''));
-                    return $upazillaMap[$key] ?? '';
-                })
+                ->addColumn('subcenter', fn($asset) => $asset->floor->building->location->subcenter ?? '')
+                // ->addColumn('subcenter', function ($asset) use ($upazillaMap) {
+                //     $key = strtolower(trim($asset->floor->building->district ?? '')) . '|' . strtolower(trim($asset->floor->building->upazila ?? ''));
+                //     return $upazillaMap[$key] ?? '';
+                // })
                 ->addColumn('floor', fn($asset) => $asset->floor->floor_label ?? '')
                 ->addColumn('parent', fn($asset) => $asset->parent ? ($asset->parent->asset_tag . ' - ' . $asset->parent->asset_name) : '')
                 ->editColumn('status', function ($row) {
