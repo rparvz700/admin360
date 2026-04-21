@@ -234,7 +234,9 @@
             $(document).ready(() => BuildingTable.init());
         })();
 
-        $(document).on('click', '.delete-button', function() {
+        $(document).on('click', '.delete-button', function(e) {
+            e.preventDefault();
+
             var buildingId = $(this).data('building-id');
             if (confirm('Do you want to delete this building?')) {
                 $('#deleteForm' + buildingId).submit();

@@ -40,6 +40,7 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>Site Code</th>
                                 <th>Building</th>
                                 <th>Floor Label</th>
                                 <th>Area (sft)</th>
@@ -126,6 +127,10 @@
                                 name: 'SI',
                                 orderable: false,
                                 searchable: false
+                            },
+                            {
+                                data: 'code',
+                                name: 'code'
                             },
                             {
                                 data: 'building'

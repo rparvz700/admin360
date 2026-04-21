@@ -54,22 +54,25 @@ class GenericDocumentController extends Controller
 
         // 🔍 Apply search filter
         if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
+             $typesConfig = config('app.documentableTypes');
+
+            $query->where(function ($q) use ($search, $typesConfig) {
                 $q->where('id', 'like', "%$search%")
                 ->orWhere('documentable_type', 'like', "%$search%")
                 ->orWhere('issue_date', 'like', "%$search%")
-                ->orWhere('expiry_date', 'like', "%$search%")
-                ->orWhereHasMorph(
-                    'documentable',
-                    config('app.documentableTypes'),
-                    function ($q2) use ($search) {
-                        // Search common name-like columns
-                        $q2->where('name', 'like', "%$search%")
-                            ->orWhere('registration_number', 'like', "%$search%")
-                            ->orWhere('title', 'like', "%$search%");
-                    }
-                )
-                ->orWhereHas('category', function ($q2) use ($search) {
+                ->orWhere('expiry_date', 'like', "%$search%");
+                foreach ($typesConfig as $type) {
+
+                    $model = $type['class'] ?? null;
+                    $field = $type['display_field'] ?? null;
+
+                    if (!$model || !$field) continue;
+
+                    $q->orWhereHasMorph('documentable', [$model], function ($q2) use ($search, $field) {
+                        $q2->where($field, 'like', "%$search%");
+                    });
+                }
+                $q->orWhereHas('category', function ($q2) use ($search) {
                     $q2->where('category_name', 'like', "%$search%");
                 });
             });

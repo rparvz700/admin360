@@ -38,6 +38,9 @@ class FloorsController extends Controller
         $query = PropertiesFloor::with(['building', 'agreement'])->orderBy('id', 'desc');
         return DataTables::of($query)
             ->addIndexColumn()
+            ->addColumn('code', function ($floor) {
+                return $floor->building ? $floor->building->code : '';
+            })
             ->addColumn('building', function ($floor) {
                 return $floor->building ? $floor->building->site_name : '';
             })
@@ -50,6 +53,11 @@ class FloorsController extends Controller
             ->filterColumn('building', function ($query, $keyword) {
                 $query->whereHas('building', function ($q) use ($keyword) {
                     $q->where('site_name', 'like', "%{$keyword}%");
+                });
+            })
+            ->filterColumn('code', function ($query, $keyword) {
+                $query->whereHas('building', function ($q) use ($keyword) {
+                    $q->where('code', 'like', "%{$keyword}%");
                 });
             })
             ->rawColumns(['actions'])
