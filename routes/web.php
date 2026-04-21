@@ -19,9 +19,24 @@ use App\Http\Controllers\VehicleManagement\DriverController;
 
 use App\Http\Controllers\GenericDocumentManagement\GenericDocumentController;
 
+use App\Http\Controllers\TicketManagement\TicketController;
+use App\Http\Controllers\TicketManagement\AdminTicketController;
+use App\Http\Controllers\TicketManagement\VehicleAssignmentController;
+
+use App\Http\Controllers\VehicleMaintenanceManagement\VendorController;
+use App\Http\Controllers\VehicleMaintenanceManagement\VehicleMaintenanceController;
+use App\Http\Controllers\VehicleMaintenanceManagement\VehiclePartController;
+use App\Http\Controllers\VehicleMaintenanceManagement\VehicleOperationalLogController;
+use App\Http\Controllers\InvoiceManagement\InvoiceController;
+use App\Http\Controllers\VehicleMaintenanceManagement\MaintenanceReportController;
+
 
 use App\Http\Controllers\ProfileController;
+<<<<<<< HEAD
 use App\Http\Controllers\PropertyWizardController;
+=======
+use Illuminate\Http\Request;
+>>>>>>> main
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -125,4 +140,95 @@ Auth::routes(['register' => false]);
 Route::get('document-manager/prototype', function () {
     return view('DocumentManagement.document_manager');
 })->name('document-manager.prototype');
+
+
+// User Ticket Routes
+Route::middleware(['auth'])->prefix('tickets')->name('tickets.')->group(function () {
+    Route::get('/', [TicketController::class, 'index'])->name('index');
+    Route::get('/create', [TicketController::class, 'create'])->name('create');
+    Route::post('/', [TicketController::class, 'store'])->name('store');
+    Route::get('/{ticket}', [TicketController::class, 'show'])->name('show');
+    Route::post('/{ticket}/update', [TicketController::class, 'addUpdate'])->name('addUpdate');
+    Route::post('/{ticket}/cancel', [TicketController::class, 'cancel'])->name('cancel');
+});
+
+// Admin Ticket Routes
+Route::middleware(['auth'])->prefix('admin/tickets')->name('admin.tickets.')->group(function () {
+    Route::get('/', [AdminTicketController::class, 'index'])->name('index');
+    Route::get('/{ticket}', [AdminTicketController::class, 'show'])->name('show');
+    Route::post('/{ticket}/assign', [AdminTicketController::class, 'assign'])->name('assign');
+    
+    Route::post('/{ticket}/update-status', [AdminTicketController::class, 'updateStatus'])->name('updateStatus');
+    Route::post('/{ticket}/update', [AdminTicketController::class, 'addUpdate'])->name('addUpdate');
+
+    // Vehicle Assignment Routes
+    Route::get('/assignment/resources', [VehicleAssignmentController::class, 'getAvailableResources'])->name('assignment.resources');
+    Route::post('/assignment-assign/', [VehicleAssignmentController::class, 'assignToTicket'])->name('assignment.assign');
+    Route::get('/assignment/schedule', [VehicleAssignmentController::class, 'getResourceSchedule'])->name('assignment.schedule');
+});
+
+
+//openstreet proxy route
+Route::get('/api/reverse-geocode', function (Request $request) {
+    $lat = $request->lat;
+    $lon = $request->lon;
+
+    $response = Http::withHeaders([
+        'User-Agent' => 'YourAppName/1.0 (contact@yourdomain.com)',
+        'Accept-Language' => 'en'
+    ])->get('https://nominatim.openstreetmap.org/reverse', [
+        'format' => 'json',
+        'lat' => $lat,
+        'lon' => $lon,
+    ]);
+
+    return response()->json($response->json());
+})->name('api.reverse-geocode');
+
+Route::middleware(['auth'])->group(function () {
+// Invoices
+    Route::resource('invoices', InvoiceController::class);
+    Route::post('invoices/{invoice}/pay', [InvoiceController::class, 'recordPayment'])->name('invoices.pay');
+    Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
+});
+
+Route::prefix('maintenance')->name('maintenance.')->middleware(['auth'])->group(function () {
+    
+    // Dashboard
+    Route::get('/dashboard', [MaintenanceReportController::class, 'dashboard'])->name('dashboard');
+    
+    // Vendors
+    Route::resource('vendors', VendorController::class);
+    Route::get('vendors/{vendor}/history', [VendorController::class, 'history'])->name('vendors.history');
+    
+    // Vehicle Parts Master
+    Route::resource('parts', VehiclePartController::class);
+    Route::get('parts/{part}/history/{vehicle}', [VehiclePartController::class, 'partHistory'])->name('parts.history');
+    
+    // Vehicle Maintenance Records
+    Route::resource('maintenances', VehicleMaintenanceController::class);
+    Route::post('maintenances/{maintenance}/approve', [VehicleMaintenanceController::class, 'approve'])->name('maintenances.approve');
+    Route::get('maintenances/{maintenance}/invoice', [VehicleMaintenanceController::class, 'generateInvoice'])->name('maintenances.invoice');
+    
+    // Operational Logs
+    Route::resource('operational-logs', VehicleOperationalLogController::class);
+    Route::post('operational-logs/meter-reading', [VehicleOperationalLogController::class, 'quickMeterReading'])->name('operational-logs.meter-reading');
+    
+    // Reports
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', function () {
+            return view('VehicleManagement.VehicleMaintenance.Reports.index');
+        })->name('index');
+        Route::get('/vehicle-cost', [MaintenanceReportController::class, 'vehicleCost'])->name('vehicle-cost');
+        Route::get('/vendor-cost', [MaintenanceReportController::class, 'vendorCost'])->name('vendor-cost');
+        Route::get('/vendor-bill', [MaintenanceReportController::class, 'vendorBill'])->name('vendor-bill');
+        Route::get('/vendor-bill/export', [MaintenanceReportController::class, 'vendorBillExport'])
+     ->name('vendor-bill.export');
+        Route::get('/monthly-expenses', [MaintenanceReportController::class, 'monthlyExpenses'])->name('monthly-expenses');
+        Route::get('/parts-history', [MaintenanceReportController::class, 'partsHistory'])->name('parts-history');
+        Route::get('/service-due', [MaintenanceReportController::class, 'serviceDue'])->name('service-due');
+        Route::get('/vendor-comparison', [MaintenanceReportController::class, 'vendorComparison'])->name('vendor-comparison');
+    });
+});
+
 
