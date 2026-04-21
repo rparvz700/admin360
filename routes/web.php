@@ -30,14 +30,11 @@ use App\Http\Controllers\VehicleMaintenanceManagement\VehicleOperationalLogContr
 use App\Http\Controllers\InvoiceManagement\InvoiceController;
 use App\Http\Controllers\VehicleMaintenanceManagement\MaintenanceReportController;
 
-
 use App\Http\Controllers\ProfileController;
-<<<<<<< HEAD
 use App\Http\Controllers\PropertyWizardController;
-=======
 use Illuminate\Http\Request;
->>>>>>> main
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
