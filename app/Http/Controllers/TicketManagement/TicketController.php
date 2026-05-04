@@ -13,25 +13,81 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
+use Yajra\DataTables\DataTables;
 
 class TicketController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Ticket::with(['user', 'assignedTo', 'vehicleType', 'asset', 'assetCategory'])
-            ->where('user_id', Auth::id());
+        if ($request->ajax()) {
+            // Start with the base query, eager load relationships
+            $query = Ticket::with(['user', 'assignedTo', 'vehicleType', 'asset', 'assetCategory'])
+                ->where('user_id', Auth::id()); // Filter by logged-in user
 
-        if ($request->filled('ticket_type')) {
-            $query->where('ticket_type', $request->ticket_type);
+            // Apply filters from the request (these come from DataTables AJAX 'data' function)
+            if ($request->filled('ticket_type')) {
+                $query->where('ticket_type', $request->ticket_type);
+            }
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+
+            return DataTables::of($query)
+                // Ticket Number with link
+                ->addColumn('ticket_number_link', function ($ticket) {
+                    return '<a href="' . route('tickets.show', $ticket) . '" class="text-decoration-none">' .
+                           $ticket->ticket_number .
+                           '</a>';
+                })
+                // Ticket Type with badge
+                ->addColumn('ticket_type_badge', function ($ticket) {
+                    return '<span class="badge bg-secondary">' .
+                           ucwords(str_replace('_', ' ', $ticket->ticket_type)) .
+                           '</span>';
+                })
+                // Title (direct column)
+                ->editColumn('title', function ($ticket) {
+                    return $ticket->title;
+                })
+                // Priority with badge
+                ->addColumn('priority_badge', function ($ticket) {
+                    return '<span class="badge bg-' . $ticket->priority_color . '">' .
+                           ucfirst($ticket->priority) .
+                           '</span>';
+                })
+                // Status with badge
+                ->addColumn('status_badge', function ($ticket) {
+                    return '<span class="badge bg-' . $ticket->status_color . '">' .
+                           ucwords(str_replace('_', ' ', $ticket->status)) .
+                           '</span>';
+                })
+                // Created At formatted
+                ->editColumn('created_at', function ($ticket) {
+                    return $ticket->created_at->format('M d, Y H:i');
+                })
+                // Actions column
+                ->addColumn('actions', function ($ticket) {
+                    // Assuming you have a partial for ticket actions. Adjust path if needed.
+                    return '<a href="' . route('tickets.show', $ticket) . '" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> View
+                            </a>';
+                })
+                // Specify which columns contain HTML and should not be escaped
+                ->rawColumns(['ticket_number_link', 'ticket_type_badge', 'priority_badge', 'status_badge', 'actions'])
+                // For custom filtering of related data, if needed for global search
+                // For example, if you wanted to search by vehicleType name, you'd add:
+                // ->filterColumn('vehicle_type_name', function($query, $keyword) {
+                //     $query->whereHas('vehicleType', function($q) use ($keyword) {
+                //         $q->where('name', 'like', "%{$keyword}%");
+                //     });
+                // })
+                ->make(true);
         }
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $tickets = $query->latest()->paginate(15);
-
-        return view('TicketManagement.index', compact('tickets'));
+        // For initial page load, return the view without data.
+        // The DataTables JS will then make the AJAX request for data.
+        return view('TicketManagement.index');
     }
 
     public function create()

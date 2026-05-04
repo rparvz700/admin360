@@ -13,6 +13,7 @@ use App\Models\VehicleOperationalLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\DataTables;
 
 class VehicleMaintenanceController extends Controller
 {
@@ -22,29 +23,64 @@ class VehicleMaintenanceController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
+            // Start with the base query. Yajra will handle the 'get()' and further processing.
             $maintenances = VehicleMaintenance::with(['vehicle', 'vendor', 'invoice'])
-                ->orderByDesc('start_datetime')
-                ->get()
-                ->map(function ($maintenance) {
-                    return [
-                        'id' => $maintenance->id,
-                        'vehicle' => $maintenance->vehicle->registration_number ?? 'N/A',
-                        'maintenance_type' => '<span class="badge bg-' . $maintenance->getMaintenanceTypeBadge() . '">' . 
-                                            $maintenance->getMaintenanceTypeLabel() . '</span>',
-                        'start_datetime' => $maintenance->start_datetime->format('d M Y H:i'),
-                        'vendor' => $maintenance->vendor->name ?? 'N/A',
-                        'labor_cost' => '৳ ' . number_format($maintenance->labor_cost, 2),
-                        'parts_cost' => '৳ ' . number_format($maintenance->parts_cost, 2),
-                        'total_cost' => '৳ ' . number_format($maintenance->total_service_cost, 2),
-                        'status' => '<span class="badge bg-secondary">' . ucfirst($maintenance->status) . '</span>',
-                        'invoice' => $maintenance->invoice_id
-                        ? '<a href="' . route('invoices.show', $maintenance->invoice_id) . '" class="btn btn-sm btn-success"><i class="fa fa-file-invoice"></i> View</a>'
-                        : '<a href="' . route('invoices.create', ['maintenance_id' => $maintenance->id]) . '" class="btn btn-sm btn-warning"><i class="fa fa-plus"></i> Create</a>',
-                        'actions' => view('VehicleManagement.VehicleMaintenance.partials.actions', compact('maintenance'))->render(),
-                    ];
-                });
+                                ->orderByDesc('start_datetime'); // Apply default ordering if desired
 
-            return response()->json(['data' => $maintenances]);
+            return DataTables::of($maintenances)
+                // Add the 'vehicle' column, transforming it from the relationship
+                ->addColumn('vehicle', function ($maintenance) {
+                    return $maintenance->vehicle->registration_number ?? 'N/A';
+                })
+                // Add 'maintenance_type' with custom HTML
+                ->addColumn('maintenance_type', function ($maintenance) {
+                    return '<span class="badge bg-' . $maintenance->getMaintenanceTypeBadge() . '">' .
+                           $maintenance->getMaintenanceTypeLabel() . '</span>';
+                })
+                // Format 'start_datetime'
+                ->editColumn('start_datetime', function ($maintenance) {
+                    return $maintenance->start_datetime->format('d M Y H:i');
+                })
+                // Add the 'vendor' column, transforming it from the relationship
+                ->addColumn('vendor', function ($maintenance) {
+                    return $maintenance->vendor->name ?? 'N/A';
+                })
+                // Format 'labor_cost'
+                ->addColumn('labor_cost', function ($maintenance) {
+                    return '৳ ' . number_format($maintenance->labor_cost, 2);
+                })
+                // Format 'parts_cost'
+                ->addColumn('parts_cost', function ($maintenance) {
+                    return '৳ ' . number_format($maintenance->parts_cost, 2);
+                })
+                // Add 'total_cost' (assuming total_service_cost is an accessor or calculated property)
+                ->addColumn('total_cost', function ($maintenance) {
+                    return '৳ ' . number_format($maintenance->total_service_cost, 2);
+                })
+                // Add 'status' with custom HTML
+                ->addColumn('status', function ($maintenance) {
+                    return '<span class="badge bg-secondary">' . ucfirst($maintenance->status) . '</span>';
+                })
+                // Add 'actions' column with custom HTML from a partial view
+                ->addColumn('actions', function ($maintenance) {
+                    return view('VehicleManagement.VehicleMaintenance.partials.actions', compact('maintenance'))->render();
+                })
+                // Specify which columns contain HTML and should not be escaped
+                ->rawColumns(['maintenance_type', 'status', 'actions'])
+                // For relational columns, if you want them to be searchable/sortable, you might need to use `filterColumn` and `orderColumn`.
+                // Example for vehicle search:
+                ->filterColumn('vehicle', function($query, $keyword) {
+                    $query->whereHas('vehicle', function($q) use ($keyword) {
+                        $q->where('registration_number', 'like', "%{$keyword}%");
+                    });
+                })
+                // Example for vendor search:
+                ->filterColumn('vendor', function($query, $keyword) {
+                    $query->whereHas('vendor', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
+                    });
+                })
+                ->make(true);
         }
 
         return view('VehicleManagement.VehicleMaintenance.index');

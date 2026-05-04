@@ -10,33 +10,35 @@ class Ticket extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'ticket_number',
-        'ticket_type',
-        'user_id',
-        'title',
-        'description',
-        'priority',
-        'status',
-        'vehicle_type_id',
-        'trip_start_datetime',
-        'trip_end_datetime',
-        'pickup_location',
-        'destination',
-        'passenger_count',
-        'trip_purpose',
-        'asset_id',
-        'asset_category_id',
-        'requested_asset_name',
-        'asset_specifications',
-        'floor_id',
-        'location_within_floor',
-        'assigned_to',
-        'assigned_driver_id',
-        'assigned_vehicle_id',
-        'assigned_at',
-        'completed_at',
-    ];
+    // protected $fillable = [
+    //     'ticket_number',
+    //     'ticket_type',
+    //     'user_id',
+    //     'title',
+    //     'description',
+    //     'priority',
+    //     'status',
+    //     'vehicle_type_id',
+    //     'trip_start_datetime',
+    //     'trip_end_datetime',
+    //     'pickup_location',
+    //     'destination',
+    //     'passenger_count',
+    //     'trip_purpose',
+    //     'asset_id',
+    //     'asset_category_id',
+    //     'requested_asset_name',
+    //     'asset_specifications',
+    //     'floor_id',
+    //     'location_within_floor',
+    //     'assigned_to',
+    //     'assigned_driver_id',
+    //     'assigned_vehicle_id',
+    //     'assigned_at',
+    //     'completed_at',
+    // ];
+
+    protected $guarded = [];
 
     protected $casts = [
         'trip_start_datetime' => 'datetime',

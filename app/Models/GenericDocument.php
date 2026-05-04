@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class GenericDocument extends Model
 {   
     // Tell Laravel to include virtual attributes in arrays/JSON
     protected $appends = ['primary_text'];
 
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $table = 'generic_documents';
     protected $fillable = [
         'documentable_type',

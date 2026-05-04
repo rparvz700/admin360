@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vehicle extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $table = 'vehicles';
     protected $fillable = [
         'vehicle_type_id',
@@ -27,7 +28,11 @@ class Vehicle extends Model
         'status',
         'reg_year',
         'engine_cc',
-        'vehicle_weight'
+        'vehicle_weight',
+        'is_manual_entry',
+        'vehicle_id',
+        'cost',
+        'cost_details',
     ];
     public function vehicleType()
     {

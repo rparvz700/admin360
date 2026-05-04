@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RentBase extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory, LogsActivity, SoftDeletes;
 
     // Relationship: securityDeposits
     public function securityDeposits()

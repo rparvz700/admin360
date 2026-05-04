@@ -41,41 +41,6 @@
                                         </a>
                                     </li>
 
-                                    {{-- -------------------------Users------------------------- --}}
-                                    <li
-                                        class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'users' || $activeMenu == 'departments' || $activeMenu == 'subcenters') ? 'open' : '' }}">
-                                        <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
-                                            aria-haspopup="true" aria-expanded="false" href="#">
-                                            <i class="nav-main-link-icon si si-users"></i>
-                                            <span class="nav-main-link-name">User Settings</span>
-                                        </a>
-                                        <ul class="nav-main-submenu">
-                                            @canany(['create-user', 'edit-user', 'delete-user'])
-                                                <li class="nav-main-item">
-                                                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'users' ? 'active' : '' }}"
-                                                        href="{{ route('users.index') }}">
-                                                        <span class="nav-main-link-name">Users</span>
-                                                    </a>
-                                                </li>
-                                            @endcanany
-                                            {{-- @canany(['create-department', 'edit-department', 'delete-department'])
-                            <li class="nav-main-item">
-                                <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'departments' ? 'active' : '' }}"
-                                    href="{{ route('departments.index') }}">
-                                    <span class="nav-main-link-name">Departments</span>
-                                </a>
-                            </li>
-                        @endcanany
-                        @canany(['create-subcenter', 'edit-subcenter', 'delete-subcenter'])
-                            <li class="nav-main-item">
-                                <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'subcenters' ? 'active' : '' }}"
-                                    href="{{ route('subcenters.index') }}">
-                                    <span class="nav-main-link-name">Subcenters</span>
-                                </a>
-                            </li>
-                        @endcanany --}}
-                                        </ul>
-                                    </li>
                                     {{-- -------------------------Facilities Management------------------------- --}}
                                     <li
                                         class="nav-main-item {{ isset($activeMenu) &&
@@ -147,281 +112,324 @@
                                                 </ul>
                                             </li>
 
-                                            <li
-                                                class="nav-main-item {{ isset($activeMenu) &&
-                                                ($activeMenu == 'assets' ||
-                                                    $activeMenu == 'asset-categories' ||
-                                                    $activeMenu == 'projects' ||
-                                                    $activeMenu == 'asset-attributes')
-                                                    ? 'open'
-                                                    : '' }}">
-                                                <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
-                                                    aria-haspopup="true" aria-expanded="false" href="#">
-                                                    <i class="nav-main-link-icon fa fa-box"></i>
-                                                    <span class="nav-main-link-name">Asset Management</span>
-                                                </a>
-                                                <ul class="nav-main-submenu">
-                                                    <li class="nav-main-item">
-                                                        <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'assets' ? 'active' : '' }}"
-                                                            href="{{ route('assets.index') }}">
-                                                            <span class="nav-main-link-name">Assets</span>
-                                                        </a>
-                                                    </li>
-                                                    <li
-                                                        class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'asset-categories' || $activeMenu == 'asset-attributes' || $activeMenu == 'projects') ? 'open' : '' }}">
-                                                        <a class="nav-main-link nav-main-link-submenu"
-                                                            data-toggle="submenu" aria-haspopup="true"
-                                                            aria-expanded="false" href="#">
-                                                            <i class="nav-main-link-icon fa fa-cog"></i>
-                                                            <span class="nav-main-link-name">Settings</span>
-                                                        </a>
-                                                        <ul class="nav-main-submenu">
-                                                            <li class="nav-main-item">
-                                                                <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'asset-categories' ? 'active' : '' }}"
-                                                                    href="{{ route('asset-categories.index') }}">
-                                                                    <span class="nav-main-link-name">Asset
-                                                                        Categories</span>
-                                                                </a>
-                                                            </li>
-                                                            <li class="nav-main-item">
-                                                                <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'asset-attributes' ? 'active' : '' }}"
-                                                                    href="{{ route('asset-attributes.index') }}">
-                                                                    <span class="nav-main-link-name">Asset
-                                                                        Attributes</span>
-                                                                </a>
-                                                            </li>
-                                                            <li class="nav-main-item">
-                                                                <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'projects' ? 'active' : '' }}"
-                                                                    href="{{ route('projects.index') }}">
-                                                                    <span class="nav-main-link-name">Projects</span>
-                                                                </a>
-                                                            </li>
-                                                        </ul>
-                                                    </li>
-                                                </ul>
-                                            </li>
+                                            @canany(['asset-management'])
+                                                <li
+                                                    class="nav-main-item {{ isset($activeMenu) &&
+                                                    ($activeMenu == 'assets' ||
+                                                        $activeMenu == 'asset-categories' ||
+                                                        $activeMenu == 'projects' ||
+                                                        $activeMenu == 'asset-attributes')
+                                                        ? 'open'
+                                                        : '' }}">
+                                                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
+                                                        aria-haspopup="true" aria-expanded="false" href="#">
+                                                        <i class="nav-main-link-icon fa fa-box"></i>
+                                                        <span class="nav-main-link-name">Asset Management</span>
+                                                    </a>
+                                                    <ul class="nav-main-submenu">
+                                                        <li class="nav-main-item">
+                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'assets' ? 'active' : '' }}"
+                                                                href="{{ route('assets.index') }}">
+                                                                <span class="nav-main-link-name">Assets</span>
+                                                            </a>
+                                                        </li>
+                                                        <li
+                                                            class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'asset-categories' || $activeMenu == 'asset-attributes' || $activeMenu == 'projects') ? 'open' : '' }}">
+                                                            <a class="nav-main-link nav-main-link-submenu"
+                                                                data-toggle="submenu" aria-haspopup="true"
+                                                                aria-expanded="false" href="#">
+                                                                <i class="nav-main-link-icon fa fa-cog"></i>
+                                                                <span class="nav-main-link-name">Settings</span>
+                                                            </a>
+                                                            <ul class="nav-main-submenu">
+                                                                <li class="nav-main-item">
+                                                                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'asset-categories' ? 'active' : '' }}"
+                                                                        href="{{ route('asset-categories.index') }}">
+                                                                        <span class="nav-main-link-name">Asset
+                                                                            Categories</span>
+                                                                    </a>
+                                                                </li>
+                                                                <li class="nav-main-item">
+                                                                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'asset-attributes' ? 'active' : '' }}"
+                                                                        href="{{ route('asset-attributes.index') }}">
+                                                                        <span class="nav-main-link-name">Asset
+                                                                            Attributes</span>
+                                                                    </a>
+                                                                </li>
+                                                                <li class="nav-main-item">
+                                                                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'projects' ? 'active' : '' }}"
+                                                                        href="{{ route('projects.index') }}">
+                                                                        <span class="nav-main-link-name">Projects</span>
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            @endcanany
                                         </ul>
                                     </li>
                                     {{-- ------------------------------End Facilities Management-------------------------- --}}
 
                                     {{-- -------------------------Vehicle Management------------------------- --}}
-                                    <li
-                                        class="nav-main-item {{ isset($activeMenu) && in_array($activeMenu, ['drivers', 'vehicle-types', 'vehicles']) ? 'open' : '' }}">
-                                        <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
-                                            aria-haspopup="true" aria-expanded="false" href="#">
-                                            <i class="nav-main-link-icon fa fa-car"></i>
-                                            <span class="nav-main-link-name">Vehicle Management</span>
-                                        </a>
-                                        <ul class="nav-main-submenu">
-                                            <li class="nav-main-item">
-                                                <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'drivers' ? 'active' : '' }}"
-                                                    href="{{ route('drivers.index') }}">
-                                                    <span class="nav-main-link-name">Drivers</span>
-                                                </a>
-                                            </li>
-                                            <li class="nav-main-item">
-                                                <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'vehicles' ? 'active' : '' }}"
-                                                    href="{{ route('vehicles.index') }}">
-                                                    <span class="nav-main-link-name">Vehicles</span>
-                                                </a>
-                                            </li>
-
-                                            <li
-                                                class="nav-main-item {{ isset($activeMenu) && $activeMenu == 'vehicle-types' ? 'open' : '' }}">
-                                                <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
-                                                    aria-haspopup="true" aria-expanded="false" href="#">
-                                                    <i class="nav-main-link-icon fa fa-cog"></i>
-                                                    <span class="nav-main-link-name">Settings</span>
-                                                </a>
-                                                <ul class="nav-main-submenu">
-                                                    <li class="nav-main-item">
-                                                        <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'vehicle-types' ? 'active' : '' }}"
-                                                            href="{{ route('vehicle-types.index') }}">
-                                                            <span class="nav-main-link-name">Vehicle Types</span>
-                                                        </a>
-                                                    </li>
-
-                                                </ul>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    {{-- -------------------------Vehicle Maintenance Management------------------------- --}}
-
-                <li class="nav-main-item {{ request()->routeIs('maintenance.*') ? 'open' : '' }}">
-                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
-                        <i class="nav-main-link-icon si si-wrench"></i>
-                        <span class="nav-main-link-name">Vehicle Maintenence Management</span>
-                    </a>
-                    <ul class="nav-main-submenu">
-                        <li class="nav-main-item">
-                            <a class="nav-main-link {{ request()->routeIs('maintenance.dashboard') ? 'active' : '' }}" href="{{ route('maintenance.dashboard') }}">
-                                <span class="nav-main-link-name">Dashboard</span>
-                            </a>
-                        </li>
-                        <li class="nav-main-item">
-                            <a class="nav-main-link {{ request()->routeIs('maintenance.maintenances.*') ? 'active' : '' }}" href="{{ route('maintenance.maintenances.index') }}">
-                                <span class="nav-main-link-name">Maintenances</span>
-                            </a>
-                        </li>
-                        
-                        <li class="nav-main-item">
-                            <a class="nav-main-link {{ request()->routeIs('maintenance.operational-logs.*') ? 'active' : '' }}" href="{{ route('maintenance.operational-logs.index') }}">
-                                <span class="nav-main-link-name">Operational Logs</span>
-                            </a>
-                        </li>
-                        <li class="nav-main-item">
-                            <a class="nav-main-link {{ request()->routeIs('maintenance.reports.*') ? 'active' : '' }}" href="{{ route('maintenance.reports.index') }}">
-                                <span class="nav-main-link-name">Reports</span>
-                            </a>
-                        </li>
-                        
-                        <li class="nav-main-item {{ request()->routeIs('maintenance.parts') ? 'open' : '' }}">
-                            <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
-                                <i class="nav-main-link-icon fa fa-cog"></i>
-                                <span class="nav-main-link-name">Settings</span>
-                            </a>
-                            <ul class="nav-main-submenu">
-                                <li class="nav-main-item">
-                                    <a class="nav-main-link {{ request()->routeIs('maintenance.parts') ? 'active' : '' }}" href="{{ route('maintenance.parts.index') }}">
-                                        <span class="nav-main-link-name">Vehicle Parts</span>
-                                    </a>
-                                </li>
-                                
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                                    {{-- ------------------------------Start GenericDocument Management-------------------------- --}}
-                                    <li
-                                        class="nav-main-item {{ isset($activeMenu) && in_array($activeMenu, ['generic-documents', 'generic-document-categories', 'generic-document-attributes']) ? 'open' : '' }}">
-                                        <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
-                                            aria-haspopup="true" aria-expanded="false" href="#">
-                                            <i class="nav-main-link-icon fa fa-file-text"></i>
-                                            <span class="nav-main-link-name">Generic Document Management</span>
-                                        </a>
-                                        <ul class="nav-main-submenu">
-
-                                            <li class="nav-main-item">
-                                                <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'generic-documents' ? 'active' : '' }}"
-                                                    href="{{ route('generic-documents.index') }}">
-                                                    <span class="nav-main-link-name">Generic Documents</span>
-                                                </a>
-                                            </li>
-                                            <li
-                                                class="nav-main-item {{ isset($activeMenu) && in_array($activeMenu, ['generic-document-categories', 'generic-document-attributes']) ? 'open' : '' }}">
-                                                <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
-                                                    aria-haspopup="true" aria-expanded="false" href="#">
-                                                    <i class="nav-main-link-icon fa fa-cog"></i>
-                                                    <span class="nav-main-link-name">Settings</span>
-                                                </a>
-                                                <ul class="nav-main-submenu">
-
-                                                    <li class="nav-main-item">
-                                                        <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'generic-document-categories' ? 'active' : '' }}"
-                                                            href="{{ route('generic-document-categories.index') }}">
-                                                            <span class="nav-main-link-name">Generic Document
-                                                                Categories</span>
-                                                        </a>
-                                                    </li>
-                                                    <li class="nav-main-item">
-                                                        <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'generic-document-attributes' ? 'active' : '' }}"
-                                                            href="{{ route('generic-document-attributes.index') }}">
-                                                            <span class="nav-main-link-name">Generic Document
-                                                                Attributes</span>
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    {{-- ------------------------------End GenericDocument Management-------------------------- --}}
-
-                
-                {{-- -------------------------Ticket Management------------------------- --}}
-                <li
-                    class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'tickets' || $activeMenu == 'departments' || $activeMenu == 'subcenters') ? 'open' : '' }}">
-                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true"
-                        aria-expanded="false" href="#">
-                        <i class="nav-main-link-icon si si-users"></i>
-                        <span class="nav-main-link-name">Ticket Management</span>
-                    </a>
-                    <ul class="nav-main-submenu">
-                        
-                            <li class="nav-main-item">
-                                <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'tickets' ? 'active' : '' }}"
-                                    href="{{ route('tickets.index') }}">
-                                    <span class="nav-main-link-name">User Tickets</span>
-                                </a>
-                            </li>
-                       
-                            <li class="nav-main-item">
-                                <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'tickets' ? 'active' : '' }}"
-                                    href="{{ route('admin.tickets.index') }}">
-                                    <span class="nav-main-link-name">Admin Tickets</span>
-                                </a>
-                            </li>
-                    </ul>
-                </li>
-                                    {{-- -------------------------Invoice Management------------------------- --}}
-
-                <li class="nav-main-item {{ request()->routeIs('invoices.*','maintenance.vendors.*') ? 'open' : '' }}">
-                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
-                        <i class="nav-main-link-icon fa fa-file-invoice-dollar"></i>
-                        <span class="nav-main-link-name">Invoice Management</span>
-                    </a>
-                    <ul class="nav-main-submenu">
-                        <li class="nav-main-item">
-                            <a class="nav-main-link {{ request()->routeIs('invoices.index') ? 'active' : '' }}" href="{{ route('invoices.index') }}">
-                                <span class="nav-main-link-name">Dashboard</span>
-                            </a>
-                        </li>
-                        <li class="nav-main-item">
-                            <a class="nav-main-link {{ request()->routeIs('invoices.index') ? 'active' : '' }}" href="{{ route('invoices.index') }}">
-                                <span class="nav-main-link-name">Invoices</span>
-                            </a>
-                        </li>
-                        
-                        <li class="nav-main-item">
-                            <a class="nav-main-link {{ request()->routeIs('invoices.index') ? 'active' : '' }}" href="{{ route('invoices.index') }}">
-                                <span class="nav-main-link-name">Reports</span>
-                            </a>
-                        </li>
-                        
-                        <li class="nav-main-item {{ request()->routeIs('maintenance.vendors.*') ? 'open' : '' }}">
-                            <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
-                                <i class="nav-main-link-icon fa fa-cog"></i>
-                                <span class="nav-main-link-name">Settings</span>
-                            </a>
-                            <ul class="nav-main-submenu">
-                                <li class="nav-main-item">
-                                    <a class="nav-main-link {{ request()->routeIs('maintenance.vendors.*') ? 'active' : '' }}" href="{{ route('maintenance.vendors.index') }}">
-                                        <span class="nav-main-link-name">Vendors</span>
-                                    </a>
-                                </li>
-                                
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                                    {{-- ----------------------Settings------------------- --}}
-                                    <li
-                                        class="nav-main-item {{ isset($activeMenu) && $activeMenu == 'roles' ? 'open' : '' }}">
-                                        <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
-                                            aria-haspopup="true" aria-expanded="false" href="#">
-                                            <i class="nav-main-link-icon fa fa-cog"></i>
-                                            <span class="nav-main-link-name">Settings</span>
-                                        </a>
-                                        <ul class="nav-main-submenu">
-                                            @canany(['create-role', 'edit-role', 'delete-role'])
+                                    @canany(['vehicle-management'])
+                                        <li
+                                            class="nav-main-item {{ isset($activeMenu) && in_array($activeMenu, ['drivers', 'vehicle-types', 'vehicles']) ? 'open' : '' }}">
+                                            <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
+                                                aria-haspopup="true" aria-expanded="false" href="#">
+                                                <i class="nav-main-link-icon fa fa-car"></i>
+                                                <span class="nav-main-link-name">Vehicle Management</span>
+                                            </a>
+                                            <ul class="nav-main-submenu">
                                                 <li class="nav-main-item">
-                                                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'roles' ? 'active' : '' }}"
-                                                        href="{{ route('roles.index') }}">
-                                                        <span class="nav-main-link-name">Roles</span>
+                                                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'drivers' ? 'active' : '' }}"
+                                                        href="{{ route('drivers.index') }}">
+                                                        <span class="nav-main-link-name">Drivers</span>
                                                     </a>
                                                 </li>
-                                            @endcanany
-                                        </ul>
-                                    </li>
+                                                <li class="nav-main-item">
+                                                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'vehicles' ? 'active' : '' }}"
+                                                        href="{{ route('vehicles.index') }}">
+                                                        <span class="nav-main-link-name">Vehicles</span>
+                                                    </a>
+                                                </li>
+
+                                                <li
+                                                    class="nav-main-item {{ isset($activeMenu) && $activeMenu == 'vehicle-types' ? 'open' : '' }}">
+                                                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
+                                                        aria-haspopup="true" aria-expanded="false" href="#">
+                                                        <i class="nav-main-link-icon fa fa-cog"></i>
+                                                        <span class="nav-main-link-name">Settings</span>
+                                                    </a>
+                                                    <ul class="nav-main-submenu">
+                                                        <li class="nav-main-item">
+                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'vehicle-types' ? 'active' : '' }}"
+                                                                href="{{ route('vehicle-types.index') }}">
+                                                                <span class="nav-main-link-name">Vehicle Types</span>
+                                                            </a>
+                                                        </li>
+
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    @endcanany
+                                    {{-- -------------------------Vehicle Maintenance Management------------------------- --}}
+
+                                    @canany(['vehicle-maintenance-management'])
+                                        <li class="nav-main-item {{ request()->routeIs('maintenance.*') ? 'open' : '' }}">
+                                            <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
+                                                aria-haspopup="true" aria-expanded="false" href="#">
+                                                <i class="nav-main-link-icon si si-wrench"></i>
+                                                <span class="nav-main-link-name">Vehicle Maintenence Management</span>
+                                            </a>
+                                            <ul class="nav-main-submenu">
+                                                <li class="nav-main-item">
+                                                    <a class="nav-main-link {{ request()->routeIs('maintenance.dashboard') ? 'active' : '' }}"
+                                                        href="{{ route('maintenance.dashboard') }}">
+                                                        <span class="nav-main-link-name">Dashboard</span>
+                                                    </a>
+                                                </li>
+                                                <li class="nav-main-item">
+                                                    <a class="nav-main-link {{ request()->routeIs('maintenance.maintenances.*') ? 'active' : '' }}"
+                                                        href="{{ route('maintenance.maintenances.index') }}">
+                                                        <span class="nav-main-link-name">Maintenances</span>
+                                                    </a>
+                                                </li>
+
+                                                <li class="nav-main-item">
+                                                    <a class="nav-main-link {{ request()->routeIs('maintenance.operational-logs.*') ? 'active' : '' }}"
+                                                        href="{{ route('maintenance.operational-logs.index') }}">
+                                                        <span class="nav-main-link-name">Operational Logs</span>
+                                                    </a>
+                                                </li>
+                                                <li class="nav-main-item">
+                                                    <a class="nav-main-link {{ request()->routeIs('maintenance.reports.*') ? 'active' : '' }}"
+                                                        href="{{ route('maintenance.reports.index') }}">
+                                                        <span class="nav-main-link-name">Reports</span>
+                                                    </a>
+                                                </li>
+
+                                                <li
+                                                    class="nav-main-item {{ request()->routeIs('maintenance.parts') ? 'open' : '' }}">
+                                                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
+                                                        aria-haspopup="true" aria-expanded="false" href="#">
+                                                        <i class="nav-main-link-icon fa fa-cog"></i>
+                                                        <span class="nav-main-link-name">Settings</span>
+                                                    </a>
+                                                    <ul class="nav-main-submenu">
+                                                        <li class="nav-main-item">
+                                                            <a class="nav-main-link {{ request()->routeIs('maintenance.parts') ? 'active' : '' }}"
+                                                                href="{{ route('maintenance.parts.index') }}">
+                                                                <span class="nav-main-link-name">Vehicle Parts</span>
+                                                            </a>
+                                                        </li>
+
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    @endcanany
+                                    {{-- ------------------------------Start GenericDocument Management-------------------------- --}}
+
+                                    @canany(['document-management'])
+                                        <li
+                                            class="nav-main-item {{ isset($activeMenu) && in_array($activeMenu, ['generic-documents', 'generic-document-categories', 'generic-document-attributes']) ? 'open' : '' }}">
+                                            <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
+                                                aria-haspopup="true" aria-expanded="false" href="#">
+                                                <i class="nav-main-link-icon fa fa-file-text"></i>
+                                                <span class="nav-main-link-name">Generic Document Management</span>
+                                            </a>
+                                            <ul class="nav-main-submenu">
+
+                                                <li class="nav-main-item">
+                                                    <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'generic-documents' ? 'active' : '' }}"
+                                                        href="{{ route('generic-documents.index') }}">
+                                                        <span class="nav-main-link-name">Generic Documents</span>
+                                                    </a>
+                                                </li>
+                                                <li
+                                                    class="nav-main-item {{ isset($activeMenu) && in_array($activeMenu, ['generic-document-categories', 'generic-document-attributes']) ? 'open' : '' }}">
+                                                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
+                                                        aria-haspopup="true" aria-expanded="false" href="#">
+                                                        <i class="nav-main-link-icon fa fa-cog"></i>
+                                                        <span class="nav-main-link-name">Settings</span>
+                                                    </a>
+                                                    <ul class="nav-main-submenu">
+
+                                                        <li class="nav-main-item">
+                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'generic-document-categories' ? 'active' : '' }}"
+                                                                href="{{ route('generic-document-categories.index') }}">
+                                                                <span class="nav-main-link-name">Generic Document
+                                                                    Categories</span>
+                                                            </a>
+                                                        </li>
+                                                        <li class="nav-main-item">
+                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'generic-document-attributes' ? 'active' : '' }}"
+                                                                href="{{ route('generic-document-attributes.index') }}">
+                                                                <span class="nav-main-link-name">Generic Document
+                                                                    Attributes</span>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    @endcanany
+                                    {{-- ------------------------------End GenericDocument Management-------------------------- --}}
+
+
+                                    {{-- -------------------------Ticket Management------------------------- --}}
+                                    @canany(['ticket-management'])
+                                        <li
+                                            class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'tickets' || $activeMenu == 'departments' || $activeMenu == 'subcenters') ? 'open' : '' }}">
+                                            <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
+                                                aria-haspopup="true" aria-expanded="false" href="#">
+                                                <i class="nav-main-link-icon si si-users"></i>
+                                                <span class="nav-main-link-name">Ticket Management</span>
+                                            </a>
+                                            <ul class="nav-main-submenu">
+                                                @canany(['user-ticket-management'])
+                                                    <li class="nav-main-item">
+                                                        <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'tickets' ? 'active' : '' }}"
+                                                            href="{{ route('tickets.index') }}">
+                                                            <span class="nav-main-link-name">User Tickets</span>
+                                                        </a>
+                                                    </li>
+                                                @endcanany
+
+                                                @canany('admin-ticket-management')
+                                                    <li class="nav-main-item">
+                                                        <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'tickets' ? 'active' : '' }}"
+                                                            href="{{ route('admin.tickets.index') }}">
+                                                            <span class="nav-main-link-name">Admin Tickets</span>
+                                                        </a>
+                                                    </li>
+                                                @endcanany
+                                            </ul>
+                                        </li>
+                                    @endcanany
+                                    {{-- -------------------------Invoice Management------------------------- --}}
+                                    @canany(['invoice-management'])
+                                        <li
+                                            class="nav-main-item {{ request()->routeIs('invoices.*', 'maintenance.vendors.*') ? 'open' : '' }}">
+                                            <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
+                                                aria-haspopup="true" aria-expanded="false" href="#">
+                                                <i class="nav-main-link-icon fa fa-file-invoice-dollar"></i>
+                                                <span class="nav-main-link-name">Invoice Management</span>
+                                            </a>
+                                            <ul class="nav-main-submenu">
+                                                <li class="nav-main-item">
+                                                    <a class="nav-main-link {{ request()->routeIs('invoices.index') ? 'active' : '' }}"
+                                                        href="{{ route('invoices.index') }}">
+                                                        <span class="nav-main-link-name">Dashboard</span>
+                                                    </a>
+                                                </li>
+                                                <li class="nav-main-item">
+                                                    <a class="nav-main-link {{ request()->routeIs('invoices.index') ? 'active' : '' }}"
+                                                        href="{{ route('invoices.index') }}">
+                                                        <span class="nav-main-link-name">Invoices</span>
+                                                    </a>
+                                                </li>
+
+                                                <li class="nav-main-item">
+                                                    <a class="nav-main-link {{ request()->routeIs('invoices.index') ? 'active' : '' }}"
+                                                        href="{{ route('invoices.index') }}">
+                                                        <span class="nav-main-link-name">Reports</span>
+                                                    </a>
+                                                </li>
+
+                                                <li
+                                                    class="nav-main-item {{ request()->routeIs('maintenance.vendors.*') ? 'open' : '' }}">
+                                                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
+                                                        aria-haspopup="true" aria-expanded="false" href="#">
+                                                        <i class="nav-main-link-icon fa fa-cog"></i>
+                                                        <span class="nav-main-link-name">Settings</span>
+                                                    </a>
+                                                    <ul class="nav-main-submenu">
+                                                        <li class="nav-main-item">
+                                                            <a class="nav-main-link {{ request()->routeIs('maintenance.vendors.*') ? 'active' : '' }}"
+                                                                href="{{ route('maintenance.vendors.index') }}">
+                                                                <span class="nav-main-link-name">Vendors</span>
+                                                            </a>
+                                                        </li>
+
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    @endcanany
+                                    {{-- ----------------------Settings------------------- --}}
+                                    @canany(['create-role', 'edit-role', 'delete-role', 'create-user', 'edit-user',
+                                        'delete-user'])
+                                        <li
+                                            class="nav-main-item {{ isset($activeMenu) && $activeMenu == 'roles' ? 'open' : '' }}">
+                                            <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
+                                                aria-haspopup="true" aria-expanded="false" href="#">
+                                                <i class="nav-main-link-icon fa fa-cog"></i>
+                                                <span class="nav-main-link-name">Settings</span>
+                                            </a>
+                                            <ul class="nav-main-submenu">
+                                                @canany(['create-role', 'edit-role', 'delete-role'])
+                                                    <li class="nav-main-item">
+                                                        <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'roles' ? 'active' : '' }}"
+                                                            href="{{ route('roles.index') }}">
+                                                            <span class="nav-main-link-name">Roles</span>
+                                                        </a>
+                                                    </li>
+                                                @endcanany
+
+                                                @canany(['create-user', 'edit-user', 'delete-user'])
+                                                    <li class="nav-main-item">
+                                                        <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'users' ? 'active' : '' }}"
+                                                            href="{{ route('users.index') }}">
+                                                            <span class="nav-main-link-name">Users</span>
+                                                        </a>
+                                                    </li>
+                                                @endcanany
+                                            </ul>
+                                        </li>
+                                    @endcanany
 
                                     {{-- --------------------End Settings------------------ --}}
 

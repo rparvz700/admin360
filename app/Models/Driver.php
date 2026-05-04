@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Driver extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'drivers';
 
@@ -42,6 +43,8 @@ class Driver extends Model
         'bill_reviewer_email',
         'bill_reviewer_hr_id',
         'bill_reviewer_company',
+        'emergency_contact',
+        'is_manual_entry',
     ];
 
 
@@ -123,4 +126,19 @@ class Driver extends Model
     {
         return trim($this->name . ' ' . $this->sur_name);
     }
+
+    public function scopeUnassigned($query)
+    {
+        return $query->whereDoesntHave('vehicleAssignments', function ($q) {
+            $q->where('status', 'active')
+              ->where('start_datetime', '<=', now())
+              ->where('end_datetime', '>=', now());
+        });
+    }
+
+    public function vehicleAssignments()
+    {
+        return $this->hasMany(VehicleAssignment::class);
+    }
+    
 }

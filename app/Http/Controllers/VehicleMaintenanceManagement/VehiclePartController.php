@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\VehiclePart;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
+use Yajra\DataTables\DataTables;
 
 class VehiclePartController extends Controller
 {
@@ -15,26 +16,54 @@ class VehiclePartController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $parts = VehiclePart::withCount('maintenanceParts')
-                ->get()
-                ->map(function ($part) {
-                    return [
-                        'id' => $part->id,
-                        'part_code' => $part->part_code,
-                        'part_name' => $part->part_name,
-                        'category' => '<span class="badge bg-' . $part->getCategoryBadge() . '">' . 
-                                     $part->getCategoryLabel() . '</span>',
-                        'typical_lifespan_km' => $part->typical_lifespan_km ? number_format($part->typical_lifespan_km) . ' km' : 'N/A',
-                        'typical_lifespan_months' => $part->typical_lifespan_months ? $part->typical_lifespan_months . ' months' : 'N/A',
-                        'usage_count' => $part->maintenance_parts_count,
-                        'is_active' => $part->is_active ? 
-                            '<span class="badge bg-success">Active</span>' : 
-                            '<span class="badge bg-secondary">Inactive</span>',
-                        'actions' => view('VehicleManagement.VehicleMaintenance.VehiclePart.partials.actions', compact('part'))->render(),
-                    ];
-                });
+            // Start with the base query. Yajra will handle the 'get()' and further processing.
+            // withCount('maintenanceParts') is crucial here to include the usage count.
+            $parts = VehiclePart::withCount('maintenanceParts');
 
-            return response()->json(['data' => $parts]);
+            return DataTables::of($parts)
+                // Direct columns, just use editColumn for formatting if needed, or addColumn if derived
+                ->editColumn('part_code', function ($part) {
+                    return $part->part_code;
+                })
+                ->editColumn('part_name', function ($part) {
+                    return $part->part_name;
+                })
+                // Add 'category' with custom HTML badge
+                ->addColumn('category', function ($part) {
+                    return '<span class="badge bg-' . $part->getCategoryBadge() . '">' .
+                           $part->getCategoryLabel() . '</span>';
+                })
+                // Format 'typical_lifespan_km'
+                ->editColumn('typical_lifespan_km', function ($part) {
+                    return $part->typical_lifespan_km ? number_format($part->typical_lifespan_km) . ' km' : 'N/A';
+                })
+                // Format 'typical_lifespan_months'
+                ->editColumn('typical_lifespan_months', function ($part) {
+                    return $part->typical_lifespan_months ? $part->typical_lifespan_months . ' months' : 'N/A';
+                })
+                // usage_count comes from withCount('maintenanceParts'), and Yajra automatically picks maintenance_parts_count
+                ->editColumn('maintenance_parts_count', function ($part) { // Use the actual attribute name
+                    return $part->maintenance_parts_count;
+                })
+                // Add 'is_active' with custom HTML badge
+                ->addColumn('is_active', function ($part) {
+                    return $part->is_active ?
+                        '<span class="badge bg-success">Active</span>' :
+                        '<span class="badge bg-secondary">Inactive</span>';
+                })
+                // Add 'actions' column with custom HTML from a partial view
+                ->addColumn('actions', function ($part) {
+                    // Adjust the view path if different
+                    return view('VehicleManagement.VehicleMaintenance.VehiclePart.partials.actions', compact('part'))->render();
+                })
+                // Specify which columns contain HTML and should not be escaped
+                ->rawColumns(['category', 'is_active', 'actions'])
+                // For custom sorting/filtering on 'category' if 'category' isn't a direct DB column or needs custom logic
+                // If 'category' is a direct column, Yajra handles it automatically.
+                // ->filterColumn('category', function($query, $keyword) {
+                //     $query->where('category', 'like', "%{$keyword}%"); // Assuming 'category' is the DB column
+                // })
+                ->make(true);
         }
 
         return view('VehicleManagement.VehicleMaintenance.VehiclePart.index');

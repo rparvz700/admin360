@@ -35,6 +35,8 @@ class Ticket extends Model
         'assigned_to',
         'assigned_at',
         'completed_at',
+        'assigned_driver_id',
+        'assigned_vehicle_id'
     ];
 
     protected $casts = [
@@ -88,7 +90,7 @@ class Ticket extends Model
             'id',             // Foreign key on drivers table
             'id',             // Local key on tickets table
             'driver_id'       // Local key on vehicle_assignments table
-        )->where('vehicle_assignments.status', 'active');
+        )->latest();
     }
 
     public function assignedVehicle()
@@ -100,7 +102,7 @@ class Ticket extends Model
             'id',             // Foreign key on vehicles table
             'id',             // Local key on tickets table
             'vehicle_id'      // Local key on vehicle_assignments table
-        )->where('vehicle_assignments.status', 'active');
+        )->latest();
     }
 
     public function vehicleAssignments()
@@ -112,6 +114,13 @@ class Ticket extends Model
     {
         return $this->hasOne(VehicleAssignment::class, 'ticket_id')
             ->where('status', 'active')
+            ->latest();
+    }
+
+    public function scheduledVehicleAssignment()
+    {
+        return $this->hasOne(VehicleAssignment::class, 'ticket_id')
+            ->where('status', 'scheduled')
             ->latest();
     }
 

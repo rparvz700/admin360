@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Asset extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory, LogsActivity, SoftDeletes;
 
     protected $table = 'assets';
 

@@ -8,7 +8,7 @@ use App\Models\Vehicle;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use Yajra\DataTables\DataTables;
 class VehicleOperationalLogController extends Controller
 {
     /**
@@ -17,29 +17,90 @@ class VehicleOperationalLogController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
+            // Start with the base query
             $logs = VehicleOperationalLog::with(['vehicle', 'assignedUser', 'logger'])
-                ->orderByDesc('logged_at')
-                ->get()
-                ->map(function ($log) {
-                    return [
-                        'id' => $log->id,
-                        'vehicle' => $log->vehicle->registration_number ?? 'N/A',
-                        'log_type' => '<span class="badge bg-' . $log->getLogTypeBadge() . '">' . 
-                                     $log->getLogTypeLabel() . '</span>',
-                        'logged_at' => $log->logged_at->format('d M Y H:i'),
-                        'meter_reading' => $log->meter_reading ? number_format($log->meter_reading) . ' km' : 'N/A',
-                        'vehicle_status' => $log->vehicle_status ? 
-                            '<span class="badge bg-' . $log->getStatusBadge() . '">' . ucfirst(str_replace('_', ' ', $log->vehicle_status)) . '</span>' : 
-                            'N/A',
-                        'assigned_to' => $log->log_type === 'assignment' ? 
-                            ($log->assignedUser->name ?? $log->assigned_department ?? 'N/A') : 
-                            'N/A',
-                        'logged_by' => $log->logger->name ?? 'N/A',
-                        'actions' => view('VehicleManagement.VehicleMaintenance.VehicleOperationalLog.partials.actions', compact('log'))->render(),
-                    ];
-                });
+                                        ->orderByDesc('logged_at');
 
-            return response()->json(['data' => $logs]);
+            return Datatables::of($logs)
+                // Add the 'vehicle' column from the relationship
+                ->addColumn('vehicle', function ($log) {
+                    return $log->vehicle->registration_number ?? 'N/A';
+                })
+                // Add 'log_type' with custom HTML badge
+                ->addColumn('log_type', function ($log) {
+                    return '<span class="badge bg-' . $log->getLogTypeBadge() . '">' .
+                           $log->getLogTypeLabel() . '</span>';
+                })
+                // Format 'logged_at'
+                ->editColumn('logged_at', function ($log) {
+                    return $log->logged_at->format('d M Y H:i');
+                })
+                // Format 'meter_reading'
+                ->editColumn('meter_reading', function ($log) { // Assuming meter_reading is a direct column
+                    return $log->meter_reading ? number_format($log->meter_reading) . ' km' : 'N/A';
+                })
+                // Add 'vehicle_status' with custom HTML badge
+                ->addColumn('vehicle_status', function ($log) {
+                    return $log->vehicle_status ?
+                        '<span class="badge bg-' . $log->getStatusBadge() . '">' . ucfirst(str_replace('_', ' ', $log->vehicle_status)) . '</span>' :
+                        'N/A';
+                })
+                // Handle 'assigned_to' conditionally
+                ->addColumn('assigned_to', function ($log) {
+                    if ($log->log_type === 'assignment') {
+                        return $log->assignedUser->name ?? $log->assigned_department ?? 'N/A';
+                    }
+                    return 'N/A';
+                })
+                // Add 'logged_by' from the relationship
+                ->addColumn('logged_by', function ($log) {
+                    return $log->logger->name ?? 'N/A';
+                })
+                // Add 'actions' column with custom HTML from a partial view
+                ->addColumn('actions', function ($log) {
+                    // Adjust the view path if different
+                    return view('VehicleManagement.VehicleMaintenance.VehicleOperationalLog.partials.actions', compact('log'))->render();
+                })
+                // Specify which columns contain HTML and should not be escaped
+                ->rawColumns(['log_type', 'vehicle_status', 'actions'])
+                // Filter and Order for relational and complex columns
+                ->filterColumn('vehicle', function($query, $keyword) {
+                    $query->whereHas('vehicle', function($q) use ($keyword) {
+                        $q->where('registration_number', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('assigned_to', function($query, $keyword) {
+                    $query->where(function($q) use ($keyword) {
+                        // Search by assigned user name if log_type is assignment
+                        $q->orWhere(function($sq1) use ($keyword) {
+                            $sq1->where('log_type', 'assignment')
+                                ->whereHas('assignedUser', function($ssq1) use ($keyword) {
+                                    $ssq1->where('name', 'like', "%{$keyword}%");
+                                });
+                        })
+                        // OR search by assigned_department if log_type is assignment
+                        ->orWhere(function($sq2) use ($keyword) {
+                            $sq2->where('log_type', 'assignment')
+                                ->where('assigned_department', 'like', "%{$keyword}%");
+                        });
+                        // You might also consider matching 'N/A' if the keyword is 'N/A'
+                        // ->orWhere(function($sq3) use ($keyword) {
+                        //     // This part is more complex as 'N/A' is a display value, not a database one.
+                        //     // It would require checking if neither assignedUser nor assigned_department exists
+                        //     // for assignment types, or if log_type is not assignment.
+                        //     // For simplicity, we'll omit this for now.
+                        // });
+                    });
+                })
+                ->filterColumn('logged_by', function($query, $keyword) {
+                    $query->whereHas('logger', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
+                    });
+                })
+                // If 'log_type' or 'vehicle_status' are direct database columns,
+                // Yajra will handle their sorting and filtering automatically based on the 'name' property in JS.
+                // No need for specific filterColumn/orderColumn unless you want custom logic.
+                ->make(true);
         }
 
         return view('VehicleManagement.VehicleMaintenance.VehicleOperationalLog.index');

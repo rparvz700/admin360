@@ -29,21 +29,31 @@ class PermissionSeeder extends Seeder
             // 'create-subcenter',
             // 'edit-subcenter',
             // 'delete-subcenter'
-            'create-building',
-            'edit-building',
-            'delete-building',
+            // 'create-building',
+            // 'edit-building',
+            // 'delete-building',
 
-            'create-floor',
-            'edit-floor',
-            'delete-floor',
+            // 'create-floor',
+            // 'edit-floor',
+            // 'delete-floor',
 
-            'create-agreement',
-            'edit-agreement',
-            'delete-agreement',
+            // 'create-agreement',
+            // 'edit-agreement',
+            // 'delete-agreement',
 
-            'create-rent',
-            'edit-rent',
-            'delete-rent'
+            // 'create-rent',
+            // 'edit-rent',
+            // 'delete-rent'
+
+            'asset-management',
+            'vehicle-management',
+            'vehicle-maintenance-management',
+            'document-management',
+            'ticket-management',
+            'user-ticket-management',
+            'admin-ticket-management',
+            'invoice-management',
+            'asset-management',
          ];
 
          foreach ($permissions as $permission) {

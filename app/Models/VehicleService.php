@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class VehicleService extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $table = 'vehicle_services';
     protected $fillable = [
         'vehicle_id',

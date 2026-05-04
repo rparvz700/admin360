@@ -162,6 +162,9 @@ Route::middleware(['auth'])->prefix('admin/tickets')->name('admin.tickets.')->gr
     Route::get('/assignment/resources', [VehicleAssignmentController::class, 'getAvailableResources'])->name('assignment.resources');
     Route::post('/assignment-assign/', [VehicleAssignmentController::class, 'assignToTicket'])->name('assignment.assign');
     Route::get('/assignment/schedule', [VehicleAssignmentController::class, 'getResourceSchedule'])->name('assignment.schedule');
+
+    Route::patch('/trip/{id}/start', [VehicleAssignmentController::class, 'tripStart'])->name('trip.start');
+    Route::patch('/trip/{id}/completed', [VehicleAssignmentController::class, 'tripCompleted'])->name('trip.completed');
 });
 
 
