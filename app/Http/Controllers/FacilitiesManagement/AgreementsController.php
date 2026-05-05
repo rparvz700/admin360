@@ -98,6 +98,24 @@ class AgreementsController extends Controller
         ];
 
         $agreement->update($data);
+
+        if ($request->filled('generic_document_id')) {
+
+            $original = GenericDocument::find($request->generic_document_id);
+
+            if ($original) {
+                // Duplicate the record
+                $duplicate = $original->replicate();
+
+                // Modify fields as needed
+                $duplicate->documentable_type = Agreement::class;
+                $duplicate->documentable_id = $agreement->id;
+                $duplicate->created_at = now();
+                $duplicate->updated_at = now();
+
+                $duplicate->push();
+            }
+        }
         return redirect()->route('agreements.index')->with('success', 'Agreement updated successfully.');
     }
 
