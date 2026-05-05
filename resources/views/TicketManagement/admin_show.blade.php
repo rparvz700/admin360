@@ -309,7 +309,7 @@
                                 </small>
 
 
-                                @if ($ticket->scheduledVehicleAssignment)
+                                @if ($ticket->latestVehicleAssignment && $ticket->latestVehicleAssignment->status === 'scheduled')
                                     <form
                                         action="{{ route('admin.tickets.trip.start', $ticket->scheduledVehicleAssignment->id) }}"
                                         method="POST">
@@ -322,7 +322,7 @@
                                     </form>
                                 @endif
 
-                                @if ($ticket->activeVehicleAssignment)
+                                @if ($ticket->latestVehicleAssignment && $ticket->latestVehicleAssignment->status === 'active')
                                     <form
                                         action="{{ route('admin.tickets.trip.completed', $ticket->activeVehicleAssignment->id) }}"
                                         method="POST">

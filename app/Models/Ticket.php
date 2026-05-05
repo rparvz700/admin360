@@ -213,4 +213,11 @@ class Ticket extends Model
             default => 'secondary'
         };
     }
+
+
+    public function latestVehicleAssignment()
+    {
+        return $this->hasOne(VehicleAssignment::class, 'ticket_id')->latest();
+    }
+    
 }
