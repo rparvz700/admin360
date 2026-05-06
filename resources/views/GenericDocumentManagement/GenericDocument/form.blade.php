@@ -1,10 +1,22 @@
 <!-- Step 1: Choose Entity Type -->
+@php
+    $isDocumentableLocked = $lockDocumentable ?? false;
+    $currentDocumentableType = old('documentable_type', $selectedDocumentableType ?? '');
+    $currentDocumentableId = old('documentable_id', $selectedDocumentableId ?? ($doc->documentable_id ?? ''));
+@endphp
+
+@if ($isDocumentableLocked)
+    <input type="hidden" name="documentable_type" value="{{ $currentDocumentableType }}">
+    <input type="hidden" name="documentable_id" value="{{ $currentDocumentableId }}">
+@endif
+
 <div class="mb-3">
     <label class="form-label" for="documentable_type">Documentable<span class="text-danger">*</span></label>
-    <select name="documentable_type" id="documentable_type" class="form-control" required>
+    <select name="{{ $isDocumentableLocked ? '' : 'documentable_type' }}" id="documentable_type" class="form-control" required
+        @disabled($isDocumentableLocked)>
         <option value="">-- Select Document Owner Type --</option>
         @foreach ($documentableTypes as $label => $config)
-            <option value="{{ $label }}" @if (old('documentable_type', $selectedDocumentableType ?? '') == $label) selected @endif>
+            <option value="{{ $label }}" @if ($currentDocumentableType == $label) selected @endif>
                 {{ ucfirst($label) }}
             </option>
         @endforeach
@@ -14,11 +26,12 @@
 <!-- Step 2: Choose Specific Record -->
 <div class="mb-3" id="documentable-id-wrapper">
     <label class="form-label" for="documentable_id">Select Record <span class="text-danger">*</span></label>
-    <select class="form-select select2" id="documentable_id" name="documentable_id" style="width:100%;" required>
+    <select class="form-select select2" id="documentable_id" name="{{ $isDocumentableLocked ? '' : 'documentable_id' }}"
+        style="width:100%;" required @disabled($isDocumentableLocked)>
         <option value="">Select record</option>
         @if (isset($documentables) && $documentables->count())
             @foreach ($documentables as $item)
-                <option value="{{ $item->id }}" @if (old('documentable_id', $doc->documentable_id ?? '') == $item->id) selected @endif>
+                <option value="{{ $item->id }}" @if ($currentDocumentableId == $item->id) selected @endif>
                     {{ $item->label }}
                 </option>
             @endforeach

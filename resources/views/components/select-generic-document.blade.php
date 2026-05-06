@@ -1,5 +1,17 @@
 <div class="generic-document-selector mb-3">
+    @php
+        $createDocumentParams = ['embedded' => 1];
+
+        if (!empty($documentableType)) {
+            $createDocumentParams['documentable_type'] = $documentableType;
+        }
+
+        if (!empty($documentableId)) {
+            $createDocumentParams['documentable_id'] = $documentableId;
+        }
+    @endphp
     <label class="form-label">Attach Document</label>
+    <div class="document-save-message alert alert-success py-2 mb-2 d-none" role="alert"></div>
     <div class="d-flex align-items-center gap-2">
         <button type="button" class="btn btn-outline-primary btn-sm open-select-modal">
             Select Existing
@@ -63,7 +75,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-0">
-                    <iframe src="{{ route('generic-documents.create') }}" class="create-doc-iframe"
+                    <iframe src="{{ route('generic-documents.create', $createDocumentParams) }}" class="create-doc-iframe"
                         style="width:100%; height:80vh; border:none;"></iframe>
                 </div>
             </div>
@@ -100,9 +112,21 @@
                 // Listen for postMessage (when new doc is created)
                 window.addEventListener('message', (event) => {
                     if (event.data?.type === 'documentCreated') {
-                        selector.querySelector('.selected-doc-id').value = event.data.id;
-                        selector.querySelector('.selected-doc-label').textContent = event.data
-                        .label;
+                        const message = selector.querySelector('.document-save-message');
+
+                        if (event.data.directlyAttached) {
+                            selector.querySelector('.selected-doc-id').value = '';
+                            selector.querySelector('.selected-doc-label').textContent =
+                                'Document saved and attached';
+                            message.textContent = 'Document saved and attached to this agreement.';
+                        } else {
+                            selector.querySelector('.selected-doc-id').value = event.data.id;
+                            selector.querySelector('.selected-doc-label').textContent = event.data
+                            .label;
+                            message.textContent = 'Document saved successfully.';
+                        }
+
+                        message.classList.remove('d-none');
                         createModal.hide();
                     }
                 });

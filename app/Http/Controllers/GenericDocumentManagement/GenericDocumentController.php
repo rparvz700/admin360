@@ -126,11 +126,9 @@ class GenericDocumentController extends Controller
 
 
 
-    public function create()
+    public function create(Request $request)
     {
-        $documentableTypes = collect(config('app.documentableTypes'))
-                                ->map(function($config) { return $config['class']; })
-                                ->toArray();
+        $documentableTypes = config('app.documentableTypes');
         //$vehicles = \App\Models\Vehicle::all();
         $categories = GenericDocumentCategory::all();
         $attributes = \App\Models\GenericDocumentAttribute::all()->map(function($attr) {
@@ -143,7 +141,41 @@ class GenericDocumentController extends Controller
             return $arr;
         });
         $oldAttributeValues = old('attributes', []);
-        return view('GenericDocumentManagement.GenericDocument.create', compact('documentableTypes', 'categories', 'attributes', 'oldAttributeValues'));
+
+        $embedded = $request->boolean('embedded');
+        $selectedDocumentableType = strtolower((string) $request->query('documentable_type', ''));
+        $selectedDocumentableId = $request->query('documentable_id');
+        $documentables = collect();
+
+        if ($selectedDocumentableType && isset($documentableTypes[$selectedDocumentableType])) {
+            $config = $documentableTypes[$selectedDocumentableType];
+            $class = $config['class'] ?? null;
+            $displayColumn = $config['display_field'] ?? 'id';
+
+            if ($class && class_exists($class)) {
+                $query = $class::select('id', $displayColumn . ' AS label');
+
+                if ($selectedDocumentableId) {
+                    $query->where('id', $selectedDocumentableId);
+                }
+
+                $documentables = $query->get();
+            }
+        }
+
+        $lockDocumentable = $embedded && $selectedDocumentableType && $selectedDocumentableId && $documentables->isNotEmpty();
+
+        return view('GenericDocumentManagement.GenericDocument.create', compact(
+            'documentableTypes',
+            'categories',
+            'attributes',
+            'oldAttributeValues',
+            'embedded',
+            'documentables',
+            'selectedDocumentableType',
+            'selectedDocumentableId',
+            'lockDocumentable'
+        ));
         //return view('GenericDocumentManagement.GenericDocument.create', compact('vehicles', 'categories', 'attributes', 'oldAttributeValues'));
     }
 
@@ -233,6 +265,17 @@ class GenericDocumentController extends Controller
                 'attribute_id' => $attribute_id,
                 'value'        => is_array($value) ? json_encode($value) : $value,
             ]);
+        }
+
+        if ($request->boolean('embedded')) {
+            $label = class_basename($doc->documentable_type) . ' (' . ($doc->category->category_name ?? '') . ')';
+            $directlyAttached = true;
+
+            return response()->view('GenericDocumentManagement.GenericDocument.partials.created', compact(
+                'doc',
+                'label',
+                'directlyAttached'
+            ));
         }
 
         return redirect()->route('generic-documents.index')

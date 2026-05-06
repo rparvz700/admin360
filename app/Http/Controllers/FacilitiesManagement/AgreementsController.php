@@ -104,6 +104,10 @@ class AgreementsController extends Controller
             $original = GenericDocument::find($request->generic_document_id);
 
             if ($original) {
+                if ($original->documentable_type === Agreement::class && (int) $original->documentable_id === (int) $agreement->id) {
+                    return redirect()->route('agreements.index')->with('success', 'Agreement updated successfully.');
+                }
+
                 // Duplicate the record
                 $duplicate = $original->replicate();
 
