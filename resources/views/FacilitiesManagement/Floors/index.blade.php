@@ -20,23 +20,36 @@
 
 @section('content')
     <div class="content">
-        <div class="block block-rounded">
+        <div class="floor-page-header">
+            <div>
+                <div class="floor-eyebrow">Facilities Management</div>
+                <h2>Floors</h2>
+                <p>Manage floor inventory, assignment, and occupancy-related references.</p>
+            </div>
+            <a href="{{ route('floors.create') }}" class="btn btn-primary">
+                <i class="fa fa-plus me-1"></i> Add Floor
+            </a>
+        </div>
+
+        <div class="block block-rounded floor-shell">
             @if (Session::has('success'))
-                <div class="alert alert-success alert-dismissible" role="alert">
+                <div class="alert alert-success alert-dismissible m-3 mb-0" role="alert">
                     <small class="mb-0">
                         {{ Session::get('success') }}
                     </small>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
-            <div class="block-header block-header-default">
-                <h3 class="block-title">Floors</h3>
-                <a href="{{ route('floors.create') }}" class="btn btn-sm btn-primary">Add Floor</a>
+            <div class="block-header block-header-default floor-block-header">
+                <div>
+                    <h3 class="block-title">Floor Directory</h3>
+                    <div class="text-muted fs-sm">Search, reorder, and configure visible floor columns.</div>
+                </div>
             </div>
             <div class="block-content fs-sm data-content">
                 <div class="table-responsive">
                     <table
-                        class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive">
+                        class="table table-sm table-vcenter table-hover floor-table js-dataTable-full js-dataTable-responsive">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -125,6 +138,7 @@
                         columns: [{
                                 data: 'DT_RowIndex',
                                 name: 'SI',
+                                className: 'text-center text-muted',
                                 orderable: false,
                                 searchable: false
                             },
@@ -149,6 +163,7 @@
                             },
                             {
                                 data: 'actions',
+                                className: 'text-end',
                                 orderable: false,
                                 searchable: false
                             }

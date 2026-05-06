@@ -20,23 +20,36 @@
 
 @section('content')
     <div class="content">
-        <div class="block block-rounded">
+        <div class="rent-page-header">
+            <div>
+                <div class="rent-eyebrow">Facilities Management</div>
+                <h2>Rent</h2>
+                <p>Manage agreement rent baselines, terms, and status at a glance.</p>
+            </div>
+            <a href="{{ route('rent.create') }}" class="btn btn-primary">
+                <i class="fa fa-plus me-1"></i> Add Rent
+            </a>
+        </div>
+
+        <div class="block block-rounded rent-shell">
             @if (Session::has('success'))
-                <div class="alert alert-success alert-dismissible" role="alert">
+                <div class="alert alert-success alert-dismissible m-3 mb-0" role="alert">
                     <small class="mb-0">
                         {{ Session::get('success') }}
                     </small>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
-            <div class="block-header block-header-default">
-                <h3 class="block-title">Rent</h3>
-                <a href="{{ route('rent.create') }}" class="btn btn-sm btn-primary">Add Rent</a>
+            <div class="block-header block-header-default rent-block-header">
+                <div>
+                    <h3 class="block-title">Rent Directory</h3>
+                    <div class="text-muted fs-sm">Search, reorder, and configure visible rent columns.</div>
+                </div>
             </div>
             <div class="block-content fs-sm data-content">
                 <div class="table-responsive">
                     <table
-                        class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive">
+                        class="table table-sm table-vcenter table-hover rent-table js-dataTable-full js-dataTable-responsive">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -124,6 +137,7 @@
                         columns: [{
                                 data: 'DT_RowIndex',
                                 name: 'SI',
+                                className: 'text-center text-muted',
                                 orderable: false,
                                 searchable: false
                             },
@@ -141,11 +155,13 @@
                             },
                             {
                                 data: 'status',
+                                className: 'text-center',
                                 searchable: false,
                                 orderable: false
                             },
                             {
                                 data: 'actions',
+                                className: 'text-end',
                                 searchable: false
                             }
                         ],

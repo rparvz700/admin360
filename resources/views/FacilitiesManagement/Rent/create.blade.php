@@ -14,15 +14,29 @@
 
 @section('content')
     <div class="content">
-        <div class="block block-rounded">
-            <div class="block-header block-header-default">
-                <h3 class="block-title">Add Rent</h3>
+        <div class="rent-page-header">
+            <div>
+                <div class="rent-eyebrow">Facilities Management</div>
+                <h2>Create Rent</h2>
+                <p>Set base rent terms, increments, and security deposit structure.</p>
+            </div>
+            <a href="{{ route('rent.index') }}" class="btn btn-alt-secondary">
+                <i class="fa fa-arrow-left me-1"></i> Back
+            </a>
+        </div>
+
+        <div class="block block-rounded rent-shell">
+            <div class="block-header block-header-default rent-block-header">
+                <div>
+                    <h3 class="block-title">Rent Profile</h3>
+                    <div class="text-muted fs-sm">Configure base rent and periodic adjustments.</div>
+                </div>
             </div>
             <div class="block-content fs-sm data-content">
-                <form class="mb-4" action="{{ route('rent.store') }}" method="POST" autocomplete="off">
+                <form action="{{ route('rent.store') }}" method="POST" autocomplete="off">
                     @csrf
                     <!-- Add Rent Section -->
-                    <section class="mb-4 p-3 border rounded bg-light">
+                    <section class="mb-4 p-3 border rounded rent-panel">
                         <h5 class="mb-3">Base Rent</h5>
                         <div class="row">
                             <div class="col-md-6 col-sm-12 mb-4">
@@ -98,7 +112,7 @@
                     </section>
 
                     <!-- Rent Increments Section -->
-                    <section class="mb-4 p-3 border rounded bg-light">
+                    <section class="mb-4 p-3 border rounded rent-panel">
                         <h5 class="mb-3">Rent Increments</h5>
                         <table class="table table-bordered" id="incrementsTable">
                             <thead>
@@ -113,11 +127,11 @@
                             </thead>
                             <tbody></tbody>
                         </table>
-                        <button type="button" class="btn btn-success" id="addIncrement">Add Increment</button>
+                        <button type="button" class="btn btn-alt-success" id="addIncrement">Add Increment</button>
                     </section>
 
                     <!-- Security Deposits Section -->
-                    <section class="mb-4 p-3 border rounded bg-light">
+                    <section class="mb-4 p-3 border rounded rent-panel">
                         <h5 class="mb-3">Security Deposits</h5>
                         <div class="row mb-3">
                             <div class="col-md-4">
@@ -150,9 +164,14 @@
                             </thead>
                             <tbody></tbody>
                         </table>
-                        <button type="button" class="btn btn-success" id="addDeposit">Add Deposit</button>
+                        <button type="button" class="btn btn-alt-success" id="addDeposit">Add Deposit</button>
                     </section>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <div class="rent-action-bar">
+                        <a href="{{ route('rent.index') }}" class="btn btn-alt-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-check me-1"></i> Save Rent
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -176,7 +195,7 @@
                             <td><input type="number" step="0.01" name="increments[${incrementIndex}][increment_amount]" class="form-control inc-amount" required></td>
                             <td><input type="number" step="0.01" name="increments[${incrementIndex}][increment_percentage]" class="form-control inc-percent"></td>
                             <td><input type="text" name="increments[${incrementIndex}][method_description]" class="form-control"></td>
-                            <td><button type="button" class="btn btn-danger btn-sm remove-increment">Remove</button></td>
+                            <td><button type="button" class="btn btn-alt-danger btn-sm remove-increment">Remove</button></td>
                         </tr>
                     `);
 
@@ -197,7 +216,7 @@
                             <td><input type="date" name="deposits[${depositIndex}][absorb_start_date]" class="form-control"></td>
                             <td><input type="date" name="deposits[${depositIndex}][absorb_end_date]" class="form-control"></td>
                             <td><input type="text" name="deposits[${depositIndex}][method_description]" class="form-control"></td>
-                            <td><button type="button" class="btn btn-danger btn-sm remove-deposit">Remove</button></td>
+                            <td><button type="button" class="btn btn-alt-danger btn-sm remove-deposit">Remove</button></td>
                         </tr>
                     `);
 

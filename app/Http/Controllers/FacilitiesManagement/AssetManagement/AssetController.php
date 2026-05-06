@@ -24,7 +24,20 @@ class AssetController extends Controller
 
         if ($request->ajax()) {
             $categoryName = $request->get('category_id');
-            $categoryId = $categoryName === 'all' ? 'all' : AssetCategory::where('category_name', $categoryName)->first()->id;
+            $categoryId = 'all';
+
+            if ($categoryName && $categoryName !== 'all') {
+                $category = AssetCategory::where('category_name', $categoryName)->first();
+
+                if (!$category) {
+                    return DataTables::of(Asset::query()->whereRaw('1 = 0'))
+                        ->addIndexColumn()
+                        ->with('dynamic_attributes', [])
+                        ->make(true);
+                }
+
+                $categoryId = $category->id;
+            }
 
             $attributes = [];
             if (is_numeric($categoryId)) {
@@ -33,7 +46,7 @@ class AssetController extends Controller
 
             $query = Asset::with(['category', 'floor.building', 'parent', 'project', 'attributeValues']);
 
-            if ($request->filled('category_id') && $categoryId !== 'all') {
+            if ($categoryId !== 'all') {
                 $query->where('category_id', $categoryId);
             }
 

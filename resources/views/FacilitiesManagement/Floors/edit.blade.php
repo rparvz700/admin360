@@ -8,89 +8,61 @@
     Edit Floor
 @endsection
 
+@section('styles')
+    <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">
+@endsection
+
 @section('content')
     <div class="content">
-        <div class="block block-rounded">
-            <div class="block-header block-header-default">
-                <h3 class="block-title">Edit Floor</h3>
+        <div class="floor-page-header">
+            <div>
+                <div class="floor-eyebrow">Facilities Management</div>
+                <h2>Edit Floor</h2>
+                <p>Update floor metrics, assignment details, and status.</p>
+            </div>
+            <div class="floor-header-actions">
+                <span class="badge {{ $floor->status === 'Active' ? 'bg-success' : 'bg-secondary' }}">
+                    {{ $floor->status ?: 'N/A' }}
+                </span>
+                <a href="{{ route('floors.show', $floor->id) }}" class="btn btn-alt-secondary">
+                    <i class="fa fa-eye me-1"></i> View
+                </a>
+            </div>
+        </div>
+
+        <div class="block block-rounded floor-shell">
+            <div class="block-header block-header-default floor-block-header">
+                <div>
+                    <h3 class="block-title">{{ $floor->floor_label ?: 'Floor Profile' }}</h3>
+                    <div class="text-muted fs-sm">Last updated {{ optional($floor->updated_at)->format('Y-m-d H:i') }}</div>
+                </div>
             </div>
             <div class="block-content fs-sm data-content">
-                <form class="mb-4" action="{{ route('floors.update', $floor->id) }}" method="POST" autocomplete="off">
+                <form action="{{ route('floors.update', $floor->id) }}" method="POST" autocomplete="off">
                     @csrf
                     @method('PUT')
-                    <div class="row">
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="building_id">Building<span class="text-danger">*</span></label>
-                            <select class="form-control" id="building_id" name="building_id" required>
-                                <option value="">Select Building</option>
-                                @foreach ($buildings as $building)
-                                    <option value="{{ $building->id }}"
-                                        {{ $floor->building_id == $building->id ? 'selected' : '' }}>{{ $building->code }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="agreement_id">Agreement</label>
-                            <select class="form-control" id="agreement_id" name="agreement_id">
-                                <option value="">Select Agreement</option>
-                                @foreach ($agreements as $agreement)
-                                    <option value="{{ $agreement->id }}"
-                                        {{ $floor->agreement_id == $agreement->id ? 'selected' : '' }}>
-                                        {{ $agreement->agreement_ref_no }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="floor_label">Floor Label</label>
-                            <input type="text" class="form-control" id="floor_label" name="floor_label"
-                                value="{{ old('floor_label', $floor->floor_label) }}">
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="floor_area_sft">Floor Area (sft)</label>
-                            <input type="number" step="0.01" class="form-control" id="floor_area_sft"
-                                name="floor_area_sft" value="{{ old('floor_area_sft', $floor->floor_area_sft) }}">
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="premises_type">Premises Type</label>
-                            <input type="text" class="form-control" id="premises_type" name="premises_type"
-                                value="{{ old('premises_type', $floor->premises_type) }}">
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="car_parking">Car Parking</label>
-                            <input type="number" class="form-control" id="car_parking" name="car_parking"
-                                value="{{ old('car_parking', $floor->car_parking) }}">
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="dg_space_sft">DG Space (sft)</label>
-                            <input type="number" step="0.01" class="form-control" id="dg_space_sft" name="dg_space_sft"
-                                value="{{ old('dg_space_sft', $floor->dg_space_sft) }}">
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="store_space_sft">Store Space (sft)</label>
-                            <input type="number" step="0.01" class="form-control" id="store_space_sft"
-                                name="store_space_sft" value="{{ old('store_space_sft', $floor->store_space_sft) }}">
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <label class="form-label" for="project">Project</label>
-                            <select class="form-control" id="project" name="project_id">
-                                <option value="">Select project</option>
-                                @foreach ($projects as $project)
-                                    <option value="{{ $project->id }}"
-                                        {{ $floor->project_id == $project->id ? 'selected' : '' }}>{{ $project->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="status">Status</label>
-                            <input type="text" class="form-control" id="status" name="status"
-                                value="{{ old('status', $floor->status) }}">
-                        </div>
+                    @include('FacilitiesManagement.Floors.partials.form', [
+                        'floor' => $floor,
+                        'buildings' => $buildings,
+                        'agreements' => $agreements,
+                        'projects' => $projects,
+                    ])
+
+                    <div class="floor-action-bar">
+                        <a href="{{ route('floors.index') }}" class="btn btn-alt-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-check me-1"></i> Update Floor
+                        </button>
                     </div>
-                    <button type="submit" class="btn btn-primary">Update</button>
                 </form>
             </div>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>
+    <script>
+        One.helpersOnLoad(['jq-select2']);
+    </script>
 @endsection

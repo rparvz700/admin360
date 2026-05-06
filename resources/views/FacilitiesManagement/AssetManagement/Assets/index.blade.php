@@ -50,10 +50,44 @@
         /* Fix Table width issues */
         #assets-table {
             width: 100% !important;
+            min-width: 1500px;
         }
 
         .dataTables_scrollBody {
             border-bottom: none !important;
+        }
+
+        #assets-table th,
+        #assets-table td {
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        #assets-table th.asset-status-column,
+        #assets-table td.asset-status-column {
+            min-width: 90px;
+            text-align: center;
+        }
+
+        #assets-table th.asset-actions-column,
+        #assets-table td.asset-actions-column {
+            min-width: 118px;
+            text-align: center;
+        }
+
+        .dataTables_wrapper .dataTables_scroll {
+            border: 1px solid #dee2e6;
+            border-radius: .25rem;
+            overflow: hidden;
+        }
+
+        .dataTables_wrapper .dataTables_scrollHead table,
+        .dataTables_wrapper .dataTables_scrollBody table {
+            margin-bottom: 0 !important;
+        }
+
+        .dataTables_wrapper .dataTables_scrollBody {
+            overflow-x: auto !important;
         }
     </style>
 @endsection
@@ -216,19 +250,53 @@
                 {
                     data: 'status',
                     name: 'status',
-                    title: 'Status'
+                    title: 'Status',
+                    className: 'asset-status-column'
                 },
                 {
                     data: 'actions',
                     name: 'actions',
                     title: 'Actions',
                     orderable: false,
-                    searchable: false
+                    searchable: false,
+                    className: 'asset-actions-column'
                 }
             ];
 
+            function escapeHtml(value) {
+                return $('<div>').text(value ?? '').html();
+            }
+
+            function resetTableMarkup(columns) {
+                const headerCells = columns
+                    .map(column => `<th>${escapeHtml(column.title || '')}</th>`)
+                    .join('');
+
+                $('#assets-table')
+                    .empty()
+                    .append(`<thead><tr>${headerCells}</tr></thead><tbody></tbody>`);
+            }
+
+            function columnSignature(columns) {
+                return columns.map(column => column.name || column.data || '').join('|');
+            }
+
+            function validSavedState(savedState, columns) {
+                return savedState &&
+                    Array.isArray(savedState.columns) &&
+                    savedState.columns.length === columns.length &&
+                    savedState.assetColumnSignature === columnSignature(columns);
+            }
+
             function refreshTableWithDynamicColumns(categoryId) {
                 selectedCategoryId = categoryId; // Update global tracker
+
+                if ($.fn.DataTable.isDataTable('#assets-table')) {
+                    table.destroy();
+                    resetTableMarkup(baseColumns);
+                } else {
+                    $('#assets-table tbody').empty();
+                }
 
                 $.ajax({
                     url: '{{ route('assets.index') }}',
@@ -252,10 +320,10 @@
                             });
                         }
 
-                        if ($.fn.DataTable.isDataTable('#assets-table')) {
-                            table.destroy();
-                            $('#assets-table').empty();
-                        }
+                        resetTableMarkup(columns);
+                        const assetColumnSignature = columnSignature(columns);
+                        const statusColumnIndex = columns.findIndex(column => column.name === 'status');
+                        const actionsColumnIndex = columns.findIndex(column => column.name === 'actions');
 
                         table = $('#assets-table').DataTable({
                             processing: true,
@@ -264,22 +332,33 @@
 
                             // 2. Admin Reorder Control
                             colReorder: isAdmin ? {
-                                fixedColumnsLeft: 1
+                                fixedColumnsLeft: 1,
+                                fixedColumnsRight: 1
                             } : false,
 
                             // 3. Load Layout from Database based on Category
                             stateSave: true,
+                            stateSaveParams: function(settings, data) {
+                                data.assetColumnSignature = assetColumnSignature;
+                            },
                             stateLoadCallback: function(settings) {
                                 const key = 'assets_table_' + categoryId;
                                 try {
-                                    return globalSettingsMap[key] ? JSON.parse(
-                                        globalSettingsMap[key]) : null;
+                                    const savedState = globalSettingsMap[key] ? JSON.parse(globalSettingsMap[key]) : null;
+
+                                    if (!validSavedState(savedState, columns)) {
+                                        return null;
+                                    }
+
+                                    savedState.columns[actionsColumnIndex].visible = true;
+                                    return savedState;
                                 } catch (e) {
                                     return null;
                                 }
                             },
 
                             scrollX: true,
+                            scrollCollapse: true,
                             autoWidth: false,
                             ajax: {
                                 url: '{{ route('assets.index') }}',
@@ -288,6 +367,21 @@
                                 }
                             },
                             columns: columns,
+                            columnDefs: [
+                                {
+                                    targets: statusColumnIndex,
+                                    className: 'asset-status-column',
+                                    width: '90px'
+                                },
+                                {
+                                    targets: actionsColumnIndex,
+                                    visible: true,
+                                    orderable: false,
+                                    searchable: false,
+                                    className: 'asset-actions-column',
+                                    width: '118px'
+                                }
+                            ],
                             dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'<'d-flex justify-content-end gap-2'Bf>>>" +
                                 "<'row'<'col-sm-12'tr>>" +
                                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
@@ -303,12 +397,21 @@
                             }] : [],
 
                             initComplete: function() {
+                                this.api().settings()[0]._assetColumnSignature = assetColumnSignature;
+
                                 if (isAdmin) {
                                     buildSettingsModal(this.api());
                                     injectSaveButton();
                                 }
                             }
                         });
+                    },
+                    error: function() {
+                        if ($.fn.DataTable.isDataTable('#assets-table')) {
+                            table.destroy();
+                        }
+
+                        resetTableMarkup(baseColumns);
                     }
                 });
             }
@@ -322,11 +425,12 @@
                     if (title === 'ID' || title === 'Actions' || title === 'SI' || !title) return;
 
                     const isChecked = column.visible() ? 'checked' : '';
+                    const safeTitle = escapeHtml(title);
                     const switchHtml = `
                         <div class="form-check form-switch mb-3">
                             <input class="form-check-input col-toggle-input" type="checkbox" 
                                    id="asset_col_${index}" data-column="${index}" ${isChecked}>
-                            <label class="form-check-label fw-medium" for="asset_col_${index}">${title}</label>
+                            <label class="form-check-label fw-medium" for="asset_col_${index}">${safeTitle}</label>
                         </div>`;
                     container.append(switchHtml);
                 });
@@ -339,6 +443,7 @@
                         .prependTo('#modal-column-settings .modal-content .block-content-full')
                         .on('click', function() {
                             const state = table.state();
+                            state.assetColumnSignature = table.settings()[0]._assetColumnSignature;
                             $.ajax({
                                 url: '{{ route('table_settings.save') }}',
                                 method: 'POST',

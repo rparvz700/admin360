@@ -14,83 +14,39 @@
 
 @section('content')
     <div class="content">
-        <div class="block block-rounded">
-            <div class="block-header block-header-default">
-                <h3 class="block-title">Add Building</h3>
+        <div class="building-page-header">
+            <div>
+                <div class="building-eyebrow">Facilities Management</div>
+                <h2>Create Building</h2>
+                <p>Add a site with location details for facilities and asset tracking.</p>
+            </div>
+            <a href="{{ route('buildings.index') }}" class="btn btn-alt-secondary">
+                <i class="fa fa-arrow-left me-1"></i> Back
+            </a>
+        </div>
+
+        <div class="block block-rounded building-shell">
+            <div class="block-header block-header-default building-block-header">
+                <div>
+                    <h3 class="block-title">Building Profile</h3>
+                    <div class="text-muted fs-sm">Fields marked with <span class="text-danger">*</span> are required.</div>
+                </div>
             </div>
             <div class="block-content fs-sm data-content">
-                <form class="mb-4" action="{{ route('buildings.store') }}" method="POST" autocomplete="off">
+                <form action="{{ route('buildings.store') }}" method="POST" autocomplete="off">
                     @csrf
-                    <div class="row">
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="code">Code<span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="code" name="code"
-                                value="{{ old('code') }}" required>
-                            @if ($errors->has('code'))
-                                <div class="text-danger">
-                                    <small>{{ $errors->first('code') }}</small>
-                                </div>
-                            @endif
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="site_name">Site Name</label>
-                            <input type="text" class="form-control" id="site_name" name="site_name"
-                                value="{{ old('site_name') }}">
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="country">Country</label>
-                            <input type="text" class="form-control" id="country" name="country"
-                                value="{{ old('country') }}">
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="division">Division</label>
-                            <input type="text" class="form-control" id="division" name="division"
-                                value="{{ old('division') }}">
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="district">District</label>
-                            <select class="form-control js-select2" id="district" name="district">
-                                <option value="">Select District</option>
-                                @foreach ($districts as $district)
-                                    <option value="{{ $district['district'] }}">
-                                        {{ $district['district'] }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="upazila">Upazila</label>
-                            <select class="form-control js-select2" id="upazila" name="upazila">
-                                <option value="">Select Upazila</option>
-                                {{-- @foreach ($upazillas as $upazilla)
-                                    <option value="{{ $upazilla['upazilla'] }}">
-                                        {{ $upazilla['upazilla'] }}
-                                    </option>
-                                @endforeach --}}
-                            </select>
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="area">Area</label>
-                            <input type="text" class="form-control" id="area" name="area"
-                                value="{{ old('area') }}">
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="address">Address</label>
-                            <input type="text" class="form-control" id="address" name="address"
-                                value="{{ old('address') }}">
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="lat">Latitude</label>
-                            <input type="text" class="form-control" id="lat" name="lat"
-                                value="{{ old('lat') }}">
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="long">Longitude</label>
-                            <input type="text" class="form-control" id="long" name="long"
-                                value="{{ old('long') }}">
-                        </div>
+                    @include('FacilitiesManagement.Buildings.partials.form', [
+                        'building' => null,
+                        'districts' => $districts,
+                        'mode' => 'create',
+                    ])
+
+                    <div class="building-action-bar">
+                        <a href="{{ route('buildings.index') }}" class="btn btn-alt-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-check me-1"></i> Save Building
+                        </button>
                     </div>
-                    <button type="submit" class="btn btn-primary">Save</button>
                 </form>
             </div>
         </div>
@@ -103,42 +59,40 @@
         One.helpersOnLoad(['jq-select2']);
 
         const allUpazilas = @json($upazillas);
+        const selectedUpazila = @json(old('upazila'));
 
         $(document).ready(function() {
-
-            $('#district').on('change', function() {
-
-                let selectedDistrict = $(this).val();
-
+            function loadUpazilas(district, preselected = null) {
                 let $upazila = $('#upazila');
-
-                // Reset dropdown
                 $upazila.empty().append('<option value="">Select Upazila</option>');
 
-                if (selectedDistrict === '') {
-                    $upazila.trigger('change');
+                if (!district) {
+                    $upazila.prop('disabled', true).trigger('change');
                     return;
                 }
 
-                // Filter upazilas
                 let filtered = allUpazilas.filter(function(item) {
-                    return item.district === selectedDistrict;
+                    return item.district.trim().toLowerCase() === district.trim().toLowerCase();
                 });
 
-                // Append filtered options
                 $.each(filtered, function(index, item) {
-                    $upazila.append(
-                        $('<option>', {
-                            value: item.upazilla,
-                            text: item.upazilla
-                        })
-                    );
+                    $upazila.append(new Option(item.upazilla, item.upazilla, false, false));
                 });
 
-                // Refresh select2
+                $upazila.prop('disabled', false);
+
+                if (preselected) {
+                    $upazila.val(preselected);
+                }
+
                 $upazila.trigger('change');
+            }
+
+            $('#district').on('change', function() {
+                loadUpazilas($(this).val());
             });
 
+            loadUpazilas($('#district').val(), selectedUpazila);
         });
     </script>
 @endsection

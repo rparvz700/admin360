@@ -21,10 +21,23 @@
 
 @section('content')
     <div class="content">
-        <div class="block block-rounded">
+        <div class="building-page-header">
+            <div>
+                <div class="building-eyebrow">Facilities Management</div>
+                <h2>Buildings</h2>
+                <p>Manage site identity, location data, and facility records.</p>
+            </div>
+            @can('create-building')
+                <a href="{{ route('buildings.create') }}" class="btn btn-primary">
+                    <i class="fa fa-plus me-1"></i> Add Building
+                </a>
+            @endcan
+        </div>
+
+        <div class="block block-rounded building-shell">
             {{-- Response message --}}
             @if (Session::has('success'))
-                <div class="alert alert-success alert-dismissible" role="alert">
+                <div class="alert alert-success alert-dismissible m-3 mb-0" role="alert">
                     <small class="mb-0">
                         {{ Session::get('success') }}
                     </small>
@@ -32,16 +45,16 @@
                 </div>
             @endif
             {{-- End response message --}}
-            <div class="block-header block-header-default">
-                <h3 class="block-title">Buildings</h3>
-                @can('create-building')
-                    <a href="{{ route('buildings.create') }}" class="btn btn-sm btn-primary">Add Building</a>
-                @endcan
+            <div class="block-header block-header-default building-block-header">
+                <div>
+                    <h3 class="block-title">Building Directory</h3>
+                    <div class="text-muted fs-sm">Search, reorder, and configure visible building columns.</div>
+                </div>
             </div>
             <div class="block-content fs-sm data-content">
                 <div class="table-responsive">
                     <table
-                        class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive">
+                        class="table table-sm table-vcenter table-hover building-table js-dataTable-full js-dataTable-responsive">
                         <thead>
                             <tr>
                                 <th class="text-center all">ID</th>
@@ -131,6 +144,7 @@
                         columns: [{
                                 data: 'DT_RowIndex',
                                 name: 'SI',
+                                className: 'text-center text-muted',
                                 orderable: false,
                                 searchable: false
                             },
@@ -154,6 +168,7 @@
                             },
                             {
                                 data: 'actions',
+                                className: 'text-end',
                                 searchable: false
                             }
                         ],

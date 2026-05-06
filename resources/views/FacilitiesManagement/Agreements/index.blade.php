@@ -20,23 +20,36 @@
 
 @section('content')
     <div class="content">
-        <div class="block block-rounded">
+        <div class="agreement-page-header">
+            <div>
+                <div class="agreement-eyebrow">Facilities Management</div>
+                <h2>Agreements</h2>
+                <p>Manage agreement references, validity dates, status, and supporting remarks.</p>
+            </div>
+            <a href="{{ route('agreements.create') }}" class="btn btn-primary">
+                <i class="fa fa-plus me-1"></i> Add Agreement
+            </a>
+        </div>
+
+        <div class="block block-rounded agreement-shell">
             @if (Session::has('success'))
-                <div class="alert alert-success alert-dismissible" role="alert">
+                <div class="alert alert-success alert-dismissible m-3 mb-0" role="alert">
                     <small class="mb-0">
                         {{ Session::get('success') }}
                     </small>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
-            <div class="block-header block-header-default">
-                <h3 class="block-title">Agreements</h3>
-                <a href="{{ route('agreements.create') }}" class="btn btn-sm btn-primary">Add Agreement</a>
+            <div class="block-header block-header-default agreement-block-header">
+                <div>
+                    <h3 class="block-title">Agreement Directory</h3>
+                    <div class="text-muted fs-sm">Search, reorder, and configure visible agreement columns.</div>
+                </div>
             </div>
             <div class="block-content fs-sm data-content">
                 <div class="table-responsive">
                     <table id="agreements-table"
-                        class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive">
+                        class="table table-sm table-vcenter table-hover agreement-table js-dataTable-full js-dataTable-responsive">
                         <thead>
                             <tr>
                                 <th class="text-center all">ID</th>
@@ -127,6 +140,7 @@
                         columns: [{
                                 data: 'DT_RowIndex',
                                 name: 'SI',
+                                className: 'text-center text-muted',
                                 orderable: false,
                                 searchable: false
                             },
@@ -148,7 +162,8 @@
                             },
                             {
                                 data: 'status',
-                                name: 'status'
+                                name: 'status',
+                                className: 'text-center'
                             },
                             {
                                 data: 'remarks',
@@ -157,6 +172,7 @@
                             {
                                 data: 'actions',
                                 name: 'actions',
+                                className: 'text-end',
                                 orderable: false,
                                 searchable: false
                             },

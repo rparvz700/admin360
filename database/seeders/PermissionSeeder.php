@@ -45,14 +45,15 @@ class PermissionSeeder extends Seeder
             // 'edit-rent',
             // 'delete-rent'
 
-            'asset-management',
-            'vehicle-management',
-            'vehicle-maintenance-management',
-            'document-management',
-            'ticket-management',
-            'user-ticket-management',
-            'admin-ticket-management',
-            'invoice-management',
+            // 'asset-management',
+            // 'vehicle-management',
+            // 'vehicle-maintenance-management',
+            // 'document-management',
+            // 'ticket-management',
+            // 'user-ticket-management',
+            // 'admin-ticket-management',
+            // 'invoice-management',
+            'property-wizard'
          ];
 
          foreach ($permissions as $permission) {

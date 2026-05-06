@@ -30,9 +30,7 @@ class AgreementsController extends Controller
                 })
                 ->addColumn('remarks', function($row) { return $row->remarks; })
                 ->addColumn('actions', function ($agreement) {
-                    $viewBtn = '<a href="' . route('agreements.show', $agreement->id) . '" class="btn btn-sm btn-info">View</a> ';
-                    $editDelete = view('FacilitiesManagement.Agreements.partials.actions', compact('agreement'))->render();
-                    return $viewBtn . $editDelete;
+                    return view('FacilitiesManagement.Agreements.partials.actions', compact('agreement'))->render();
                 })
                 ->rawColumns(['actions', 'status'])
                 ->make(true);

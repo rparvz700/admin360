@@ -1,6 +1,16 @@
-<a href="{{ route('agreements.edit', $agreement->id) }}" class="btn btn-sm btn-warning">Edit</a>
-<form action="{{ route('agreements.destroy', $agreement->id) }}" method="POST" style="display:inline-block;">
+<div class="btn-group btn-group-sm" role="group" aria-label="Agreement actions">
+    <a href="{{ route('agreements.show', $agreement->id) }}" class="btn btn-alt-info">
+        <i class="fa fa-eye"></i>
+    </a>
+    <a href="{{ route('agreements.edit', $agreement->id) }}" class="btn btn-alt-warning">
+        <i class="fa fa-pencil-alt"></i>
+    </a>
+</div>
+<form action="{{ route('agreements.destroy', $agreement->id) }}" method="POST" style="display:inline-block;"
+    onsubmit="return confirm('Do you want to delete this agreement?')">
     @csrf
     @method('DELETE')
-    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
+    <button type="submit" class="btn btn-sm btn-alt-danger">
+        <i class="fa fa-trash"></i>
+    </button>
 </form>
