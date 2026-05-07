@@ -81,6 +81,7 @@ class PropertyWizardController extends Controller
                 'division'  => $request->division,
                 'district'  => $request->district,
                 'upazila'   => $request->upazila,
+                'area'      => $request->area,
                 'address'   => $request->address,
                 'lat'       => $request->lat,
                 'long'      => $request->long,

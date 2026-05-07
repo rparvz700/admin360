@@ -291,6 +291,109 @@
     font-weight: 700;
 }
 
+.building-show-summary {
+    display: grid;
+    grid-template-columns: auto minmax(13rem, 1.2fr) repeat(2, minmax(10rem, 1fr));
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: .5rem;
+}
+
+.building-show-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    color: #0f766e;
+    background: #e7f8f4;
+    border-radius: .5rem;
+}
+
+.building-show-title,
+.building-show-meta,
+.building-coordinate-value {
+    min-width: 0;
+}
+
+.building-show-title span,
+.building-show-meta span,
+.building-coordinate-value span,
+.building-detail-row span {
+    display: block;
+    margin-bottom: .25rem;
+    color: #64748b;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.building-show-title strong,
+.building-show-meta strong,
+.building-coordinate-value strong,
+.building-detail-row strong {
+    display: block;
+    color: #1f2937;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.building-show-title strong {
+    font-size: 1.05rem;
+}
+
+.building-show-layout {
+    display: grid;
+    grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+    gap: 1.25rem;
+}
+
+.building-show-section {
+    padding: 1.25rem;
+    border: 1px solid #e5e7eb;
+    border-radius: .5rem;
+}
+
+.building-detail-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .875rem 1rem;
+}
+
+.building-detail-row {
+    padding-bottom: .875rem;
+    border-bottom: 1px solid #edf0f5;
+}
+
+.building-detail-row-wide {
+    grid-column: 1 / -1;
+}
+
+.building-coordinates-section {
+    margin-top: 1.25rem;
+}
+
+.building-coordinate-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: .5rem;
+}
+
+.building-coordinate-values {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(8rem, 1fr));
+    gap: 1rem;
+    flex: 1;
+}
+
 @media (max-width: 767.98px) {
     .building-page-header,
     .building-header-actions,
@@ -306,6 +409,22 @@
 
     .building-detail-grid {
         grid-template-columns: 1fr;
+    }
+
+    .building-show-summary,
+    .building-show-layout,
+    .building-detail-list,
+    .building-coordinate-values {
+        grid-template-columns: 1fr;
+    }
+
+    .building-coordinate-panel {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .building-coordinate-panel .btn {
+        width: 100%;
     }
 }
 

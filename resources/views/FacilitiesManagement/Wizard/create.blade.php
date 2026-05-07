@@ -405,6 +405,10 @@
                                     <select class="form-select js-select2" id="upazila" name="upazila"></select>
                                 </div>
                                 <div class="col-md-4 mb-2">
+                                    <label class="form-label">Area</label>
+                                    <input type="text" name="area" class="form-control" value="{{ old('area') }}">
+                                </div>
+                                <div class="col-md-4 mb-2">
                                     <label class="form-label">Latitude</label>
                                     <input type="text" name="lat" id="wizard_lat" class="form-control"
                                         placeholder="23.8103">
