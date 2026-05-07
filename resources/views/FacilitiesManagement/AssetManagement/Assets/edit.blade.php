@@ -14,17 +14,41 @@
 
 @section('content')
     <div class="content">
-        <div class="block block-rounded">
-            <div class="block-header block-header-default">
-                <h3 class="block-title">Edit Asset</h3>
-                <a href="{{ route('assets.index') }}" class="btn btn-sm btn-secondary">Back to List</a>
+        <div class="asset-page-header">
+            <div>
+                <div class="asset-eyebrow">Facilities Management</div>
+                <h2>Edit Asset</h2>
+                <p>Maintain asset identity, placement, lifecycle details, and category-specific attributes.</p>
             </div>
-            <div class="block-content">
+            <div class="asset-header-actions">
+                <span class="badge bg-primary">{{ $asset->asset_tag }}</span>
+                <a href="{{ route('assets.index') }}" class="btn btn-alt-secondary">
+                    <i class="fa fa-arrow-left me-1"></i> Back
+                </a>
+            </div>
+        </div>
+
+        <div class="block block-rounded asset-shell">
+            <div class="block-header block-header-default asset-block-header">
+                <div>
+                    <h3 class="block-title">{{ $asset->asset_name ?: 'Asset Profile' }}</h3>
+                    <div class="text-muted fs-sm">Last updated {{ optional($asset->updated_at)->format('Y-m-d H:i') }}</div>
+                </div>
+            </div>
+            <div class="block-content fs-sm data-content">
                 <form action="{{ route('assets.update', $asset->id) }}" method="POST" autocomplete="off">
                     @csrf
                     @method('PUT')
-                    <div class="row">
-                        <div class="col-md-6">
+                    <div class="row g-4">
+                        <div class="col-xl-6">
+                            <div class="asset-form-section">
+                                <div class="asset-section-heading">
+                                    <span class="asset-section-icon"><i class="fa fa-barcode"></i></span>
+                                    <div>
+                                        <h4>Asset Identity</h4>
+                                        <p>Core identification, category, manufacturer, and lifecycle dates.</p>
+                                    </div>
+                                </div>
                             <div class="mb-3">
                                 <label class="form-label" for="asset_tag">Asset Tag / Unique Code<span
                                         class="text-danger">*</span></label>
@@ -40,7 +64,7 @@
                             <div class="mb-3">
                                 <label class="form-label" for="category_id">Category<span
                                         class="text-danger">*</span></label>
-                                <select class="form-control js-select2" id="category_id" name="category_id" required>
+                                <select class="form-select js-select2" id="category_id" name="category_id" required>
                                     <option value="">Select Category</option>
                                     @foreach ($categories as $category)
                                         <option value="{{ $category->id }}"
@@ -74,11 +98,20 @@
                                 <input type="date" class="form-control" id="warranty_expiry" name="warranty_expiry"
                                     value="{{ old('warranty_expiry', $asset->warranty_expiry) }}">
                             </div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-xl-6">
+                            <div class="asset-form-section">
+                                <div class="asset-section-heading">
+                                    <span class="asset-section-icon"><i class="fa fa-map-marker-alt"></i></span>
+                                    <div>
+                                        <h4>Assignment and Placement</h4>
+                                        <p>Place the asset on a floor, project, parent asset, and operational status.</p>
+                                    </div>
+                                </div>
                             <div class="mb-3">
                                 <label class="form-label" for="floor_id">Floor</label>
-                                <select class="form-control js-select2" id="floor_id" name="floor_id">
+                                <select class="form-select js-select2" id="floor_id" name="floor_id">
                                     <option value="">Select Floor</option>
                                     @foreach ($floors as $floor)
                                         <option value="{{ $floor->id }}"
@@ -97,7 +130,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="parent_id">Parent Asset</label>
-                                <select class="form-control js-select2" id="parent_id" name="parent_id">
+                                <select class="form-select js-select2" id="parent_id" name="parent_id">
                                     <option value="">Select Parent Asset</option>
                                     @foreach ($assets as $parentAsset)
                                         <option value="{{ $parentAsset->id }}"
@@ -108,7 +141,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="status">Status<span class="text-danger">*</span></label>
-                                <select class="form-control" id="status" name="status" required>
+                                <select class="form-select" id="status" name="status" required>
                                     <option value="">Select Status</option>
                                     <option value="active"
                                         {{ old('status', $asset->status) == 'active' ? 'selected' : '' }}>Active</option>
@@ -119,7 +152,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="project">Project</label>
-                                <select class="form-control" id="project" name="project_id" required>
+                                <select class="form-select" id="project" name="project_id" required>
                                     <option value="">Select project</option>
                                     @foreach ($projects as $project)
                                         <option value="{{ $project->id }}"
@@ -129,8 +162,8 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <hr>
-                            <h5>Attribute Values</h5>
+                            <div class="asset-attribute-panel mt-4">
+                            <h5><i class="fa fa-sliders-h me-1"></i> Attribute Values</h5>
                             <div id="attribute-fields">
                                 @php
                                     $categoryAttributes = $attributes->where(
@@ -180,7 +213,7 @@
                                                 </div>
                                             </div>
                                         @elseif($attribute->attribute_type == 'select')
-                                            <select class="form-control js-select2" id="attribute_{{ $attribute->id }}"
+                                            <select class="form-select js-select2" id="attribute_{{ $attribute->id }}"
                                                 name="attributes[{{ $attribute->id }}]">
                                                 <option value="">Select</option>
                                                 @foreach ($attribute->options ?? [] as $option)
@@ -193,9 +226,16 @@
                                     </div>
                                 @endforeach
                             </div>
+                            </div>
+                            </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Update</button>
+                    <div class="asset-action-bar">
+                        <a href="{{ route('assets.index') }}" class="btn btn-alt-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-check me-1"></i> Update Asset
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

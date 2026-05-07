@@ -60,6 +60,11 @@ class RentController extends Controller
 
     public function store(Request $request)
     {
+        $securityDepositError = $this->validateSecurityDepositRequirement($request);
+        if ($securityDepositError) {
+            return back()->withInput()->withErrors(['deposits' => $securityDepositError]);
+        }
+
         $vatTax = VatTax::where('type', 'rent')
             ->where('status', 1)
             ->firstOrFail();
@@ -100,16 +105,7 @@ class RentController extends Controller
                 ]);
             }
         }
-        // Handle Security Deposits
-        if ($request->has('deposits')) {
-            foreach ($request->deposits as $deposit) {
-                $deposit['agreement_id'] = $base->agreement_id;
-                $deposit['security_deposit_total'] = $request->security_deposit_total;
-                $deposit['security_deposit_absorbable'] = $request->security_deposit_absorbable;
-                $deposit['security_deposit_non_absorbable'] = $request->security_deposit_non_absorbable;
-                \App\Models\SecurityDeposit::create($deposit);
-            }
-        }
+        $this->saveSecurityDeposits($request, $base->agreement_id);
         return redirect()->route('rent.index')->with('success', 'Rent created successfully.');
     }
 
@@ -123,6 +119,11 @@ class RentController extends Controller
 
     public function update(Request $request, $id)
     {
+        $securityDepositError = $this->validateSecurityDepositRequirement($request);
+        if ($securityDepositError) {
+            return back()->withInput()->withErrors(['deposits' => $securityDepositError]);
+        }
+
         $vatTax = VatTax::where('type', 'rent')
             ->where('status', 1)
             ->firstOrFail();
@@ -166,17 +167,8 @@ class RentController extends Controller
                 ]);
             }
         }
-        // Handle Security Deposits
         \App\Models\SecurityDeposit::where('agreement_id', $base->agreement_id)->delete();
-        if ($request->has('deposits')) {
-            foreach ($request->deposits as $deposit) {
-                $deposit['agreement_id'] = $base->agreement_id;
-                $deposit['security_deposit_total'] = $request->security_deposit_total;
-                $deposit['security_deposit_absorbable'] = $request->security_deposit_absorbable;
-                $deposit['security_deposit_non_absorbable'] = $request->security_deposit_non_absorbable;
-                \App\Models\SecurityDeposit::create($deposit);
-            }
-        }
+        $this->saveSecurityDeposits($request, $base->agreement_id);
         return redirect()->route('rent.index')->with('success', 'Rent updated successfully.');
     }
 
@@ -198,5 +190,58 @@ class RentController extends Controller
     {
         $history = Helpers::getHistory(RentBase::class, $id);
         return $history;
+    }
+
+    private function validateSecurityDepositRequirement(Request $request): ?string
+    {
+        $hasAbsorbable = $this->moneyValue($request->security_deposit_absorbable) > 0;
+        $hasNonAbsorbable = $this->moneyValue($request->security_deposit_non_absorbable) > 0;
+
+        if (($hasAbsorbable || $hasNonAbsorbable) && !$this->hasDepositRows($request)) {
+            return 'Please add at least one deposit schedule row when Absorbable or Non-Absorbable amount is entered.';
+        }
+
+        return null;
+    }
+
+    private function saveSecurityDeposits(Request $request, int $agreementId): void
+    {
+        $summary = [
+            'agreement_id' => $agreementId,
+            'security_deposit_total' => $request->security_deposit_total,
+            'security_deposit_absorbable' => $request->security_deposit_absorbable,
+            'security_deposit_non_absorbable' => $request->security_deposit_non_absorbable,
+        ];
+
+        if ($this->hasDepositRows($request)) {
+            foreach ($request->input('deposits', []) as $deposit) {
+                \App\Models\SecurityDeposit::create(array_merge($deposit, $summary));
+            }
+            return;
+        }
+
+        if ($this->hasSecurityDepositSummary($request)) {
+            \App\Models\SecurityDeposit::create($summary);
+        }
+    }
+
+    private function hasDepositRows(Request $request): bool
+    {
+        return collect($request->input('deposits', []))
+            ->contains(function ($deposit) {
+                return collect($deposit)->contains(fn ($value) => $value !== null && $value !== '');
+            });
+    }
+
+    private function hasSecurityDepositSummary(Request $request): bool
+    {
+        return $this->moneyValue($request->security_deposit_total) > 0
+            || $this->moneyValue($request->security_deposit_absorbable) > 0
+            || $this->moneyValue($request->security_deposit_non_absorbable) > 0;
+    }
+
+    private function moneyValue($value): float
+    {
+        return is_numeric($value) ? (float) $value : 0.0;
     }
 }

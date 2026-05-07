@@ -276,20 +276,21 @@
                                                     ৳{{ number_format($rentBase->base_rent, 2) }}</h4>
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-6">
                                             <div class="p-3 text-center rounded"
                                                 style="background-color: rgba(255, 193, 7, 0.1);">
-                                                <small class="text-muted d-block mb-2">VAT</small>
-                                                <h5 class="mb-0">{{ $rentBase->vat }}%</h5>
+                                                <small class="text-muted d-block mb-2">Total (Inc. VAT, TAX)</small>
+                                                <h5 class="mb-0">
+                                                    ৳{{ $rentBase->base_rent + $rentBase->vat + $rentBase->tax }}</h5>
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        {{-- <div class="col-md-3">
                                             <div class="p-3 text-center rounded"
                                                 style="background-color: rgba(255, 193, 7, 0.1);">
                                                 <small class="text-muted d-block mb-2">Tax</small>
                                                 <h5 class="mb-0">{{ $rentBase->tax }}%</h5>
                                             </div>
-                                        </div>
+                                        </div> --}}
                                         <div class="col-md-3">
                                             <div class="p-3 text-center rounded"
                                                 style="background-color: rgba(255, 193, 7, 0.1);">
@@ -376,10 +377,10 @@
                                             <tr>
                                                 <th>ID</th>
                                                 <th>Total</th>
-                                                <th>Absorbable</th>
-                                                <th>Non-Absorbable</th>
-                                                <th>Absorb Start</th>
-                                                <th>Absorb End</th>
+                                                <th>Adjustable</th>
+                                                <th>Non-Adjustable</th>
+                                                <th>Adjust Start</th>
+                                                <th>Adjust End</th>
                                                 <th>Amount</th>
                                                 <th>Percentage</th>
                                                 <th>Frequency</th>

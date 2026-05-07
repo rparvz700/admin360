@@ -157,12 +157,12 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width: 10%;">Total</th>
-                                        <th style="width: 10%;">Absorbable</th>
-                                        <th style="width: 10%;">Non-Absorbable</th>
-                                        <th style="width: 12%;">Absorb Start</th>
-                                        <th style="width: 12%;">Absorb End</th>
-                                        <th style="width: 10%;">Absorb Amount</th>
-                                        <th style="width: 10%;">Absorb %</th>
+                                        <th style="width: 10%;">Adjustable</th>
+                                        <th style="width: 10%;">Non-Adjustable</th>
+                                        <th style="width: 12%;">Adjust Start</th>
+                                        <th style="width: 12%;">Adjust End</th>
+                                        <th style="width: 10%;">Adjust Amount</th>
+                                        <th style="width: 10%;">Adjust %</th>
                                         <th>Method Desc</th>
                                     </tr>
                                 </thead>

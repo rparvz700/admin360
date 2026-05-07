@@ -32,7 +32,7 @@ $(document).ready(function() {
                 field += '</div>';
                 field += '</div>';
             } else if(attribute.attribute_type === 'select') {
-                field += '<select class="form-control select2" id="' + id + '" name="' + name + '">';
+                field += '<select class="form-select select2" id="' + id + '" name="' + name + '">';
                 field += '<option value="">Select</option>';
                 (attribute.options || []).forEach(function(option) {
                     field += '<option value="' + option + '">' + option + '</option>';

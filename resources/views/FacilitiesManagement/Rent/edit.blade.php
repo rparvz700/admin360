@@ -174,40 +174,56 @@
                     <!-- Security Deposits Section -->
                     <section class="mb-4 p-3 border rounded rent-panel">
                         <h5 class="mb-3">Security Deposits</h5>
+                        @error('deposits')
+                            <div class="alert alert-danger py-2">{{ $message }}</div>
+                        @enderror
+                        @php
+                            $securityDeposits = $base->agreement->securityDeposits ?? collect();
+                            $depositRows = $securityDeposits
+                                ->filter(function ($deposit) {
+                                    return filled($deposit->absorb_amount) ||
+                                        filled($deposit->absorb_amount_percentage) ||
+                                        filled($deposit->absorb_start_date) ||
+                                        filled($deposit->absorb_end_date) ||
+                                        filled($deposit->method_description);
+                                })
+                                ->values();
+                            $securityDepositSummary = $securityDeposits->first();
+                        @endphp
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label>Total</label>
                                 <input type="number" step="0.01" name="security_deposit_total" class="form-control"
-                                    value="{{ isset($base->agreement->securityDeposits[0]) ? $base->agreement->securityDeposits[0]->security_deposit_total : '' }}">
+                                    value="{{ old('security_deposit_total', $securityDepositSummary->security_deposit_total ?? '') }}">
                             </div>
                             <div class="col-md-4">
-                                <label>Absorbable</label>
+                                <label>Adjustable</label>
                                 <input type="number" step="0.01" name="security_deposit_absorbable"
                                     class="form-control"
-                                    value="{{ isset($base->agreement->securityDeposits[0]) ? $base->agreement->securityDeposits[0]->security_deposit_absorbable : '' }}">
+                                    value="{{ old('security_deposit_absorbable', $securityDepositSummary->security_deposit_absorbable ?? '') }}">
                             </div>
                             <div class="col-md-4">
-                                <label>Non-Absorbable</label>
+                                <label>Non-Adjustable</label>
                                 <input type="number" step="0.01" name="security_deposit_non_absorbable"
                                     class="form-control"
-                                    value="{{ isset($base->agreement->securityDeposits[0]) ? $base->agreement->securityDeposits[0]->security_deposit_non_absorbable : '' }}">
+                                    value="{{ old('security_deposit_non_absorbable', $securityDepositSummary->security_deposit_non_absorbable ?? '') }}">
                             </div>
                         </div>
                         <table class="table table-bordered" id="depositsTable">
                             <thead>
                                 <tr>
-                                    <th>Absorb Amount</th>
-                                    <th>Absorb %</th>
-                                    <th>Absorb Start</th>
-                                    <th>Absorb End</th>
+                                    <th>Adjust Amount</th>
+                                    <th>Adjust %</th>
+                                    <th>Adjust Start</th>
+                                    <th>Adjust End</th>
                                     {{-- <th>Absorb Freq</th> --}}
                                     <th>Method Desc</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @if (isset($base->agreement) && $base->agreement->securityDeposits)
-                                    @foreach ($base->agreement->securityDeposits as $dkey => $deposit)
+                                @if ($depositRows->isNotEmpty())
+                                    @foreach ($depositRows as $dkey => $deposit)
                                         <tr>
                                             <td><input type="number" step="0.01"
                                                     name="deposits[{{ $dkey }}][absorb_amount]"
@@ -298,8 +314,7 @@
                     $(this).closest('tr').remove();
                 });
 
-                let depositIndex =
-                    {{ isset($base->agreement->securityDeposits) ? $base->agreement->securityDeposits->count() : 0 }};
+                let depositIndex = {{ $depositRows->count() }};
                 $('#addDeposit').click(function() {
 
                     $('#depositsTable tbody').append(`
@@ -317,6 +332,25 @@
                 });
                 $(document).on('click', '.remove-deposit', function() {
                     $(this).closest('tr').remove();
+                });
+
+                $('form').on('submit', function(e) {
+                    const absorbable = parseFloat($('[name="security_deposit_absorbable"]').val()) || 0;
+                    const nonAbsorbable = parseFloat($('[name="security_deposit_non_absorbable"]').val()) || 0;
+                    const depositRows = $('#depositsTable tbody tr').filter(function() {
+                        return $(this).find('input').filter(function() {
+                            return $(this).val() !== '';
+                        }).length > 0;
+                    }).length;
+
+                    if ((absorbable > 0 || nonAbsorbable > 0) && depositRows === 0) {
+                        e.preventDefault();
+                        One.helpers('jq-notify', {
+                            type: 'danger',
+                            icon: 'fa fa-times me-1',
+                            message: 'Please add at least one deposit schedule row when Absorbable or Non-Absorbable amount is entered.'
+                        });
+                    }
                 });
             });
 

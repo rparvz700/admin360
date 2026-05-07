@@ -56,6 +56,11 @@ class PropertyWizardController extends Controller
             'is_at_source'     => 'required|in:0,1',
         ]);
 
+        $securityDepositError = $this->validateSecurityDepositRequirement($request);
+        if ($securityDepositError) {
+            return back()->withInput()->withErrors(['deposits' => $securityDepositError]);
+        }
+
         DB::beginTransaction();
 
         try {
@@ -128,21 +133,7 @@ class PropertyWizardController extends Controller
             }
 
             // 7. Security Deposits
-            if ($request->has('deposits')) {
-                foreach ($request->deposits as $dep) {
-                    SecurityDeposit::create([
-                        'agreement_id'                    => $agreement->id,
-                        'absorb_amount'                   => $dep['absorb_amount'],
-                        'absorb_amount_percentage'        => $dep['absorb_amount_percentage'],
-                        'absorb_start_date'               => $dep['absorb_start_date'],
-                        'absorb_end_date'                 => $dep['absorb_end_date'],
-                        'method_description'              => $dep['method_description'],
-                        'security_deposit_total'          => $request->security_deposit_total,
-                        'security_deposit_absorbable'     => $request->security_deposit_absorbable,
-                        'security_deposit_non_absorbable' => $request->security_deposit_non_absorbable,
-                    ]);
-                }
-            }
+            $this->saveSecurityDeposits($request, $agreement->id);
 
             DB::commit();
             return redirect()->route('agreements.index')->with('success', 'Full Property Setup Completed!');
@@ -208,5 +199,58 @@ class PropertyWizardController extends Controller
             // return null;
             throw $e;
         }
+    }
+
+    private function validateSecurityDepositRequirement(Request $request): ?string
+    {
+        $hasAbsorbable = $this->moneyValue($request->security_deposit_absorbable) > 0;
+        $hasNonAbsorbable = $this->moneyValue($request->security_deposit_non_absorbable) > 0;
+
+        if (($hasAbsorbable || $hasNonAbsorbable) && !$this->hasDepositRows($request)) {
+            return 'Please add at least one deposit schedule row when Absorbable or Non-Absorbable amount is entered.';
+        }
+
+        return null;
+    }
+
+    private function saveSecurityDeposits(Request $request, int $agreementId): void
+    {
+        $summary = [
+            'agreement_id' => $agreementId,
+            'security_deposit_total' => $request->security_deposit_total,
+            'security_deposit_absorbable' => $request->security_deposit_absorbable,
+            'security_deposit_non_absorbable' => $request->security_deposit_non_absorbable,
+        ];
+
+        if ($this->hasDepositRows($request)) {
+            foreach ($request->input('deposits', []) as $deposit) {
+                SecurityDeposit::create(array_merge($deposit, $summary));
+            }
+            return;
+        }
+
+        if ($this->hasSecurityDepositSummary($request)) {
+            SecurityDeposit::create($summary);
+        }
+    }
+
+    private function hasDepositRows(Request $request): bool
+    {
+        return collect($request->input('deposits', []))
+            ->contains(function ($deposit) {
+                return collect($deposit)->contains(fn ($value) => $value !== null && $value !== '');
+            });
+    }
+
+    private function hasSecurityDepositSummary(Request $request): bool
+    {
+        return $this->moneyValue($request->security_deposit_total) > 0
+            || $this->moneyValue($request->security_deposit_absorbable) > 0
+            || $this->moneyValue($request->security_deposit_non_absorbable) > 0;
+    }
+
+    private function moneyValue($value): float
+    {
+        return is_numeric($value) ? (float) $value : 0.0;
     }
 }
