@@ -53,7 +53,7 @@ class PermissionSeeder extends Seeder
             // 'user-ticket-management',
             // 'admin-ticket-management',
             // 'invoice-management',
-            'property-wizard'
+            // 'property-wizard'
          ];
 
          foreach ($permissions as $permission) {
