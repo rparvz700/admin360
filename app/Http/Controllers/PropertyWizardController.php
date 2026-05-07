@@ -123,6 +123,7 @@ class PropertyWizardController extends Controller
                     RentIncrement::create([
                         'agreement_id'         => $agreement->id,
                         'base_rent_id'         => $base->id,
+                        'incremented_amount'   => $baseRent + $inc['increment_amount'],
                         'increment_amount'     => $inc['increment_amount'],
                         'increment_percentage' => $inc['increment_percentage'],
                         'increment_start_date' => $inc['increment_start_date'],
