@@ -34,19 +34,24 @@ class BuildingsController extends Controller
 
     public function create()
     {
-        $upazillaUrl = config('app.baseline_base_url').'api/upazilla';
         $token = 'Authorization: Bearer '.config('app.baseline_api_token');
 
+        $divisionUrl = config('app.baseline_base_url').'api/division';
+        $divisionApiRes = $this->callAPI('GET', $divisionUrl, '', $token);
+        $divisionApiResArr = json_decode($divisionApiRes, true);
+        $divisions = $divisionApiResArr['data'] ?? [];
+
+        $upazillaUrl = config('app.baseline_base_url').'api/upazilla';
         $upazillaApiRes = $this->callAPI('GET', $upazillaUrl, '', $token);
         $upazillaApiResArr = json_decode($upazillaApiRes, true);
-        $upazillas = $upazillaApiResArr['data'];
+        $upazillas = $upazillaApiResArr['data'] ?? [];
 
         $districtUrl = config('app.baseline_base_url').'api/district';
         $districtApiRes = $this->callAPI('GET', $districtUrl, '', $token);
         $districtApiResArr = json_decode($districtApiRes, true);
-        $districts = $districtApiResArr['data'];
+        $districts = $districtApiResArr['data'] ?? [];
 
-        return view('FacilitiesManagement.Buildings.create', compact('upazillas', 'districts'));
+        return view('FacilitiesManagement.Buildings.create', compact('divisions', 'upazillas', 'districts'));
     }
 
     public function store(Request $request)
@@ -77,19 +82,24 @@ class BuildingsController extends Controller
     {
         $building = PropertiesBuilding::findOrFail($id);
 
-        $upazillaUrl = config('app.baseline_base_url').'api/upazilla';
         $token = 'Authorization: Bearer '.config('app.baseline_api_token');
 
+        $divisionUrl = config('app.baseline_base_url').'api/division';
+        $divisionApiRes = $this->callAPI('GET', $divisionUrl, '', $token);
+        $divisionApiResArr = json_decode($divisionApiRes, true);
+        $divisions = $divisionApiResArr['data'] ?? [];
+
+        $upazillaUrl = config('app.baseline_base_url').'api/upazilla';
         $upazillaApiRes = $this->callAPI('GET', $upazillaUrl, '', $token);
         $upazillaApiResArr = json_decode($upazillaApiRes, true);
-        $upazillas = $upazillaApiResArr['data'];
+        $upazillas = $upazillaApiResArr['data'] ?? [];
 
         $districtUrl = config('app.baseline_base_url').'api/district';
         $districtApiRes = $this->callAPI('GET', $districtUrl, '', $token);
         $districtApiResArr = json_decode($districtApiRes, true);
-        $districts = $districtApiResArr['data'];
+        $districts = $districtApiResArr['data'] ?? [];
 
-        return view('FacilitiesManagement.Buildings.edit', compact('building', 'upazillas', 'districts'));
+        return view('FacilitiesManagement.Buildings.edit', compact('building', 'divisions', 'upazillas', 'districts'));
     }
 
     public function update(Request $request, $id)

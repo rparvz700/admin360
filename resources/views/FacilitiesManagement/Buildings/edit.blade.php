@@ -10,6 +10,8 @@
 
 @section('styles')
     <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="{{ asset('css/building-location-map.css') }}">
 @endsection
 
 @section('content')
@@ -41,6 +43,7 @@
                     @method('PUT')
                     @include('FacilitiesManagement.Buildings.partials.form', [
                         'building' => $building,
+                        'divisions' => $divisions,
                         'districts' => $districts,
                         'mode' => 'edit',
                     ])
@@ -59,13 +62,64 @@
 
 @section('scripts')
     <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="{{ asset('js/building-location-map.js') }}"></script>
     <script>
         One.helpersOnLoad(['jq-select2']);
 
         const allUpazilas = @json($upazillas);
+        const allDistricts = @json($districts);
+        const selectedDivision = @json(old('division', $building->division));
+        const selectedDistrict = @json(old('district', $building->district));
         const selectedUpazila = @json(old('upazila', $building->upazila));
 
         $(document).ready(function() {
+            function getDivisionName(item) {
+                return item.division || item.division_name || item.name || '';
+            }
+
+            function getDistrictName(item) {
+                return item.district || item.district_name || item.name || '';
+            }
+
+            function getUpazilaName(item) {
+                return item.upazilla || item.upazila || item.name || '';
+            }
+
+            function loadDistricts(division, preselected = null) {
+                let $district = $('#district');
+                $district.empty().append('<option value="">Select District</option>');
+                loadUpazilas('', null);
+
+                if (!division) {
+                    $district.prop('disabled', true).trigger('change');
+                    return;
+                }
+
+                const hasDivisionData = allDistricts.some(function(item) {
+                    return getDivisionName(item);
+                });
+                let filtered = allDistricts.filter(function(item) {
+                    if (!hasDivisionData) return true;
+                    return getDivisionName(item).trim().toLowerCase() === division.trim().toLowerCase();
+                });
+
+                $.each(filtered, function(index, item) {
+                    const district = getDistrictName(item);
+                    if (district) {
+                        $district.append(new Option(district, district, false, false));
+                    }
+                });
+
+                $district.prop('disabled', false);
+
+                if (preselected) {
+                    $district.val(preselected);
+                }
+
+                $district.trigger('change');
+            }
+
             function loadUpazilas(district, preselected = null) {
                 let $upazila = $('#upazila');
                 $upazila.empty().append('<option value="">Select Upazila</option>');
@@ -76,11 +130,14 @@
                 }
 
                 let filtered = allUpazilas.filter(function(item) {
-                    return item.district.trim().toLowerCase() === district.trim().toLowerCase();
+                    return (item.district || '').trim().toLowerCase() === district.trim().toLowerCase();
                 });
 
                 $.each(filtered, function(index, item) {
-                    $upazila.append(new Option(item.upazilla, item.upazilla, false, false));
+                    const upazila = getUpazilaName(item);
+                    if (upazila) {
+                        $upazila.append(new Option(upazila, upazila, false, false));
+                    }
                 });
 
                 $upazila.prop('disabled', false);
@@ -96,7 +153,18 @@
                 loadUpazilas($(this).val());
             });
 
-            loadUpazilas($('#district').val(), selectedUpazila);
+            $('#division').on('change', function() {
+                loadDistricts($(this).val());
+            });
+
+            if (selectedDivision) {
+                $('#division').val(selectedDivision).trigger('change.select2');
+            }
+
+            loadDistricts($('#division').val(), selectedDistrict);
+            if (selectedDistrict) {
+                loadUpazilas(selectedDistrict, selectedUpazila);
+            }
         });
     </script>
 @endsection

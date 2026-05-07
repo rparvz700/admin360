@@ -67,7 +67,14 @@ class AgreementsController extends Controller
             'remarks' => $request->remarks,
         ];
 
-        Agreement::create($data);
+        $agreement = Agreement::create($data);
+
+        if ($request->input('submit_action') === 'save_and_add_attachment') {
+            return redirect()
+                ->route('agreements.edit', $agreement->id)
+                ->with('success', 'Agreement created successfully. You can add an attachment now.');
+        }
+
         return redirect()->route('agreements.index')->with('success', 'Agreement created successfully.');
     }
 

@@ -81,7 +81,7 @@
                             </div> --}}
                             <div class="col-md-6 col-sm-12 mb-4">
                                 <label class="form-label" for="is_at_source">Is At Source</label>
-                                <select class="form-control" id="is_at_source" name="is_at_source">
+                                <select class="form-select" id="is_at_source" name="is_at_source">
                                     <option value="">Select</option>
                                     <option value="1"
                                         {{ old('is_at_source', $base->is_at_source) == '1' ? 'selected' : '' }}>
@@ -97,7 +97,7 @@
                                 <label class="form-label" for="rent_type">Rent Type</label>
                                 {{-- <input type="text" class="form-control" id="rent_type" name="rent_type"
                                     value="{{ old('rent_type', $base->rent_type) }}"> --}}
-                                <select class="form-control" id="rent_type" name="rent_type">
+                                <select class="form-select" id="rent_type" name="rent_type">
                                     <option value="">Select</option>
                                     <option value="Monthly" {{ $base->rent_type == 'Monthly' ? 'selected' : '' }}>Monthly
                                     </option>

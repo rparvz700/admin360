@@ -76,7 +76,7 @@
                             </div> --}}
                             <div class="col-md-6 col-sm-12 mb-4">
                                 <label class="form-label" for="is_at_source">Is At Source</label>
-                                <select class="form-control" id="is_at_source" name="is_at_source">
+                                <select class="form-select" id="is_at_source" name="is_at_source">
                                     <option value="">Select</option>
                                     <option value="1" {{ old('is_at_source') == '1' ? 'selected' : '' }}>Yes</option>
                                     <option value="0" {{ old('is_at_source') == '0' ? 'selected' : '' }}>No</option>
@@ -84,7 +84,7 @@
                             </div>
                             <div class="col-md-6 col-sm-12 mb-4">
                                 <label class="form-label" for="rent_type">Rent Type</label>
-                                <select class="form-control" id="rent_type" name="rent_type">
+                                <select class="form-select" id="rent_type" name="rent_type">
                                     <option value="">Select</option>
                                     <option value="Monthly">Monthly</option>
                                     <option value="Quarterly">Quarterly</option>

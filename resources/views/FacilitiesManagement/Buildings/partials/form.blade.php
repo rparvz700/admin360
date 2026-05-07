@@ -63,10 +63,23 @@
 
         <div class="col-lg-6">
             <label class="form-label" for="division">Division</label>
-            <input type="text" class="form-control @error('division') is-invalid @enderror" id="division"
-                name="division" value="{{ old('division', $building->division ?? '') }}">
+            <select class="form-select js-select2 @error('division') is-invalid @enderror" id="division"
+                name="division" style="width: 100%;">
+                <option value="">Select Division</option>
+                @foreach ($divisions as $division)
+                    @php
+                        $divisionName = $division['division'] ?? ($division['division_name'] ?? ($division['name'] ?? ''));
+                    @endphp
+                    @if ($divisionName)
+                        <option value="{{ $divisionName }}"
+                            {{ old('division', $building->division ?? '') == $divisionName ? 'selected' : '' }}>
+                            {{ $divisionName }}
+                        </option>
+                    @endif
+                @endforeach
+            </select>
             @error('division')
-                <div class="invalid-feedback">{{ $message }}</div>
+                <div class="invalid-feedback d-block">{{ $message }}</div>
             @enderror
         </div>
 
@@ -75,12 +88,6 @@
             <select class="form-select js-select2 @error('district') is-invalid @enderror" id="district" name="district"
                 style="width: 100%;">
                 <option value="">Select District</option>
-                @foreach ($districts as $district)
-                    <option value="{{ $district['district'] }}"
-                        {{ old('district', $building->district ?? '') == $district['district'] ? 'selected' : '' }}>
-                        {{ $district['district'] }}
-                    </option>
-                @endforeach
             </select>
             @error('district')
                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -132,6 +139,28 @@
             @error('long')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
+        </div>
+
+        <div class="col-12">
+            <div class="building-location-map-panel js-building-location-map" data-lat-input="#lat"
+                data-lng-input="#long" data-address-input="#address">
+                <div class="building-location-map-toolbar">
+                    <input type="text" class="form-control building-location-map-search" data-location-map-search
+                        placeholder="Search location">
+                    <button type="button" class="btn btn-alt-primary" data-location-map-locate>
+                        <i class="fa fa-location-arrow me-1"></i> Current
+                    </button>
+                    <button type="button" class="btn btn-alt-secondary" data-location-map-clear>
+                        <i class="fa fa-times me-1"></i> Clear
+                    </button>
+                </div>
+                <div class="building-location-search-results list-group" data-location-map-results></div>
+                <div class="building-location-map-canvas" data-location-map-canvas></div>
+                <div class="building-location-map-footer">
+                    <span data-location-map-status>Type coordinates, search, or click the map.</span>
+                    <span class="text-muted">OpenStreetMap</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>

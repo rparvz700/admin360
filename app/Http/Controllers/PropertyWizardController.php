@@ -23,21 +23,26 @@ class PropertyWizardController extends Controller
         $activeMenu = 'wizard.property';
         $documents = GenericDocument::with('category')->get();
 
-        $upazillaUrl = config('app.baseline_base_url').'api/upazilla';
         $token = 'Authorization: Bearer '.config('app.baseline_api_token');
 
+        $divisionUrl = config('app.baseline_base_url').'api/division';
+        $divisionApiRes = $this->callAPI('GET', $divisionUrl, '', $token);
+        $divisionApiResArr = json_decode($divisionApiRes, true);
+        $divisions = $divisionApiResArr['data'] ?? [];
+
+        $upazillaUrl = config('app.baseline_base_url').'api/upazilla';
         $upazillaApiRes = $this->callAPI('GET', $upazillaUrl, '', $token);
         $upazillaApiResArr = json_decode($upazillaApiRes, true);
-        $upazillas = $upazillaApiResArr['data'];
+        $upazillas = $upazillaApiResArr['data'] ?? [];
 
         $districtUrl = config('app.baseline_base_url').'api/district';
         $districtApiRes = $this->callAPI('GET', $districtUrl, '', $token);
         $districtApiResArr = json_decode($districtApiRes, true);
-        $districts = $districtApiResArr['data'];
+        $districts = $districtApiResArr['data'] ?? [];
 
         $projects = Project::where('status', 1)->get();
 
-        return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'districts', 'upazillas', 'projects'));
+        return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects'));
     }
 
     public function store(Request $request)
@@ -68,6 +73,7 @@ class PropertyWizardController extends Controller
             $building = PropertiesBuilding::create([
                 'code'      => $request->building_code,
                 'site_name' => $request->site_name,
+                'division'  => $request->division,
                 'district'  => $request->district,
                 'upazila'   => $request->upazila,
                 'address'   => $request->address,

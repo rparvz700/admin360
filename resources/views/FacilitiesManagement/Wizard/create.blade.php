@@ -6,6 +6,8 @@
 
 @section('styles')
     <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="{{ asset('css/building-location-map.css') }}">
     <style>
         .wizard-step {
             display: none;
@@ -101,7 +103,7 @@
                             </div>
                             <div class="col-md-6 mb-4">
                                 <label class="form-label">Status <span class="text-danger">*</span></label>
-                                <select name="agreement_status" class="form-control" required>
+                                <select name="agreement_status" class="form-select" required>
                                     <option value="1">Active</option>
                                     <option value="0">Inactive</option>
                                 </select>
@@ -126,29 +128,68 @@
                                 <input type="text" name="site_name" class="form-control">
                             </div>
                             <div class="col-md-4 mb-4">
-                                <label class="form-label">District</label>
-                                <select class="form-control js-select2" id="district" name="district">
-                                    <option value="">Select District</option>
-                                    @foreach ($districts as $district)
-                                        <option value="{{ $district['district'] }}">{{ $district['district'] }}</option>
+                                <label class="form-label">Division</label>
+                                <select class="form-select js-select2" id="division" name="division">
+                                    <option value="">Select Division</option>
+                                    @foreach ($divisions as $division)
+                                        @php
+                                            $divisionName = $division['division'] ?? ($division['division_name'] ?? ($division['name'] ?? ''));
+                                        @endphp
+                                        @if ($divisionName)
+                                            <option value="{{ $divisionName }}"
+                                                {{ old('division') == $divisionName ? 'selected' : '' }}>
+                                                {{ $divisionName }}
+                                            </option>
+                                        @endif
                                     @endforeach
                                 </select>
                             </div>
                             <div class="col-md-4 mb-4">
+                                <label class="form-label">District</label>
+                                <select class="form-select js-select2" id="district" name="district">
+                                    <option value="">Select District</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-4">
                                 <label class="form-label">Upazila</label>
-                                <select class="form-control js-select2" id="upazila" name="upazila"></select>
+                                <select class="form-select js-select2" id="upazila" name="upazila"></select>
                             </div>
                             <div class="col-md-4 mb-4">
                                 <label class="form-label">Latitude</label>
-                                <input type="text" name="lat" class="form-control">
+                                <input type="text" name="lat" id="wizard_lat" class="form-control"
+                                    placeholder="23.8103">
                             </div>
                             <div class="col-md-4 mb-4">
                                 <label class="form-label">Longitude</label>
-                                <input type="text" name="long" class="form-control">
+                                <input type="text" name="long" id="wizard_long" class="form-control"
+                                    placeholder="90.4125">
                             </div>
                             <div class="col-md-12 mb-4">
                                 <label class="form-label">Address</label>
-                                <input type="text" name="address" class="form-control">
+                                <input type="text" name="address" id="wizard_address" class="form-control">
+                            </div>
+                            <div class="col-md-12 mb-4">
+                                <div class="building-location-map-panel js-building-location-map"
+                                    data-lat-input="#wizard_lat" data-lng-input="#wizard_long"
+                                    data-address-input="#wizard_address">
+                                    <div class="building-location-map-toolbar">
+                                        <input type="text" class="form-control building-location-map-search"
+                                            data-location-map-search placeholder="Search location">
+                                        <button type="button" class="btn btn-alt-primary" data-location-map-locate>
+                                            <i class="fa fa-location-arrow me-1"></i> Current
+                                        </button>
+                                        <button type="button" class="btn btn-alt-secondary" data-location-map-clear>
+                                            <i class="fa fa-times me-1"></i> Clear
+                                        </button>
+                                    </div>
+                                    <div class="building-location-search-results list-group"
+                                        data-location-map-results></div>
+                                    <div class="building-location-map-canvas" data-location-map-canvas></div>
+                                    <div class="building-location-map-footer">
+                                        <span data-location-map-status>Type coordinates, search, or click the map.</span>
+                                        <span class="text-muted">OpenStreetMap</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -180,7 +221,7 @@
                             <div class="col-md-3 mb-4">
                                 <label class="form-label">Premises Type</label>
                                 {{-- <input type="text" name="premises_type" class="form-control"> --}}
-                                <select class="form-control" id="premises_type" name="premises_type">
+                                <select class="form-select" id="premises_type" name="premises_type">
                                     <option value="">Select Premises Type</option>
                                     <option value="Office Room">Office Room</option>
                                     <option value="PoP Room">PoP Room</option>
@@ -192,7 +233,7 @@
                             </div>
                             <div class="col-md-3 mb-4">
                                 <label class="form-label" for="project">Project</label>
-                                <select class="form-control" id="project" name="project_id">
+                                <select class="form-select" id="project" name="project_id">
                                     <option value="">Select project</option>
                                     @foreach ($projects as $project)
                                         <option value="{{ $project->id }}">{{ $project->name }}
@@ -215,7 +256,7 @@
                                 </div>
                                 <div class="col-md-4 mb-4">
                                     <label class="form-label">Rent Type</label>
-                                    <select class="form-control" name="rent_type">
+                                    <select class="form-select" name="rent_type">
                                         <option value="Monthly">Monthly</option>
                                         <option value="Quarterly">Quarterly</option>
                                         <option value="Half Yearly">Half Yearly</option>
@@ -224,7 +265,7 @@
                                 </div>
                                 <div class="col-md-4 mb-4">
                                     <label class="form-label">Is At Source? <span class="text-danger">*</span></label>
-                                    <select class="form-control" name="is_at_source" required>
+                                    <select class="form-select" name="is_at_source" required>
                                         <option value="">Select</option>
                                         <option value="1">Yes</option>
                                         <option value="0">No</option>
@@ -299,6 +340,8 @@
 
 @section('scripts')
     <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="{{ asset('js/building-location-map.js') }}"></script>
     <script>
         let currentStep = 1;
         const totalSteps = 4;
@@ -314,6 +357,10 @@
 
             document.getElementById(`step-${currentStep}`).classList.add('active');
             document.getElementById(`ind-${currentStep}`).classList.add('active');
+
+            if (typeof window.refreshBuildingLocationMaps === 'function') {
+                window.refreshBuildingLocationMaps();
+            }
 
             document.getElementById('btn-prev').disabled = (currentStep === 1);
             if (currentStep === totalSteps) {
@@ -353,13 +400,100 @@
             });
 
             const allUpazilas = @json($upazillas);
-            $('#district').on('change', function() {
-                let selectedDistrict = $(this).val();
+            const allDistricts = @json($districts);
+            const selectedDivision = @json(old('division'));
+            const selectedDistrict = @json(old('district'));
+            const selectedUpazila = @json(old('upazila'));
+
+            function getDivisionName(item) {
+                return item.division || item.division_name || item.name || '';
+            }
+
+            function getDistrictName(item) {
+                return item.district || item.district_name || item.name || '';
+            }
+
+            function getUpazilaName(item) {
+                return item.upazilla || item.upazila || item.name || '';
+            }
+
+            function loadDistricts(division, preselected = null) {
+                let $district = $('#district');
+                $district.empty().append('<option value="">Select District</option>');
+                loadUpazilas('', null);
+
+                if (!division) {
+                    $district.prop('disabled', true).trigger('change');
+                    return;
+                }
+
+                const hasDivisionData = allDistricts.some(function(item) {
+                    return getDivisionName(item);
+                });
+                let filtered = allDistricts.filter(function(item) {
+                    if (!hasDivisionData) return true;
+                    return getDivisionName(item).trim().toLowerCase() === division.trim().toLowerCase();
+                });
+
+                filtered.forEach(function(item) {
+                    const district = getDistrictName(item);
+                    if (district) {
+                        $district.append(new Option(district, district));
+                    }
+                });
+
+                $district.prop('disabled', false);
+
+                if (preselected) {
+                    $district.val(preselected);
+                }
+
+                $district.trigger('change');
+            }
+
+            function loadUpazilas(district, preselected = null) {
                 let $upazila = $('#upazila');
                 $upazila.empty().append('<option value="">Select Upazila</option>');
-                let filtered = allUpazilas.filter(item => item.district === selectedDistrict);
-                filtered.forEach(item => $upazila.append(new Option(item.upazilla, item.upazilla)));
+
+                if (!district) {
+                    $upazila.prop('disabled', true).trigger('change');
+                    return;
+                }
+
+                let filtered = allUpazilas.filter(item => (item.district || '').trim().toLowerCase() === district.trim()
+                    .toLowerCase());
+                filtered.forEach(function(item) {
+                    const upazila = getUpazilaName(item);
+                    if (upazila) {
+                        $upazila.append(new Option(upazila, upazila));
+                    }
+                });
+
+                $upazila.prop('disabled', false);
+
+                if (preselected) {
+                    $upazila.val(preselected);
+                }
+
+                $upazila.trigger('change');
+            }
+
+            $('#division').on('change', function() {
+                loadDistricts($(this).val());
             });
+
+            $('#district').on('change', function() {
+                loadUpazilas($(this).val());
+            });
+
+            if (selectedDivision) {
+                $('#division').val(selectedDivision).trigger('change.select2');
+            }
+
+            loadDistricts($('#division').val(), selectedDistrict);
+            if (selectedDistrict) {
+                loadUpazilas(selectedDistrict, selectedUpazila);
+            }
 
             let incIdx = 0;
             $('#addIncrement').click(function() {

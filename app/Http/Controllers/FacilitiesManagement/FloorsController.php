@@ -60,6 +60,11 @@ class FloorsController extends Controller
                     $q->where('code', 'like', "%{$keyword}%");
                 });
             })
+            ->filterColumn('agreement', function ($query, $keyword) {
+                $query->whereHas('agreement', function ($q) use ($keyword) {
+                    $q->where('agreement_ref_no', 'like', "%{$keyword}%");
+                });
+            })
             ->rawColumns(['actions'])
             ->make(true);
     }

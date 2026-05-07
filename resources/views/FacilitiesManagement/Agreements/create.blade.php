@@ -38,8 +38,12 @@
 
                     <div class="agreement-action-bar">
                         <a href="{{ route('agreements.index') }}" class="btn btn-alt-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" name="submit_action" value="save" class="btn btn-primary">
                             <i class="fa fa-check me-1"></i> Save Agreement
+                        </button>
+                        <button type="submit" name="submit_action" value="save_and_add_attachment"
+                            class="btn btn-alt-primary">
+                            <i class="fa fa-paperclip me-1"></i> Save and Add Attachment
                         </button>
                     </div>
                 </form>

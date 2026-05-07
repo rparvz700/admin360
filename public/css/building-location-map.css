@@ -1,0 +1,56 @@
+.building-location-map-panel {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.building-location-map-toolbar {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.building-location-map-search {
+    min-width: 0;
+}
+
+.building-location-map-canvas {
+    width: 100%;
+    height: 320px;
+}
+
+.building-location-map-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    color: #6c757d;
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+}
+
+.building-location-search-results {
+    display: none;
+    max-height: 180px;
+    overflow-y: auto;
+    border-top: 1px solid #e5e7eb;
+}
+
+.building-location-search-results .list-group-item {
+    cursor: pointer;
+}
+
+@media (max-width: 575.98px) {
+    .building-location-map-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .building-location-map-canvas {
+        height: 260px;
+    }
+}

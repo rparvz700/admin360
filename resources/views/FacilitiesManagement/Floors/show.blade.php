@@ -242,7 +242,7 @@
                                                 <tr>
                                                     <th style="background-color: rgba(40, 167, 69, 0.1);">Status</th>
                                                     <td><span
-                                                            class="badge bg-{{ $agreement->status == 'active' ? 'success' : 'secondary' }}">{{ ucfirst($agreement->status) }}</span>
+                                                            class="badge bg-{{ $agreement->status == '1' ? 'success' : 'secondary' }}">{{ $agreement->status == '1' ? 'Active' : 'Inactive' }}</span>
                                                     </td>
                                                 </tr>
                                                 <tr>

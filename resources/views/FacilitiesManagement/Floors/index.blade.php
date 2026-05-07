@@ -159,7 +159,8 @@
                                 data: 'status'
                             },
                             {
-                                data: 'agreement'
+                                data: 'agreement',
+                                name: 'agreement'
                             },
                             {
                                 data: 'actions',
