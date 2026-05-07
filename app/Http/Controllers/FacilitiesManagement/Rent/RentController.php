@@ -95,7 +95,7 @@ class RentController extends Controller
                 RentIncrement::create([
                     'agreement_id' => $request->agreement_id,
                     'base_rent_id' => $base->id,
-                    'incremented_amount' => $increment['increment_amount'] ?? null,
+                    'incremented_amount' => $baseRent + $increment['increment_amount'] ?? null,
                     'increment_start_date' => $increment['increment_start_date'] ?? null,
                     'increment_end_date' => $increment['increment_end_date'] ?? null,
                     'increment_amount' => $increment['increment_amount'] ?? null,
