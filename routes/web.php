@@ -22,6 +22,7 @@ use App\Http\Controllers\GenericDocumentManagement\GenericDocumentController;
 use App\Http\Controllers\TicketManagement\TicketController;
 use App\Http\Controllers\TicketManagement\AdminTicketController;
 use App\Http\Controllers\TicketManagement\VehicleAssignmentController;
+use App\Http\Controllers\ExportController;
 
 use App\Http\Controllers\VehicleMaintenanceManagement\VendorController;
 use App\Http\Controllers\VehicleMaintenanceManagement\VehicleMaintenanceController;
@@ -52,6 +53,8 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::middleware(['auth'])->group(function(){
+    Route::get('exports/tables/{table}', [ExportController::class, 'table'])->name('exports.tables.show');
+
     // Vehicle Management: Vehicle Documents CRUD
     //Route::resource('vehicle-documents', App\Http\Controllers\VehicleManagement\VehicleDocumentController::class);
     //Route::get('vehicle-documents-list', [App\Http\Controllers\VehicleManagement\VehicleDocumentController::class, 'list'])->name('vehicle-documents.list');
@@ -230,5 +233,4 @@ Route::prefix('maintenance')->name('maintenance.')->middleware(['auth'])->group(
         Route::get('/vendor-comparison', [MaintenanceReportController::class, 'vendorComparison'])->name('vendor-comparison');
     });
 });
-
 
