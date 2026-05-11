@@ -1,5 +1,3 @@
---- START OF FILE Paste April 23, 2026 - 12:13PM ---
-
 @extends('Partials.app', ['activeMenu' => 'tickets'])
 @section('title')
     Add Ticket
@@ -458,7 +456,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let tripLocationIndex = 0;
+        let tripLocationIndex = 0; // Use this for unique input names, not visual count
 
         /* ============================
         GLOBAL MAP STATE
@@ -480,62 +478,145 @@
         const allAssets = @json($assets);
         let filteredRepairAssets = [];
 
-        // Trip Location Management
+        /* ============================
+        TRIP LOCATION MANAGEMENT
+        ============================ */
+
+        /**
+         * Adds a new trip location row to the container.
+         * Pre-fills the start location if it's not the first stop.
+         *
+         * @param {string} startLocation - Initial value for the start location textarea.
+         * @param {string} endLocation - Initial value for the end location textarea.
+         */
         function addTripLocation(startLocation = '', endLocation = '') {
             const container = document.getElementById('trip_locations_container');
-            const index = tripLocationIndex++;
+            const index = tripLocationIndex++; // Use a continuously incrementing index for unique names
+
+            // Auto-fill start location from previous stop's end location
+            let initialStartLocation = startLocation;
+            if (!initialStartLocation) { // Only auto-fill if startLocation is not explicitly provided
+                const existingRows = container.querySelectorAll('.trip-location-row');
+                if (existingRows.length > 0) {
+                    // Get the end location from the last *existing* row
+                    const lastRowEndInput = existingRows[existingRows.length - 1].querySelector('textarea[name$="[end]"]');
+                    if (lastRowEndInput) {
+                        initialStartLocation = lastRowEndInput.value;
+                    }
+                }
+            }
 
             const row = document.createElement('div');
             row.className = 'trip-location-row mb-2';
-            row.dataset.index = index;
+            row.dataset.uniqueIndex = index; // Use a unique index for identifying the row for removal
             row.innerHTML = `
-            <div class="row g-2 align-items-center">
-                <div class="col-md-1">
-                    <span class="badge bg-info">Stop ${index + 1}</span>
-                </div>
-                <div class="col-md-5">
-                    <textarea
-                        name="trip_locations[${index}][start]"
-                        id="trip_location_start_${index}"
-                        class="form-control location-input"
-                        placeholder="Start Location (e.g., Office)"
-                        rows="2"
-                        required>${startLocation}</textarea>
-                </div>
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-1">
+                        <span class="badge bg-info">Stop X</span> <!-- Label will be updated by updateTripLocationLabels -->
+                    </div>
+                    <div class="col-md-5">
+                        <textarea
+                            name="trip_locations[${index}][start]"
+                            id="trip_location_start_${index}"
+                            class="form-control location-input"
+                            placeholder="Start Location (e.g., Office)"
+                            rows="2"
+                            required>${initialStartLocation}</textarea>
+                    </div>
 
-                <div class="col-md-5">
-                    <textarea
-                        name="trip_locations[${index}][end]"
-                        id="trip_location_end_${index}"
-                        class="form-control location-input"
-                        placeholder="End Location (e.g., Airport)"
-                        rows="2"
-                        required>${endLocation}</textarea>
-                </div>
+                    <div class="col-md-5">
+                        <textarea
+                            name="trip_locations[${index}][end]"
+                            id="trip_location_end_${index}"
+                            class="form-control location-input"
+                            placeholder="End Location (e.g., Airport)"
+                            rows="2"
+                            required>${endLocation}</textarea>
+                    </div>
 
-                <div class="col-md-1">
-                    <button type="button"
-                            class="btn btn-danger btn-sm w-20 remove-trip-location"
-                            data-index="${index}">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <div class="col-md-1">
+                        <button type="button"
+                                class="btn btn-danger btn-sm w-20 remove-trip-location"
+                                data-unique-index="${index}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
-            </div>
-
-        `;
+            `;
 
             container.appendChild(row);
 
             // Add event listener to remove button
             row.querySelector('.remove-trip-location').addEventListener('click', function() {
-                removeTripLocation(this.dataset.index);
+                removeTripLocation(this.dataset.uniqueIndex);
             });
 
             row.querySelectorAll('.location-input').forEach(input => {
                 input.addEventListener('click', () => openMapModal(input));
             });
 
+            updateTripLocationLabels(); // Update labels after adding
         }
+
+        /**
+         * Re-indexes and updates the 'Stop X' labels for all trip location rows.
+         */
+        function updateTripLocationLabels() {
+            const rows = document.querySelectorAll('#trip_locations_container .trip-location-row');
+            rows.forEach((row, visualIndex) => {
+                const badge = row.querySelector('.badge');
+                if (badge) {
+                    badge.textContent = `Stop ${visualIndex + 1}`;
+                }
+            });
+        }
+
+        /**
+         * Removes a trip location row by its unique index.
+         * Ensures at least one row remains and re-indexes labels.
+         *
+         * @param {string} uniqueIndex - The unique index of the row to remove.
+         */
+        function removeTripLocation(uniqueIndex) {
+            const row = document.querySelector(`.trip-location-row[data-unique-index="${uniqueIndex}"]`);
+            if (row) {
+                row.remove();
+            }
+
+            const remainingRows = document.querySelectorAll('.trip-location-row');
+            if (remainingRows.length === 0) {
+                addTripLocation(); // Add a new empty one if all are removed
+            } else {
+                updateTripLocationLabels(); // Update labels for remaining rows
+            }
+        }
+
+        /**
+         * Initializes or re-initializes trip locations.
+         * Clears existing rows, populates from old data if available, or adds a default row.
+         */
+        function initializeTripLocations() {
+            const container = document.getElementById('trip_locations_container');
+            container.innerHTML = ''; // Clear all existing rows
+            tripLocationIndex = 0; // Reset the unique index counter
+
+            const oldTripLocations = @json(old('trip_locations', []));
+
+            if (oldTripLocations && oldTripLocations.length > 0) {
+                oldTripLocations.forEach(location => {
+                    addTripLocation(location.start, location.end);
+                });
+            } else {
+                addTripLocation(); // Add one empty row by default
+            }
+            updateTripLocationLabels(); // Ensure labels are correct after initialization
+        }
+
+        // Add trip location button listener
+        document.getElementById('add_trip_location').addEventListener('click', function() {
+            addTripLocation();
+        });
+
 
         /* ============================
         MAP INITIALIZATION
@@ -615,16 +696,7 @@
             }
         });
 
-        // document.getElementById('clearSearchInput').addEventListener('click', function() {
-        //     searchInput.value = '';
-        //     searchResultsContainer.innerHTML = '';
-        //     searchResultsContainer.style.display = 'none';
-        // });
-
         function geocodeSearch(query) {
-            // Using OpenStreetMap Nominatim for forward geocoding
-            // In a production environment, consider setting up a proxy for Nominatim to avoid CORS issues
-            // and to control rate limits, or use a geocoding service with a higher rate limit.
             const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10`;
 
             fetch(url)
@@ -742,7 +814,6 @@
             searchResultsContainer.style.display = 'none'; // Hide search results on close
         }
 
-
         window.onclick = e => {
             if (e.target === document.getElementById('mapModal')) {
                 document.getElementById('mapModal').style.display = 'none';
@@ -756,22 +827,6 @@
         END MAP FUNCTIONS
         ============================ */
 
-        function removeTripLocation(index) {
-            const row = document.querySelector(`.trip-location-row[data-index="${index}"]`);
-            if (row) {
-                row.remove();
-            }
-
-            // Ensure at least one location exists
-            if (document.querySelectorAll('.trip-location-row').length === 0) {
-                addTripLocation();
-            }
-        }
-
-        // Add trip location button
-        document.getElementById('add_trip_location').addEventListener('click', function() {
-            addTripLocation();
-        });
 
         document.getElementById('ticket_type').addEventListener('change', function() {
             // Hide all type-specific fields
@@ -796,10 +851,7 @@
                 fields.querySelector('input[name="trip_end_datetime"]').setAttribute('required', 'required');
                 fields.querySelector('textarea[name="trip_purpose"]').setAttribute('required', 'required');
 
-                // Initialize with one trip location if empty
-                if (document.querySelectorAll('.trip-location-row').length === 0) {
-                    addTripLocation();
-                }
+                initializeTripLocations(); // Initialize/re-initialize trip locations
             } else if (selectedType === 'asset_request') {
                 const fields = document.getElementById('asset_request_fields');
                 fields.style.display = 'block';
@@ -858,8 +910,7 @@
 
             // Add header option
             const headerOption = document.createElement('option');
-            headerOption.disabled = true;
-            headerOption.selected = true;
+            headerOption.value = ""; // Make it selectable but effectively empty
             headerOption.textContent = `--- Select Asset (${filteredRepairAssets.length} found) ---`;
             assetSelect.appendChild(headerOption);
 
@@ -914,6 +965,7 @@
             const locationInput = document.getElementById('repair_location_within_floor');
 
             if (!assetId) {
+                locationInput.value = ''; // Clear if no asset selected
                 return;
             }
 
@@ -921,16 +973,25 @@
 
             if (selectedAsset && selectedAsset.location_within_floor) {
                 locationInput.value = selectedAsset.location_within_floor;
+            } else {
+                locationInput.value = ''; // Clear if selected asset has no specific location
             }
         });
 
         // Trigger on page load if old value exists
-        if (document.getElementById('ticket_type').value) {
+        const initialTicketType = document.getElementById('ticket_type').value;
+        if (initialTicketType) {
+            // Dispatch change event to show correct fields and set required attributes
             document.getElementById('ticket_type').dispatchEvent(new Event('change'));
 
+            // If it's vehicle support and there were old trip locations, initialize them
+            if (initialTicketType === 'vehicle_support') {
+                initializeTripLocations();
+            }
+
             // Trigger repair asset filtering if repair type is selected
-            if (document.getElementById('ticket_type').value === 'asset_repair') {
-                setTimeout(filterAndRenderRepairAssets, 100);
+            if (initialTicketType === 'asset_repair') {
+                setTimeout(filterAndRenderRepairAssets, 100); // Small delay to ensure DOM is ready
             }
         }
     </script>

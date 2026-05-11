@@ -1,3 +1,5 @@
+--- START OF FILE Paste May 11, 2026 - 3:33PM ---
+
 @extends('Partials.app', ['activeMenu' => 'rent'])
 
 @section('title')
@@ -59,7 +61,7 @@
                                     <option value=""></option>
                                     @foreach ($agreements as $agreement)
                                         <option value="{{ $agreement->id }}"
-                                            {{ $agreement->id == $base->agreement_id ? 'selected' : '' }}>
+                                            {{ $agreement->id == old('agreement_id', $base->agreement_id) ? 'selected' : '' }}>
                                             {{ $agreement->agreement_ref_no }}</option>
                                     @endforeach
                                 </select>
@@ -69,16 +71,6 @@
                                 <input type="number" step="0.01" class="form-control" id="base_rent" name="base_rent"
                                     value="{{ old('base_rent', $base->base_rent) }}" required>
                             </div>
-                            {{-- <div class="col-md-6 col-sm-12 mb-4">
-                                <label class="form-label" for="vat">VAT</label>
-                                <input type="number" step="0.01" class="form-control" id="vat" name="vat"
-                                    value="{{ old('vat', $base->vat) }}">
-                            </div>
-                            <div class="col-md-6 col-sm-12 mb-4">
-                                <label class="form-label" for="tax">Tax</label>
-                                <input type="number" step="0.01" class="form-control" id="tax" name="tax"
-                                    value="{{ old('tax', $base->tax) }}">
-                            </div> --}}
                             <div class="col-md-6 col-sm-12 mb-4">
                                 <label class="form-label" for="is_at_source">Is At Source</label>
                                 <select class="form-select" id="is_at_source" name="is_at_source">
@@ -95,30 +87,22 @@
                             </div>
                             <div class="col-md-6 col-sm-12 mb-4">
                                 <label class="form-label" for="rent_type">Rent Type</label>
-                                {{-- <input type="text" class="form-control" id="rent_type" name="rent_type"
-                                    value="{{ old('rent_type', $base->rent_type) }}"> --}}
                                 <select class="form-select" id="rent_type" name="rent_type">
                                     <option value="">Select</option>
-                                    <option value="Monthly" {{ $base->rent_type == 'Monthly' ? 'selected' : '' }}>Monthly
+                                    <option value="Monthly"
+                                        {{ old('rent_type', $base->rent_type) == 'Monthly' ? 'selected' : '' }}>Monthly
                                     </option>
-                                    <option value="Quarterly" {{ $base->rent_type == 'Quarterly' ? 'selected' : '' }}>
+                                    <option value="Quarterly"
+                                        {{ old('rent_type', $base->rent_type) == 'Quarterly' ? 'selected' : '' }}>
                                         Quarterly</option>
-                                    <option value="Half Yearly" {{ $base->rent_type == 'Half Yearly' ? 'selected' : '' }}>
+                                    <option value="Half Yearly"
+                                        {{ old('rent_type', $base->rent_type) == 'Half Yearly' ? 'selected' : '' }}>
                                         Half Yearly</option>
-                                    <option value="Yearly" {{ $base->rent_type == 'Yearly' ? 'selected' : '' }}>Yearly
+                                    <option value="Yearly"
+                                        {{ old('rent_type', $base->rent_type) == 'Yearly' ? 'selected' : '' }}>Yearly
                                     </option>
                                 </select>
                             </div>
-                            {{-- <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="start_date">Start Date</label>
-                            <input type="date" class="form-control" id="start_date" name="start_date"
-                                value="{{ old('start_date', $base->start_date) }}" required>
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="end_date">End Date</label>
-                            <input type="date" class="form-control" id="end_date" name="end_date"
-                                value="{{ old('end_date', $base->end_date) }}">
-                        </div> --}}
                             <div class="col-md-12 mb-4">
                                 <label class="form-label" for="remarks">Remarks</label>
                                 <textarea class="form-control" id="remarks" name="remarks">{{ old('remarks', $base->remarks) }}</textarea>
@@ -133,6 +117,7 @@
                             <thead>
                                 <tr>
                                     <th>Start Date</th>
+                                    <th>Years</th> {{-- NEW FIELD HEADER --}}
                                     <th>End Date</th>
                                     <th>Amount</th>
                                     <th>Percentage</th>
@@ -141,26 +126,39 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($base->increments as $ikey => $inc)
+                                @foreach (old('increments', $base->increments) as $ikey => $inc)
                                     <tr>
                                         <td><input type="date"
                                                 name="increments[{{ $ikey }}][increment_start_date]"
-                                                class="form-control" value="{{ $inc->increment_start_date }}" required>
+                                                class="form-control inc-start-date"
+                                                value="{{ old('increments.' . $ikey . '.increment_start_date', $inc->increment_start_date ?? '') }}"
+                                                required>
+                                        </td>
+                                        <td><input type="number" name="increments[{{ $ikey }}][years]"
+                                                class="form-control inc-years" min="1"
+                                                value="{{ old('increments.' . $ikey . '.years', $inc->years ?? '') }}"
+                                                required>
                                         </td>
                                         <td><input type="date"
                                                 name="increments[{{ $ikey }}][increment_end_date]"
-                                                class="form-control" value="{{ $inc->increment_end_date }}"></td>
+                                                class="form-control inc-end-date"
+                                                value="{{ old('increments.' . $ikey . '.increment_end_date', $inc->increment_end_date ?? '') }}"
+                                                required></td>
                                         <td><input type="number" step="0.01"
                                                 name="increments[{{ $ikey }}][increment_amount]"
-                                                class="form-control inc-amount" value="{{ $inc->increment_amount }}"
+                                                class="form-control inc-amount"
+                                                value="{{ old('increments.' . $ikey . '.increment_amount', $inc->increment_amount ?? '') }}"
                                                 required></td>
                                         <td><input type="number" step="0.01"
                                                 name="increments[{{ $ikey }}][increment_percentage]"
-                                                class="form-control inc-percent" value="{{ $inc->increment_percentage }}">
+                                                class="form-control inc-percent"
+                                                value="{{ old('increments.' . $ikey . '.increment_percentage', $inc->increment_percentage ?? '') }}">
                                         </td>
                                         <td><input type="text"
                                                 name="increments[{{ $ikey }}][method_description]"
-                                                class="form-control" value="{{ $inc->method_description }}"></td>
+                                                class="form-control"
+                                                value="{{ old('increments.' . $ikey . '.method_description', $inc->method_description ?? '') }}">
+                                        </td>
                                         <td><button type="button"
                                                 class="btn btn-alt-danger btn-sm remove-increment">Remove</button>
                                         </td>
@@ -179,34 +177,56 @@
                         @enderror
                         @php
                             $securityDeposits = $base->agreement->securityDeposits ?? collect();
-                            $depositRows = $securityDeposits
-                                ->filter(function ($deposit) {
-                                    return filled($deposit->absorb_amount) ||
-                                        filled($deposit->absorb_amount_percentage) ||
-                                        filled($deposit->absorb_start_date) ||
-                                        filled($deposit->absorb_end_date) ||
-                                        filled($deposit->method_description);
-                                })
-                                ->values();
-                            $securityDepositSummary = $securityDeposits->first();
+                            // If old deposits exist from validation, use them first
+                            $depositRows = collect(
+                                old(
+                                    'deposits',
+                                    $securityDeposits
+                                        ->filter(function ($deposit) {
+                                            // Filter out empty deposits from DB to not show unnecessary rows
+                                            return filled($deposit->absorb_amount) ||
+                                                filled($deposit->absorb_amount_percentage) ||
+                                                filled($deposit->absorb_start_date) ||
+                                                filled($deposit->absorb_end_date) ||
+                                                filled($deposit->method_description) ||
+                                                filled($deposit->years); // Also consider 'years'
+                                        })
+                                        ->values(),
+                                ),
+                            );
+                            // For summary fields, check old data first, then DB, then empty object
+                            $securityDepositSummary = (object) [
+                                'security_deposit_total' => old(
+                                    'security_deposit_total',
+                                    $securityDeposits->first()->security_deposit_total ?? '',
+                                ),
+                                'security_deposit_absorbable' => old(
+                                    'security_deposit_absorbable',
+                                    $securityDeposits->first()->security_deposit_absorbable ?? '',
+                                ),
+                                'security_deposit_non_absorbable' => old(
+                                    'security_deposit_non_absorbable',
+                                    $securityDeposits->first()->security_deposit_non_absorbable ?? '',
+                                ),
+                            ];
                         @endphp
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <label>Total</label>
+                                <label class="form-label">Total</label>
                                 <input type="number" step="0.01" name="security_deposit_total" class="form-control"
-                                    value="{{ old('security_deposit_total', $securityDepositSummary->security_deposit_total ?? '') }}">
+                                    value="{{ $securityDepositSummary->security_deposit_total }}">
                             </div>
                             <div class="col-md-4">
-                                <label>Adjustable</label>
+                                <label class="form-label">Adjustable</label>
                                 <input type="number" step="0.01" name="security_deposit_absorbable"
                                     class="form-control"
-                                    value="{{ old('security_deposit_absorbable', $securityDepositSummary->security_deposit_absorbable ?? '') }}">
+                                    value="{{ $securityDepositSummary->security_deposit_absorbable }}">
                             </div>
                             <div class="col-md-4">
-                                <label>Non-Adjustable</label>
+                                <label class="form-label">Non-Adjustable</label>
                                 <input type="number" step="0.01" name="security_deposit_non_absorbable"
                                     class="form-control"
-                                    value="{{ old('security_deposit_non_absorbable', $securityDepositSummary->security_deposit_non_absorbable ?? '') }}">
+                                    value="{{ $securityDepositSummary->security_deposit_non_absorbable }}">
                             </div>
                         </div>
                         <table class="table table-bordered" id="depositsTable">
@@ -215,8 +235,8 @@
                                     <th>Adjust Amount</th>
                                     <th>Adjust %</th>
                                     <th>Adjust Start</th>
+                                    <th>Years</th> {{-- NEW FIELD HEADER for Deposits --}}
                                     <th>Adjust End</th>
-                                    {{-- <th>Absorb Freq</th> --}}
                                     <th>Method Desc</th>
                                     <th>Action</th>
                                 </tr>
@@ -228,23 +248,32 @@
                                             <td><input type="number" step="0.01"
                                                     name="deposits[{{ $dkey }}][absorb_amount]"
                                                     class="form-control abs-amount"
-                                                    value="{{ $deposit->absorb_amount }}"></td>
+                                                    value="{{ old('deposits.' . $dkey . '.absorb_amount', $deposit->absorb_amount ?? '') }}">
+                                            </td>
                                             <td><input type="number" step="0.01"
                                                     name="deposits[{{ $dkey }}][absorb_amount_percentage]"
                                                     class="form-control abs-percent"
-                                                    value="{{ $deposit->absorb_amount_percentage }}"></td>
+                                                    value="{{ old('deposits.' . $dkey . '.absorb_amount_percentage', $deposit->absorb_amount_percentage ?? '') }}">
+                                            </td>
                                             <td><input type="date"
                                                     name="deposits[{{ $dkey }}][absorb_start_date]"
-                                                    class="form-control" value="{{ $deposit->absorb_start_date }}"></td>
+                                                    class="form-control dep-start-date"
+                                                    value="{{ old('deposits.' . $dkey . '.absorb_start_date', $deposit->absorb_start_date ?? '') }}">
+                                            </td>
+                                            <td><input type="number" name="deposits[{{ $dkey }}][years]"
+                                                    class="form-control dep-years" min="1"
+                                                    value="{{ old('deposits.' . $dkey . '.years', $deposit->years ?? '') }}"
+                                                    required></td> {{-- NEW INPUT for Deposits --}}
                                             <td><input type="date"
                                                     name="deposits[{{ $dkey }}][absorb_end_date]"
-                                                    class="form-control" value="{{ $deposit->absorb_end_date }}"></td>
-                                            {{-- <td><input type="text"
-                                                    name="deposits[{{ $dkey }}][absorb_frequency]"
-                                                    class="form-control" value="{{ $deposit->absorb_frequency }}"></td> --}}
+                                                    class="form-control dep-end-date"
+                                                    value="{{ old('deposits.' . $dkey . '.absorb_end_date', $deposit->absorb_end_date ?? '') }}"
+                                                    required></td>
                                             <td><input type="text"
                                                     name="deposits[{{ $dkey }}][method_description]"
-                                                    class="form-control" value="{{ $deposit->method_description }}"></td>
+                                                    class="form-control"
+                                                    value="{{ old('deposits.' . $dkey . '.method_description', $deposit->method_description ?? '') }}">
+                                            </td>
                                             <td><button type="button"
                                                     class="btn btn-alt-danger btn-sm remove-deposit">Remove</button>
                                             </td>
@@ -268,78 +297,407 @@
 
     @section('scripts')
         <script src="{{ asset('js/plugins/select2/js/select2.full.js') }}"></script>
+        <script src="{{ asset('js/plugins/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
+    @section('scripts')
+        <script src="{{ asset('js/plugins/select2/js/select2.full.js') }}"></script>
+        <script src="{{ asset('js/plugins/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
         <script>
-            One.helpersOnLoad(['jq-select2']);
+            One.helpersOnLoad(['jq-select2', 'jq-notify']);
 
-            // document.addEventListener('DOMContentLoaded', function() {
-            //     if (window.jQuery) {
-            //         $('#addIncrement').click(function() {
-            //             $('#incrementsTable tbody').append(`
-    //         <tr>
-    //             <td><input type="date" name="increments[][increment_date]" class="form-control" required></td>
-    //             <td><input type="number" step="0.01" name="increments[][increment_amount]" class="form-control" required></td>
-    //             <td><input type="number" step="0.01" name="increments[][increment_percentage]" class="form-control"></td>
-    //             <td><input type="text" name="increments[][remarks]" class="form-control"></td>
-    //             <td><button type="button" class="btn btn-danger btn-sm remove-increment">Remove</button></td>
-    //         </tr>
-    //     `);
-            //         });
-            //         $(document).on('click', '.remove-increment', function() {
-            //             $(this).closest('tr').remove();
-            //         });
-            //     }
-            // });
+            // --- Date Calculation Functions (Copied from previous examples, renamed for generality) ---
+            function calculateEndDate(startDateStr, years) {
+                if (!startDateStr || !years || years <= 0) {
+                    return '';
+                }
+                const startDate = new Date(startDateStr + 'T00:00:00'); // Add time to ensure correct date interpretation
+                if (isNaN(startDate.getTime())) {
+                    return ''; // Invalid date
+                }
+
+                const endDate = new Date(startDate); // Start with the start date
+                endDate.setFullYear(startDate.getFullYear() + parseInt(years, 10)); // Add years
+                endDate.setDate(endDate.getDate() - 1); // Subtract one day
+
+                // Format date to YYYY-MM-DD
+                const year = endDate.getFullYear();
+                const month = String(endDate.getMonth() + 1).padStart(2, '0');
+                const day = String(endDate.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            function calculateNextStartDate(endDateStr) {
+                if (!endDateStr) {
+                    return '';
+                }
+                const endDate = new Date(endDateStr + 'T00:00:00'); // Add time to ensure correct date interpretation
+                if (isNaN(endDate.getTime())) {
+                    return ''; // Invalid date
+                }
+                const nextStartDate = new Date(endDate);
+                nextStartDate.setDate(endDate.getDate() + 1);
+
+                const year = nextStartDate.getFullYear();
+                const month = String(nextStartDate.getMonth() + 1).padStart(2, '0');
+                const day = String(nextStartDate.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            // --- NEW FUNCTION: Calculate years from a given start and end date ---
+            function calculateYearsFromDates(startDateStr, endDateStr) {
+                if (!startDateStr || !endDateStr) {
+                    return '';
+                }
+
+                const startDate = new Date(startDateStr + 'T00:00:00');
+                const endDate = new Date(endDateStr + 'T00:00:00');
+
+                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                    return ''; // Invalid date
+                }
+
+                // Our `calculateEndDate` function produces an end date that is (start_date + years - 1 day).
+                // So, to reverse, we need to consider (end_date + 1 day) as the "effective end date"
+                // that would have been the anniversary if the day wasn't subtracted.
+                const effectiveEndDate = new Date(endDate);
+                effectiveEndDate.setDate(endDate.getDate() + 1);
+
+                let years = effectiveEndDate.getFullYear() - startDate.getFullYear();
+
+                // Adjust if the "anniversary" of the start date hasn't been reached yet in the effective end year
+                // This means if effectiveEndDate is before the start date's day/month in the effectiveEndDate's year
+                if (effectiveEndDate.getMonth() < startDate.getMonth() ||
+                    (effectiveEndDate.getMonth() === startDate.getMonth() && effectiveEndDate.getDate() < startDate.getDate())
+                ) {
+                    years--;
+                }
+
+                return years > 0 ? years.toString() : ''; // Return as string, or empty if <= 0
+            }
+
+            // --- Rent Increment specific functions ---
+            function updateSubsequentIncrements(changedRow) {
+                let currentRow = changedRow;
+                let currentEndDate = changedRow.find('.inc-end-date').val();
+
+                while (currentRow.length) {
+                    const nextRow = currentRow.next('tr');
+                    if (!nextRow.length) break; // No more rows to update
+
+                    const nextStartDateInput = nextRow.find('.inc-start-date');
+                    const nextYearsInput = nextRow.find('.inc-years');
+                    const nextEndDateInput = nextRow.find('.inc-end-date');
+
+                    const newNextStartDate = calculateNextStartDate(currentEndDate);
+
+                    // Only update start date if it's different to prevent unnecessary DOM writes
+                    if (nextStartDateInput.val() !== newNextStartDate) {
+                        nextStartDateInput.val(newNextStartDate);
+                    }
+
+                    const nextYears = nextYearsInput.val();
+                    const newNextEndDate = calculateEndDate(newNextStartDate, nextYears);
+
+                    // Only update end date if it's different
+                    if (nextEndDateInput.val() !== newNextEndDate) {
+                        nextEndDateInput.val(newNextEndDate);
+                    }
+
+                    currentEndDate = newNextEndDate; // Propagate for the next iteration
+                    currentRow = nextRow; // Move to the next row
+                    if (!currentEndDate) { // If a row in the chain results in an invalid end date, stop propagating
+                        break;
+                    }
+                }
+            }
+
+            // --- Security Deposit specific functions ---
+            function updateSubsequentDeposits(changedRow) {
+                let currentRow = changedRow;
+                let currentEndDate = changedRow.find('.dep-end-date').val();
+
+                while (currentRow.length) {
+                    const nextRow = currentRow.next('tr');
+                    if (!nextRow.length) break; // No more rows to update
+
+                    const nextStartDateInput = nextRow.find('.dep-start-date');
+                    const nextYearsInput = nextRow.find('.dep-years');
+                    const nextEndDateInput = nextRow.find('.dep-end-date');
+
+                    const newNextStartDate = calculateNextStartDate(currentEndDate);
+
+                    if (nextStartDateInput.val() !== newNextStartDate) {
+                        nextStartDateInput.val(newNextStartDate);
+                    }
+
+                    const nextYears = nextYearsInput.val();
+                    const newNextEndDate = calculateEndDate(newNextStartDate, nextYears);
+
+                    if (nextEndDateInput.val() !== newNextEndDate) {
+                        nextEndDateInput.val(newNextEndDate);
+                    }
+
+                    currentEndDate = newNextEndDate;
+                    currentRow = nextRow;
+                    if (!currentEndDate) {
+                        break;
+                    }
+                }
+            }
 
 
-            $(function() {
-                let incrementIndex = {{ $base->increments->count() }};
+            $(document).ready(function() {
+
+                // --- Agreement Link Update ---
+                function updateAgreementLink() {
+                    let agreementId = $('#agreement_id').val();
+                    let viewBtn = $('#viewAgreementBtn');
+                    if (agreementId) {
+                        let url = "{{ route('agreements.show', ':id') }}";
+                        url = url.replace(':id', agreementId);
+                        viewBtn
+                            .attr('href', url)
+                            .css('pointer-events', 'auto')
+                            .removeClass('text-muted')
+                            .addClass('text-primary');
+                    } else {
+                        viewBtn
+                            .attr('href', 'javascript:void(0);')
+                            .css('pointer-events', 'none')
+                            .removeClass('text-primary')
+                            .addClass('text-muted');
+                    }
+                }
+                $('#agreement_id').on('change', updateAgreementLink).trigger('change'); // Run on load and change
+
+
+                // --- Rent Increment Logic ---
+                // Initialize index for new rows, accounting for existing and old data
+                let incrementIndex = {{ max($base->increments->count(), count(old('increments', []))) }};
 
                 $('#addIncrement').click(function() {
+                    const lastRow = $('#incrementsTable tbody tr').last();
+                    let newStartDate = '';
+
+                    if (lastRow.length) {
+                        const prevEndDate = lastRow.find('.inc-end-date').val();
+                        if (prevEndDate) {
+                            newStartDate = calculateNextStartDate(prevEndDate);
+                        }
+                    }
 
                     $('#incrementsTable tbody').append(`
-                        <tr>
-                            <td><input type="date" name="increments[${incrementIndex}][increment_start_date]" class="form-control" required></td>
-                            <td><input type="date" name="increments[${incrementIndex}][increment_end_date]" class="form-control"></td>
-                            <td><input type="number" step="0.01" name="increments[${incrementIndex}][increment_amount]" class="form-control inc-amount" required></td>
-                            <td><input type="number" step="0.01" name="increments[${incrementIndex}][increment_percentage]" class="form-control inc-percent"></td>
-                            <td><input type="text" name="increments[${incrementIndex}][method_description]" class="form-control"></td>
-                            <td><button type="button" class="btn btn-alt-danger btn-sm remove-increment">Remove</button></td>
-                        </tr>
-                    `);
+                    <tr>
+                        <td><input type="date" name="increments[${incrementIndex}][increment_start_date]" class="form-control inc-start-date" value="${newStartDate}" required></td>
+                        <td><input type="number" name="increments[${incrementIndex}][years]" class="form-control inc-years" min="1" value="1" required></td>
+                        <td><input type="date" name="increments[${incrementIndex}][increment_end_date]" class="form-control inc-end-date" required></td>
+                        <td><input type="number" step="0.01" name="increments[${incrementIndex}][increment_amount]" class="form-control inc-amount" required></td>
+                        <td><input type="number" step="0.01" name="increments[${incrementIndex}][increment_percentage]" class="form-control inc-percent"></td>
+                        <td><input type="text" name="increments[${incrementIndex}][method_description]" class="form-control"></td>
+                        <td><button type="button" class="btn btn-alt-danger btn-sm remove-increment">Remove</button></td>
+                    </tr>
+                `);
+
+                    const newRow = $('#incrementsTable tbody tr').last();
+                    const startDateInput = newRow.find('.inc-start-date');
+                    const yearsInput = newRow.find('.inc-years');
+                    if (startDateInput.val() && yearsInput.val()) {
+                        const endDate = calculateEndDate(startDateInput.val(), yearsInput.val());
+                        newRow.find('.inc-end-date').val(endDate);
+                        updateSubsequentIncrements(newRow);
+                    }
 
                     incrementIndex++;
                 });
 
                 $(document).on('click', '.remove-increment', function() {
-                    $(this).closest('tr').remove();
+                    const removedRow = $(this).closest('tr');
+                    const prevRow = removedRow.prev('tr');
+                    removedRow.remove();
+
+                    if (prevRow.length) {
+                        updateSubsequentIncrements(prevRow);
+                    } else {
+                        const firstRemainingRow = $('#incrementsTable tbody tr').first();
+                        if (firstRemainingRow.length) {
+                            // If the first row is removed, the "new first" row should have its dates reset
+                            firstRemainingRow.find('.inc-start-date').val('');
+                            firstRemainingRow.find('.inc-end-date').val('');
+                            firstRemainingRow.find('.inc-years').val(1).trigger(
+                                'change'); // Default years to 1 and trigger calculation
+                        }
+                    }
                 });
 
-                let depositIndex = {{ $depositRows->count() }};
+                $(document).on('change', '.inc-start-date, .inc-years', function() {
+                    const currentRow = $(this).closest('tr');
+                    const startDateStr = currentRow.find('.inc-start-date').val();
+                    const years = currentRow.find('.inc-years').val();
+                    const endDateInput = currentRow.find('.inc-end-date');
+
+                    const newEndDate = calculateEndDate(startDateStr, years);
+                    endDateInput.val(newEndDate);
+
+                    updateSubsequentIncrements(currentRow);
+                });
+
+                // Initial calculation/chaining for existing increment rows on page load
+                // This ensures dates are correct even if loaded from DB
+                $('#incrementsTable tbody tr').each(function() {
+                    const currentRow = $(this);
+                    const startDateInput = currentRow.find('.inc-start-date');
+                    const yearsInput = currentRow.find('.inc-years');
+                    const endDateInput = currentRow.find('.inc-end-date');
+
+                    let yearsVal = yearsInput.val();
+                    // If 'years' is missing but start and end dates exist, derive it
+                    if (!yearsVal && startDateInput.val() && endDateInput.val()) {
+                        const derivedYears = calculateYearsFromDates(startDateInput.val(), endDateInput.val());
+                        if (derivedYears !== '') {
+                            yearsInput.val(derivedYears);
+                            yearsVal = derivedYears; // Update yearsVal for subsequent logic
+                        }
+                    }
+
+                    // If years is still empty (e.g., no dates, or derived years were <= 0), default to 1
+                    if (!yearsVal) {
+                        yearsInput.val(1);
+                        yearsVal = 1;
+                    }
+
+                    // Re-calculate end date to ensure consistency with the (possibly newly set) years value
+                    if (startDateInput.val() && yearsVal) { // Use yearsVal (possibly derived)
+                        const newEndDate = calculateEndDate(startDateInput.val(), yearsVal);
+                        if (endDateInput.val() !== newEndDate) {
+                            endDateInput.val(newEndDate);
+                        }
+                    }
+                });
+                const firstIncrementRow = $('#incrementsTable tbody tr').first();
+                if (firstIncrementRow.length) {
+                    updateSubsequentIncrements(firstIncrementRow); // Trigger cascade for all existing rows
+                }
+
+
+                // --- Security Deposits Logic ---
+                // Initialize index for new rows, accounting for existing and old data
+                let depositIndex = {{ max($depositRows->count(), count(old('deposits', []))) }};
+
                 $('#addDeposit').click(function() {
+                    const lastRow = $('#depositsTable tbody tr').last();
+                    let newStartDate = '';
+
+                    if (lastRow.length) {
+                        const prevEndDate = lastRow.find('.dep-end-date').val();
+                        if (prevEndDate) {
+                            newStartDate = calculateNextStartDate(prevEndDate);
+                        }
+                    }
 
                     $('#depositsTable tbody').append(`
-                        <tr>
-                            <td><input type="number" step="0.01" name="deposits[${depositIndex}][absorb_amount]" class="form-control abs-amount"></td>
-                            <td><input type="number" step="0.01" name="deposits[${depositIndex}][absorb_amount_percentage]" class="form-control abs-percent"></td>
-                            <td><input type="date" name="deposits[${depositIndex}][absorb_start_date]" class="form-control"></td>
-                            <td><input type="date" name="deposits[${depositIndex}][absorb_end_date]" class="form-control"></td>
-                            <td><input type="text" name="deposits[${depositIndex}][method_description]" class="form-control"></td>
-                            <td><button type="button" class="btn btn-alt-danger btn-sm remove-deposit">Remove</button></td>
-                        </tr>
-                    `);
+                    <tr>
+                        <td><input type="number" step="0.01" name="deposits[${depositIndex}][absorb_amount]" class="form-control abs-amount"></td>
+                        <td><input type="number" step="0.01" name="deposits[${depositIndex}][absorb_amount_percentage]" class="form-control abs-percent"></td>
+                        <td><input type="date" name="deposits[${depositIndex}][absorb_start_date]" class="form-control dep-start-date" value="${newStartDate}"></td>
+                        <td><input type="number" name="deposits[${depositIndex}][years]" class="form-control dep-years" min="1" value="1" required></td>
+                        <td><input type="date" name="deposits[${depositIndex}][absorb_end_date]" class="form-control dep-end-date" required></td>
+                        <td><input type="text" name="deposits[${depositIndex}][method_description]" class="form-control"></td>
+                        <td><button type="button" class="btn btn-alt-danger btn-sm remove-deposit">Remove</button></td>
+                    </tr>
+                `);
+
+                    const newRow = $('#depositsTable tbody tr').last();
+                    const startDateInput = newRow.find('.dep-start-date');
+                    const yearsInput = newRow.find('.dep-years');
+                    if (startDateInput.val() && yearsInput.val()) {
+                        const endDate = calculateEndDate(startDateInput.val(), yearsInput.val());
+                        newRow.find('.dep-end-date').val(endDate);
+                        updateSubsequentDeposits(newRow);
+                    }
 
                     depositIndex++;
                 });
+
                 $(document).on('click', '.remove-deposit', function() {
-                    $(this).closest('tr').remove();
+                    const removedRow = $(this).closest('tr');
+                    const prevRow = removedRow.prev('tr');
+                    removedRow.remove();
+
+                    if (prevRow.length) {
+                        updateSubsequentDeposits(prevRow);
+                    } else {
+                        const firstRemainingRow = $('#depositsTable tbody tr').first();
+                        if (firstRemainingRow.length) {
+                            firstRemainingRow.find('.dep-start-date').val('');
+                            firstRemainingRow.find('.dep-end-date').val('');
+                            firstRemainingRow.find('.dep-years').val(1).trigger(
+                                'change'); // Default years to 1 and trigger calculation
+                        }
+                    }
                 });
 
+                $(document).on('change', '.dep-start-date, .dep-years', function() {
+                    const currentRow = $(this).closest('tr');
+                    const startDateStr = currentRow.find('.dep-start-date').val();
+                    const years = currentRow.find('.dep-years').val();
+                    const endDateInput = currentRow.find('.dep-end-date');
+
+                    const newEndDate = calculateEndDate(startDateStr, years);
+                    endDateInput.val(newEndDate);
+
+                    updateSubsequentDeposits(currentRow);
+                });
+
+                // Initial calculation/chaining for existing deposit rows on page load
+                // This ensures dates are correct even if loaded from DB
+                $('#depositsTable tbody tr').each(function() {
+                    const currentRow = $(this);
+                    const startDateInput = currentRow.find('.dep-start-date');
+                    const yearsInput = currentRow.find('.dep-years');
+                    const endDateInput = currentRow.find('.dep-end-date');
+
+                    let yearsVal = yearsInput.val();
+                    // If 'years' is missing but start and end dates exist, derive it
+                    if (!yearsVal && startDateInput.val() && endDateInput.val()) {
+                        const derivedYears = calculateYearsFromDates(startDateInput.val(), endDateInput.val());
+                        if (derivedYears !== '') {
+                            yearsInput.val(derivedYears);
+                            yearsVal = derivedYears;
+                        }
+                    }
+
+                    // If years is still empty, default to 1
+                    if (!yearsVal) {
+                        yearsInput.val(1);
+                        yearsVal = 1;
+                    }
+
+                    // Re-calculate end date to ensure consistency
+                    if (startDateInput.val() && yearsVal) {
+                        const newEndDate = calculateEndDate(startDateInput.val(), yearsVal);
+                        if (endDateInput.val() !== newEndDate) {
+                            endDateInput.val(newEndDate);
+                        }
+                    }
+                });
+                const firstDepositRow = $('#depositsTable tbody tr').first();
+                if (firstDepositRow.length) {
+                    updateSubsequentDeposits(firstDepositRow);
+                }
+
+
+                // --- Form Submission Validation for Deposits ---
                 $('form').on('submit', function(e) {
                     const absorbable = parseFloat($('[name="security_deposit_absorbable"]').val()) || 0;
                     const nonAbsorbable = parseFloat($('[name="security_deposit_non_absorbable"]').val()) || 0;
                     const depositRows = $('#depositsTable tbody tr').filter(function() {
                         return $(this).find('input').filter(function() {
-                            return $(this).val() !== '';
+                            // Consider a row "entered" if any of its main fields (amount, percentage, start date, years) are filled
+                            return $(this).hasClass('abs-amount') && $(this).val() !== '' ||
+                                $(this).hasClass('abs-percent') && $(this).val() !== '' ||
+                                $(this).hasClass('dep-start-date') && $(this).val() !== '' ||
+                                ($(this).hasClass('dep-years') && $(this).val() !== '1' && $(
+                                        this).val() !==
+                                    ''); // Default is 1, so check for non-default or empty
                         }).length > 0;
                     }).length;
 
@@ -348,124 +706,55 @@
                         One.helpers('jq-notify', {
                             type: 'danger',
                             icon: 'fa fa-times me-1',
-                            message: 'Please add at least one deposit schedule row when Absorbable or Non-Absorbable amount is entered.'
+                            message: 'Please add at least one deposit schedule row when Adjustable or Non-Adjustable amount is entered.'
+                        });
+                    }
+                });
+
+
+                // --- Base Rent Dependent Calculations ---
+                function getBaseRent() {
+                    return parseFloat($('#base_rent').val()) || 0;
+                }
+
+                $(document).on('input', '.inc-amount, .abs-amount', function() {
+                    let base = getBaseRent();
+                    let amt = parseFloat($(this).val()) || 0;
+                    let targetClass = $(this).hasClass('inc-amount') ? '.inc-percent' : '.abs-percent';
+                    if (base > 0) $(this).closest('tr').find(targetClass).val(((amt / base) * 100).toFixed(2));
+                });
+
+                $(document).on('input', '.inc-percent, .abs-percent', function() {
+                    let base = getBaseRent();
+                    let percent = parseFloat($(this).val()) || 0;
+                    let targetClass = $(this).hasClass('inc-percent') ? '.inc-amount' : '.abs-amount';
+                    if (base > 0) $(this).closest('tr').find(targetClass).val(((percent / 100) * base).toFixed(
+                        2));
+                });
+
+                $('#base_rent').on('input', function() {
+                    let baseRent = parseFloat($(this).val()) || 0;
+                    if (baseRent > 0) {
+                        $('.inc-percent').each(function() {
+                            let row = $(this).closest('tr');
+                            let percentage = parseFloat($(this).val()) || 0;
+                            if (percentage > 0) {
+                                let amount = (percentage / 100) * baseRent;
+                                row.find('.inc-amount').val(amount.toFixed(2));
+                            }
+                        });
+
+                        $('.abs-percent').each(function() {
+                            let row = $(this).closest('tr');
+                            let percentage = parseFloat($(this).val()) || 0;
+                            if (percentage > 0) {
+                                let amount = (percentage / 100) * baseRent;
+                                row.find('.abs-amount').val(amount.toFixed(2));
+                            }
                         });
                     }
                 });
             });
-
-
-            $(document).ready(function() {
-
-                function updateAgreementLink() {
-
-                    let agreementId = $('#agreement_id').val();
-                    let viewBtn = $('#viewAgreementBtn');
-
-                    if (agreementId) {
-
-                        let url = "{{ route('agreements.show', ':id') }}";
-                        url = url.replace(':id', agreementId);
-
-                        viewBtn
-                            .attr('href', url)
-                            .css('pointer-events', 'auto')
-                            .removeClass('text-muted')
-                            .addClass('text-primary');
-
-                    } else {
-
-                        viewBtn
-                            .attr('href', 'javascript:void(0);')
-                            .css('pointer-events', 'none')
-                            .removeClass('text-primary')
-                            .addClass('text-muted');
-                    }
-                }
-
-                // Run on dropdown change
-                $('#agreement_id').on('change', function() {
-                    updateAgreementLink();
-                });
-
-                // IMPORTANT → Run on page load (Edit page needs this)
-                updateAgreementLink();
-            });
-
-            function getBaseRent() {
-                return parseFloat($('#base_rent').val()) || 0;
-            }
-
-            // If Amount is typed, calculate Percentage
-            $(document).on('input', '.inc-amount', function() {
-                let baseRent = getBaseRent();
-                let amount = parseFloat($(this).val()) || 0;
-                let row = $(this).closest('tr');
-
-                if (baseRent > 0) {
-                    let percentage = (amount / baseRent) * 100;
-                    row.find('.inc-percent').val(percentage.toFixed(2));
-                }
-            });
-
-            // If Percentage is typed, calculate Amount
-            $(document).on('input', '.inc-percent', function() {
-                let baseRent = getBaseRent();
-                let percentage = parseFloat($(this).val()) || 0;
-                let row = $(this).closest('tr');
-
-                if (baseRent > 0) {
-                    let amount = (percentage / 100) * baseRent;
-                    row.find('.inc-amount').val(amount.toFixed(2));
-                }
-            });
-
-            $(document).on('input', '.abs-amount', function() {
-                let baseRent = getBaseRent();
-                let amount = parseFloat($(this).val()) || 0;
-                let row = $(this).closest('tr');
-
-                if (baseRent > 0) {
-                    let percentage = (amount / baseRent) * 100;
-                    row.find('.abs-percent').val(percentage.toFixed(2));
-                }
-            });
-
-            $(document).on('input', '.abs-percent', function() {
-                let baseRent = getBaseRent();
-                let percentage = parseFloat($(this).val()) || 0;
-                let row = $(this).closest('tr');
-
-                if (baseRent > 0) {
-                    let amount = (percentage / 100) * baseRent;
-                    row.find('.abs-amount').val(amount.toFixed(2));
-                }
-            });
-
-            // Optional: Re-calculate all rows if Base Rent changes
-            $('#base_rent').on('input', function() {
-                let baseRent = parseFloat($(this).val()) || 0;
-                if (baseRent > 0) {
-                    $('.inc-percent').each(function() {
-                        let row = $(this).closest('tr');
-                        let percentage = parseFloat($(this).val()) || 0;
-                        if (percentage > 0) {
-                            let amount = (percentage / 100) * baseRent;
-                            row.find('.inc-amount').val(amount.toFixed(2));
-                        }
-                    });
-
-                    $('.abs-percent').each(function() {
-                        let row = $(this).closest('tr');
-                        let percentage = parseFloat($(this).val()) || 0;
-                        if (percentage > 0) {
-                            let amount = (percentage / 100) * baseRent;
-                            row.find('.abs-amount').val(amount.toFixed(2));
-                        }
-                    });
-                }
-            });
-
-            // --- End Calculation Logic ---
         </script>
     @endsection
+@endsection
