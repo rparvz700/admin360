@@ -598,9 +598,49 @@
             return parseFloat($('#base_rent').val()) || 0;
         }
 
-        // Increment: If Amount is typed, calculate Percentage
+        function getIncrementBaseForRow(row) {
+            let runningRent = getBaseRent();
+
+            row.prevAll('tr').each(function() {
+                runningRent += parseFloat($(this).find('.inc-amount').val()) || 0;
+            });
+
+            return runningRent;
+        }
+
+        function refreshIncrementPercentages() {
+            let runningRent = getBaseRent();
+
+            $('#incrementsTable tbody tr').each(function() {
+                const row = $(this);
+                const amount = parseFloat(row.find('.inc-amount').val()) || 0;
+
+                if (runningRent > 0 && amount > 0) {
+                    row.find('.inc-percent').val(((amount / runningRent) * 100).toFixed(2));
+                }
+
+                runningRent += amount;
+            });
+        }
+
+        function refreshIncrementAmountsFromPercentages() {
+            let runningRent = getBaseRent();
+
+            $('#incrementsTable tbody tr').each(function() {
+                const row = $(this);
+                const percent = parseFloat(row.find('.inc-percent').val()) || 0;
+
+                if (runningRent > 0 && percent > 0) {
+                    row.find('.inc-amount').val(((percent / 100) * runningRent).toFixed(2));
+                }
+
+                runningRent += parseFloat(row.find('.inc-amount').val()) || 0;
+            });
+        }
+
+        // Increment: If Amount is typed, calculate Percentage from cumulative rent.
         $(document).on('input', '.inc-amount', function() {
-            let baseRent = getBaseRent();
+            let baseRent = getIncrementBaseForRow($(this).closest('tr'));
             let amount = parseFloat($(this).val()) || 0;
             let row = $(this).closest('tr');
 
@@ -608,11 +648,13 @@
                 let percentage = (amount / baseRent) * 100;
                 row.find('.inc-percent').val(percentage.toFixed(2));
             }
+
+            refreshIncrementPercentages();
         });
 
-        // Increment: If Percentage is typed, calculate Amount
+        // Increment: If Percentage is typed, calculate Amount from cumulative rent.
         $(document).on('input', '.inc-percent', function() {
-            let baseRent = getBaseRent();
+            let baseRent = getIncrementBaseForRow($(this).closest('tr'));
             let percentage = parseFloat($(this).val()) || 0;
             let row = $(this).closest('tr');
 
@@ -620,6 +662,8 @@
                 let amount = (percentage / 100) * baseRent;
                 row.find('.inc-amount').val(amount.toFixed(2));
             }
+
+            refreshIncrementAmountsFromPercentages();
         });
 
         // Deposit: If Amount is typed, calculate Percentage
@@ -648,17 +692,10 @@
 
         // Re-calculate all percentage/amount fields if Base Rent changes
         $('#base_rent').on('input', function() {
+            refreshIncrementAmountsFromPercentages();
+
             let baseRent = parseFloat($(this).val()) || 0;
             if (baseRent > 0) {
-                $('.inc-percent').each(function() {
-                    let row = $(this).closest('tr');
-                    let percentage = parseFloat($(this).val()) || 0;
-                    if (percentage > 0) {
-                        let amount = (percentage / 100) * baseRent;
-                        row.find('.inc-amount').val(amount.toFixed(2));
-                    }
-                });
-
                 $('.abs-percent').each(function() {
                     let row = $(this).closest('tr');
                     let percentage = parseFloat($(this).val()) || 0;
@@ -669,5 +706,7 @@
                 });
             }
         });
+
+        refreshIncrementPercentages();
     </script>
 @endsection
