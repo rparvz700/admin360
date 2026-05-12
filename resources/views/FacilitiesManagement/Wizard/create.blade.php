@@ -627,9 +627,10 @@
                                         <i class="fa fa-plus me-1"></i> Add Deposit
                                     </button>
                                 </div>
-                                @error('deposits')
-                                    <div class="alert alert-danger py-2">{{ $message }}</div>
-                                @enderror
+                                <div id="depositValidationError"
+                                    class="alert alert-danger py-2 {{ $errors->has('deposits') ? '' : 'd-none' }}">
+                                    {{ $errors->first('deposits') }}
+                                </div>
                                 <div class="row g-4 mb-3">
                                     <div class="col-md-4"><label class="form-label">Total</label><input type="number"
                                             step="0.01" name="security_deposit_total" class="form-control"
@@ -1219,6 +1220,9 @@
 
             // --- Form Submission Validation for Deposits ---
             $('#wizardForm').on('submit', function(e) {
+                const depositValidationError = $('#depositValidationError');
+                depositValidationError.addClass('d-none').text('');
+
                 // Perform step 4 validation here
                 if (currentStep === totalSteps) { // Only validate step 4 on submit
                     const absorbable = parseFloat($('[name="security_deposit_absorbable"]').val()) || 0;
@@ -1237,10 +1241,18 @@
 
                     if ((absorbable > 0 || nonAbsorbable > 0) && depositRows === 0) {
                         e.preventDefault();
+                        const message =
+                            'Please add at least one deposit schedule row when Adjustable or Non-Adjustable amount is entered.';
+
+                        depositValidationError.removeClass('d-none').text(message);
                         One.helpers('jq-notify', {
                             type: 'danger',
                             icon: 'fa fa-times me-1',
-                            message: 'Please add at least one deposit schedule row when Adjustable or Non-Adjustable amount is entered.'
+                            message: message
+                        });
+                        document.getElementById('depositValidationError').scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
                         });
                         return; // Stop form submission
                     }
