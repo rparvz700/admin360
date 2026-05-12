@@ -57,6 +57,7 @@ class PropertyWizardController extends Controller
         ]);
 
         $securityDepositError = $this->validateSecurityDepositRequirement($request);
+        dd($securityDepositError);
         if ($securityDepositError) {
             return back()->withInput()->withErrors(['deposits' => $securityDepositError]);
         }
