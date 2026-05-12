@@ -31,8 +31,11 @@ class RentController extends Controller
                 return ($row->agreement ? $row->agreement->agreement_ref_no : '');
             })
             ->editColumn('status', function ($row) {
-                $badge = '<span class="badge bg-' . ($row->agreement->status == 1 ? 'success' : 'danger') . '">' . (($row->agreement->status == 1) ? 'Active' : 'Inactive') . '</span>';
-                return $badge;
+                if (!$row->agreement) {
+                    return '<span class="badge bg-secondary">N/A</span>';
+                }
+
+                return '<span class="badge bg-' . ($row->agreement->status == 1 ? 'success' : 'danger') . '">' . (($row->agreement->status == 1) ? 'Active' : 'Inactive') . '</span>';
             })
             ->filterColumn('agreement', function ($query, $keyword) {
                 $query->whereHas('agreement', function ($q) use ($keyword) {

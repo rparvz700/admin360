@@ -540,6 +540,19 @@
                     updateSubsequentIncrements(currentRow);
                 });
 
+                $(document).on('change', '.inc-end-date', function() {
+                    const currentRow = $(this).closest('tr');
+                    const startDateStr = currentRow.find('.inc-start-date').val();
+                    const endDateStr = currentRow.find('.inc-end-date').val();
+                    const years = calculateYearsFromDates(startDateStr, endDateStr);
+
+                    if (years) {
+                        currentRow.find('.inc-years').val(years);
+                    }
+
+                    updateSubsequentIncrements(currentRow);
+                });
+
                 // Initial calculation/chaining for existing increment rows on page load
                 // This ensures dates are correct even if loaded from DB
                 $('#incrementsTable tbody tr').each(function() {
@@ -564,18 +577,12 @@
                         yearsVal = 1;
                     }
 
-                    // Re-calculate end date to ensure consistency with the (possibly newly set) years value
-                    if (startDateInput.val() && yearsVal) { // Use yearsVal (possibly derived)
+                    // On edit, keep the DB/old end date as the default. Only calculate it if it is missing.
+                    if (!endDateInput.val() && startDateInput.val() && yearsVal) {
                         const newEndDate = calculateEndDate(startDateInput.val(), yearsVal);
-                        if (endDateInput.val() !== newEndDate) {
-                            endDateInput.val(newEndDate);
-                        }
+                        endDateInput.val(newEndDate);
                     }
                 });
-                const firstIncrementRow = $('#incrementsTable tbody tr').first();
-                if (firstIncrementRow.length) {
-                    updateSubsequentIncrements(firstIncrementRow); // Trigger cascade for all existing rows
-                }
 
 
                 // --- Security Deposits Logic ---
@@ -647,6 +654,19 @@
                     updateSubsequentDeposits(currentRow);
                 });
 
+                $(document).on('change', '.dep-end-date', function() {
+                    const currentRow = $(this).closest('tr');
+                    const startDateStr = currentRow.find('.dep-start-date').val();
+                    const endDateStr = currentRow.find('.dep-end-date').val();
+                    const years = calculateYearsFromDates(startDateStr, endDateStr);
+
+                    if (years) {
+                        currentRow.find('.dep-years').val(years);
+                    }
+
+                    updateSubsequentDeposits(currentRow);
+                });
+
                 // Initial calculation/chaining for existing deposit rows on page load
                 // This ensures dates are correct even if loaded from DB
                 $('#depositsTable tbody tr').each(function() {
@@ -671,18 +691,12 @@
                         yearsVal = 1;
                     }
 
-                    // Re-calculate end date to ensure consistency
-                    if (startDateInput.val() && yearsVal) {
+                    // On edit, keep the DB/old adjust end as the default. Only calculate it if it is missing.
+                    if (!endDateInput.val() && startDateInput.val() && yearsVal) {
                         const newEndDate = calculateEndDate(startDateInput.val(), yearsVal);
-                        if (endDateInput.val() !== newEndDate) {
-                            endDateInput.val(newEndDate);
-                        }
+                        endDateInput.val(newEndDate);
                     }
                 });
-                const firstDepositRow = $('#depositsTable tbody tr').first();
-                if (firstDepositRow.length) {
-                    updateSubsequentDeposits(firstDepositRow);
-                }
 
 
                 // --- Form Submission Validation for Deposits ---
