@@ -1,5 +1,3 @@
---- START OF FILE Paste May 11, 2026 - 3:24PM ---
-
 @extends('Partials.app', ['activeMenu' => 'agreements'])
 
 @section('title')
@@ -290,11 +288,44 @@
                 return false;
             });
             $wizardErrorStep = 1;
-            if ($hasErrorFor(['base_rent', 'rent_type', 'is_at_source', 'increments', 'deposits', 'security_deposit_total', 'security_deposit_absorbable', 'security_deposit_non_absorbable'])) {
+            if (
+                $hasErrorFor([
+                    'base_rent',
+                    'rent_type',
+                    'is_at_source',
+                    'increments',
+                    'deposits',
+                    'security_deposit_total',
+                    'security_deposit_absorbable',
+                    'security_deposit_non_absorbable',
+                ])
+            ) {
                 $wizardErrorStep = 4;
-            } elseif ($hasErrorFor(['project_id', 'floor_label', 'floor_area_sft', 'car_parking', 'dg_space_sft', 'store_space_sft', 'premises_type'])) {
+            } elseif (
+                $hasErrorFor([
+                    'project_id',
+                    'floor_label',
+                    'floor_area_sft',
+                    'car_parking',
+                    'dg_space_sft',
+                    'store_space_sft',
+                    'premises_type',
+                ])
+            ) {
                 $wizardErrorStep = 3;
-            } elseif ($hasErrorFor(['building_code', 'site_name', 'division', 'district', 'upazila', 'area', 'address', 'lat', 'long'])) {
+            } elseif (
+                $hasErrorFor([
+                    'building_code',
+                    'site_name',
+                    'division',
+                    'district',
+                    'upazila',
+                    'area',
+                    'address',
+                    'lat',
+                    'long',
+                ])
+            ) {
                 $wizardErrorStep = 2;
             }
         @endphp
@@ -394,8 +425,7 @@
                                 </div>
                                 <div class="col-md-6 mb-2">
                                     <label class="form-label">To Date</label>
-                                    <input type="date" name="to_date"
-                                        class="form-control{{ $invalidClass('to_date') }}"
+                                    <input type="date" name="to_date" class="form-control{{ $invalidClass('to_date') }}"
                                         value="{{ old('to_date') }}">
                                     @error('to_date')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -524,8 +554,7 @@
                                 <div class="col-md-4 mb-2">
                                     <label class="form-label">Address</label>
                                     <input type="text" name="address" id="wizard_address"
-                                        class="form-control{{ $invalidClass('address') }}"
-                                        value="{{ old('address') }}">
+                                        class="form-control{{ $invalidClass('address') }}" value="{{ old('address') }}">
                                     @error('address')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -691,8 +720,8 @@
                                     </div>
                                     <div class="col-md-4 mb-2">
                                         <label class="form-label">Is At Source? <span class="text-danger">*</span></label>
-                                        <select class="form-select{{ $invalidClass('is_at_source') }}" name="is_at_source"
-                                            required>
+                                        <select class="form-select{{ $invalidClass('is_at_source') }}"
+                                            name="is_at_source" required>
                                             <option value="">Select</option>
                                             <option value="1" {{ old('is_at_source') == '1' ? 'selected' : '' }}>Yes
                                             </option>
@@ -742,7 +771,8 @@
                                                         <td><input type="number"
                                                                 name="increments[{{ $index }}][years]"
                                                                 class="form-control inc-years{{ $invalidClass("increments.$index.years") }}"
-                                                                min="1" value="{{ $increment['years'] ?? 1 }}" required>
+                                                                min="1" value="{{ $increment['years'] ?? 1 }}"
+                                                                required>
                                                             @error("increments.$index.years")
                                                                 <div class="invalid-feedback">{{ $message }}</div>
                                                             @enderror
@@ -867,7 +897,8 @@
                                                         <td><input type="number" step="0.01"
                                                                 name="deposits[{{ $index }}][adjust_per_month]"
                                                                 class="form-control dep-per-month{{ $invalidClass("deposits.$index.adjust_per_month") }}"
-                                                                value="{{ $deposit['adjust_per_month'] ?? '' }}" readonly>
+                                                                value="{{ $deposit['adjust_per_month'] ?? '' }}"
+                                                                readonly>
                                                             @error("deposits.$index.adjust_per_month")
                                                                 <div class="invalid-feedback">{{ $message }}</div>
                                                             @enderror
@@ -1548,14 +1579,16 @@
             $(document).on('input', '.inc-amount', function() {
                 let base = getIncrementBaseForRow($(this).closest('tr'));
                 let amt = parseFloat($(this).val()) || 0;
-                if (base > 0) $(this).closest('tr').find('.inc-percent').val(((amt / base) * 100).toFixed(2));
+                if (base > 0) $(this).closest('tr').find('.inc-percent').val(((amt / base) * 100).toFixed(
+                    2));
                 refreshIncrementPercentages();
             });
 
             $(document).on('input', '.inc-percent', function() {
                 let base = getIncrementBaseForRow($(this).closest('tr'));
                 let percent = parseFloat($(this).val()) || 0;
-                if (base > 0) $(this).closest('tr').find('.inc-amount').val(((percent / 100) * base).toFixed(2));
+                if (base > 0) $(this).closest('tr').find('.inc-amount').val(((percent / 100) * base)
+                    .toFixed(2));
                 refreshIncrementAmountsFromPercentages();
             });
 
