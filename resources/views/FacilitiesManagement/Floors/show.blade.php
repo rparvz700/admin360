@@ -281,7 +281,8 @@
                                                 style="background-color: rgba(255, 193, 7, 0.1);">
                                                 <small class="text-muted d-block mb-2">Total (Inc. VAT, TAX)</small>
                                                 <h5 class="mb-0">
-                                                    ৳{{ $rentBase->base_rent + $rentBase->vat + $rentBase->tax }}</h5>
+                                                    ৳{{ number_format($rentBase->base_rent + $rentBase->vat + $rentBase->tax, 2) }}
+                                                </h5>
                                             </div>
                                         </div>
                                         {{-- <div class="col-md-3">
