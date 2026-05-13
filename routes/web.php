@@ -28,6 +28,7 @@ use App\Http\Controllers\VehicleMaintenanceManagement\VehicleMaintenanceControll
 use App\Http\Controllers\VehicleMaintenanceManagement\VehiclePartController;
 use App\Http\Controllers\VehicleMaintenanceManagement\VehicleOperationalLogController;
 use App\Http\Controllers\InvoiceManagement\InvoiceController;
+use App\Http\Controllers\InvoiceManagement\VatTaxController;
 use App\Http\Controllers\VehicleMaintenanceManagement\MaintenanceReportController;
 
 use App\Http\Controllers\ProfileController;
@@ -190,6 +191,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('invoices', InvoiceController::class);
     Route::post('invoices/{invoice}/pay', [InvoiceController::class, 'recordPayment'])->name('invoices.pay');
     Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
+    Route::get('vat-taxes-list', [VatTaxController::class, 'list'])->name('vat-taxes.list');
+    Route::resource('vat-taxes', VatTaxController::class);
 });
 
 Route::prefix('maintenance')->name('maintenance.')->middleware(['auth'])->group(function () {
@@ -230,5 +233,4 @@ Route::prefix('maintenance')->name('maintenance.')->middleware(['auth'])->group(
         Route::get('/vendor-comparison', [MaintenanceReportController::class, 'vendorComparison'])->name('vendor-comparison');
     });
 });
-
 

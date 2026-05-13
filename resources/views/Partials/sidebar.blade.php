@@ -352,7 +352,7 @@
                                     {{-- -------------------------Invoice Management------------------------- --}}
                                     @canany(['invoice-management'])
                                         <li
-                                            class="nav-main-item {{ request()->routeIs('invoices.*', 'maintenance.vendors.*') ? 'open' : '' }}">
+                                            class="nav-main-item {{ request()->routeIs('invoices.*', 'maintenance.vendors.*', 'vat-taxes.*') ? 'open' : '' }}">
                                             <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                 aria-haspopup="true" aria-expanded="false" href="#">
                                                 <i class="nav-main-link-icon fa fa-file-invoice-dollar"></i>
@@ -380,7 +380,7 @@
                                                 </li>
 
                                                 <li
-                                                    class="nav-main-item {{ request()->routeIs('maintenance.vendors.*') ? 'open' : '' }}">
+                                                    class="nav-main-item {{ request()->routeIs('maintenance.vendors.*', 'vat-taxes.*') ? 'open' : '' }}">
                                                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                         aria-haspopup="true" aria-expanded="false" href="#">
                                                         <i class="nav-main-link-icon fa fa-cog"></i>
@@ -391,6 +391,12 @@
                                                             <a class="nav-main-link {{ request()->routeIs('maintenance.vendors.*') ? 'active' : '' }}"
                                                                 href="{{ route('maintenance.vendors.index') }}">
                                                                 <span class="nav-main-link-name">Vendors</span>
+                                                            </a>
+                                                        </li>
+                                                        <li class="nav-main-item">
+                                                            <a class="nav-main-link {{ request()->routeIs('vat-taxes.*') ? 'active' : '' }}"
+                                                                href="{{ route('vat-taxes.index') }}">
+                                                                <span class="nav-main-link-name">VAT/TAX</span>
                                                             </a>
                                                         </li>
 

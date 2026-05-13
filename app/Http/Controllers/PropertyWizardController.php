@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PropertyWizard\StorePropertyWizardRequest;
 use App\Models\Agreement;
 use App\Models\GenericDocument;
 use App\Models\Project;
@@ -45,122 +46,8 @@ class PropertyWizardController extends Controller
         return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects'));
     }
 
-    public function store(Request $request)
+    public function store(StorePropertyWizardRequest $request)
     {
-        $request->validate(
-            [
-                'agreement_ref_no' => 'required|string|max:255',
-                'agreement_date' => 'nullable|date',
-                'from_date' => 'nullable|date',
-                'to_date' => 'nullable|date|after_or_equal:from_date',
-                'agreement_status' => 'required|in:0,1',
-                'agreement_remarks' => 'nullable|string|max:1000',
-
-                'building_code' => 'required|string|max:255',
-                'site_name' => 'nullable|string|max:255',
-                'division' => 'nullable|string|max:255',
-                'district' => 'nullable|string|max:255',
-                'upazila' => 'nullable|string|max:255',
-                'area' => 'nullable|string|max:255',
-                'address' => 'nullable|string|max:255',
-                'lat' => 'nullable|numeric',
-                'long' => 'nullable|numeric',
-
-                'project_id' => 'nullable|exists:projects,id',
-                'floor_label' => 'nullable|string|max:255',
-                'floor_area_sft' => 'nullable|numeric|min:0',
-                'car_parking' => 'nullable|integer|min:0',
-                'dg_space_sft' => 'nullable|numeric|min:0',
-                'store_space_sft' => 'nullable|numeric|min:0',
-                'premises_type' => 'nullable|string|max:255',
-
-                'base_rent' => 'required|numeric|min:0',
-                'rent_type' => 'nullable|in:Monthly,Quarterly,Half Yearly,Yearly',
-                'is_at_source' => 'required|in:0,1',
-
-                'increments' => 'nullable|array',
-                'increments.*.increment_start_date' => 'required_with:increments.*.years,increments.*.increment_end_date,increments.*.increment_amount|date',
-                'increments.*.years' => 'required_with:increments.*.increment_start_date,increments.*.increment_end_date,increments.*.increment_amount|integer|min:1',
-                'increments.*.increment_end_date' => 'required_with:increments.*.increment_start_date,increments.*.years,increments.*.increment_amount|date|after_or_equal:increments.*.increment_start_date',
-                'increments.*.increment_amount' => 'required_with:increments.*.increment_start_date,increments.*.years,increments.*.increment_end_date|numeric|min:0',
-                'increments.*.increment_percentage' => 'nullable|numeric|min:0',
-                'increments.*.method_description' => 'nullable|string|max:1000',
-
-                'security_deposit_total' => 'nullable|numeric|min:0',
-                'security_deposit_absorbable' => 'nullable|numeric|min:0',
-                'security_deposit_non_absorbable' => 'nullable|numeric|min:0',
-                'deposits' => 'nullable|array',
-                'deposits.*.absorb_amount' => 'nullable|numeric|min:0',
-                'deposits.*.absorb_start_date' => 'nullable|date',
-                'deposits.*.month_interval' => 'nullable|integer|min:1',
-                'deposits.*.adjust_per_month' => 'nullable|numeric|min:0',
-                'deposits.*.absorb_end_date' => 'nullable|date|after_or_equal:deposits.*.absorb_start_date',
-                'deposits.*.method_description' => 'nullable|string|max:1000',
-            ],
-            [
-                'agreement_ref_no.required' => 'Agreement Reference No is required.',
-                'agreement_status.required' => 'Please select the agreement status.',
-                'agreement_status.in' => 'Please select a valid agreement status.',
-                'to_date.after_or_equal' => 'To Date must be the same as or after From Date.',
-                'building_code.required' => 'Building Code is required.',
-                'project_id.exists' => 'Please select a valid project.',
-                'base_rent.required' => 'Base Rent is required.',
-                'base_rent.numeric' => 'Base Rent must be a valid number.',
-                'base_rent.min' => 'Base Rent cannot be negative.',
-                'is_at_source.required' => 'Please select whether rent is at source.',
-                'is_at_source.in' => 'Please select a valid Is At Source option.',
-                'increments.*.increment_start_date.required_with' => 'Increment Start Date is required for each increment row.',
-                'increments.*.years.required_with' => 'Years is required for each increment row.',
-                'increments.*.increment_end_date.required_with' => 'Increment End Date is required for each increment row.',
-                'increments.*.increment_amount.required_with' => 'Increment Amount is required for each increment row.',
-                'deposits.*.absorb_amount.numeric' => 'Adjust Amount must be a valid number.',
-                'deposits.*.absorb_end_date.after_or_equal' => 'Adjust End must be the same as or after Adjust Start.',
-            ],
-            [
-                'agreement_ref_no' => 'Agreement Reference No',
-                'agreement_date' => 'Agreement Date',
-                'from_date' => 'From Date',
-                'to_date' => 'To Date',
-                'agreement_status' => 'Agreement Status',
-                'agreement_remarks' => 'Agreement Remarks',
-                'building_code' => 'Building Code',
-                'site_name' => 'Site Name',
-                'lat' => 'Latitude',
-                'long' => 'Longitude',
-                'project_id' => 'Project',
-                'floor_label' => 'Floor Label',
-                'floor_area_sft' => 'Floor Area',
-                'car_parking' => 'Car Parking',
-                'dg_space_sft' => 'DG Space',
-                'store_space_sft' => 'Store Space',
-                'premises_type' => 'Premises Type',
-                'base_rent' => 'Base Rent',
-                'rent_type' => 'Rent Type',
-                'is_at_source' => 'Is At Source',
-                'security_deposit_total' => 'Security Deposit Total',
-                'security_deposit_absorbable' => 'Adjustable Security Deposit',
-                'security_deposit_non_absorbable' => 'Non-Adjustable Security Deposit',
-                'increments.*.increment_start_date' => 'Increment Start Date',
-                'increments.*.years' => 'Increment Years',
-                'increments.*.increment_end_date' => 'Increment End Date',
-                'increments.*.increment_amount' => 'Increment Amount',
-                'increments.*.increment_percentage' => 'Increment Percentage',
-                'increments.*.method_description' => 'Increment Method Description',
-                'deposits.*.absorb_amount' => 'Adjust Amount',
-                'deposits.*.absorb_start_date' => 'Adjust Start',
-                'deposits.*.month_interval' => 'Month Interval',
-                'deposits.*.adjust_per_month' => 'Adjust Per Month',
-                'deposits.*.absorb_end_date' => 'Adjust End',
-                'deposits.*.method_description' => 'Deposit Method Description',
-            ]
-        );
-
-        $securityDepositError = $this->validateSecurityDepositRequirement($request);
-
-        if ($securityDepositError) {
-            return back()->withInput()->withErrors(['deposits' => $securityDepositError]);
-        }
-
         DB::beginTransaction();
 
         try {
@@ -304,18 +191,6 @@ class PropertyWizardController extends Controller
             // return null;
             throw $e;
         }
-    }
-
-    private function validateSecurityDepositRequirement(Request $request): ?string
-    {
-        $hasAbsorbable = $this->moneyValue($request->security_deposit_absorbable) > 0;
-        $hasNonAbsorbable = $this->moneyValue($request->security_deposit_non_absorbable) > 0;
-
-        if (($hasAbsorbable || $hasNonAbsorbable) && !$this->hasDepositRows($request)) {
-            return 'Please add at least one deposit schedule row when Absorbable or Non-Absorbable amount is entered.';
-        }
-
-        return null;
     }
 
     private function saveSecurityDeposits(Request $request, int $agreementId): void
