@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PropertyWizard\StorePropertyWizardRequest;
 use App\Models\Agreement;
 use App\Models\GenericDocument;
 use App\Models\Project;
@@ -45,22 +46,8 @@ class PropertyWizardController extends Controller
         return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects'));
     }
 
-    public function store(Request $request)
+    public function store(StorePropertyWizardRequest $request)
     {
-        // 1. Unified Validation
-        $request->validate([
-            'agreement_ref_no' => 'required|string|max:255',
-            'agreement_status' => 'required',
-            'building_code'    => 'required|string|max:255',
-            'base_rent'        => 'required|numeric',
-            'is_at_source'     => 'required|in:0,1',
-        ]);
-
-        $securityDepositError = $this->validateSecurityDepositRequirement($request);
-        if ($securityDepositError) {
-            return back()->withInput()->withErrors(['deposits' => $securityDepositError]);
-        }
-
         DB::beginTransaction();
 
         try {
@@ -119,12 +106,15 @@ class PropertyWizardController extends Controller
             ]);
 
             // 6. Increments
+            $runningRent = (float) $baseRent;
             if ($request->has('increments')) {
                 foreach ($request->increments as $inc) {
+                    $incrementAmount = $this->moneyValue($inc['increment_amount'] ?? null);
+                    $runningRent += $incrementAmount;
                     RentIncrement::create([
                         'agreement_id'         => $agreement->id,
                         'base_rent_id'         => $base->id,
-                        'incremented_amount'   => $baseRent + $inc['increment_amount'],
+                        'incremented_amount'   => $runningRent,
                         'increment_amount'     => $inc['increment_amount'],
                         'increment_percentage' => $inc['increment_percentage'],
                         'increment_start_date' => $inc['increment_start_date'],
@@ -203,18 +193,6 @@ class PropertyWizardController extends Controller
         }
     }
 
-    private function validateSecurityDepositRequirement(Request $request): ?string
-    {
-        $hasAbsorbable = $this->moneyValue($request->security_deposit_absorbable) > 0;
-        $hasNonAbsorbable = $this->moneyValue($request->security_deposit_non_absorbable) > 0;
-
-        if (($hasAbsorbable || $hasNonAbsorbable) && !$this->hasDepositRows($request)) {
-            return 'Please add at least one deposit schedule row when Absorbable or Non-Absorbable amount is entered.';
-        }
-
-        return null;
-    }
-
     private function saveSecurityDeposits(Request $request, int $agreementId): void
     {
         $summary = [
@@ -226,7 +204,7 @@ class PropertyWizardController extends Controller
 
         if ($this->hasDepositRows($request)) {
             foreach ($request->input('deposits', []) as $deposit) {
-                SecurityDeposit::create(array_merge($deposit, $summary));
+                SecurityDeposit::create(array_merge($this->depositPayload($deposit), $summary));
             }
             return;
         }
@@ -242,6 +220,17 @@ class PropertyWizardController extends Controller
             ->contains(function ($deposit) {
                 return collect($deposit)->contains(fn ($value) => $value !== null && $value !== '');
             });
+    }
+
+    private function depositPayload(array $deposit): array
+    {
+        return [
+            'absorb_start_date' => $deposit['absorb_start_date'] ?? null,
+            'absorb_end_date' => $deposit['absorb_end_date'] ?? null,
+            'absorb_amount' => $deposit['absorb_amount'] ?? null,
+            'absorb_frequency' => $deposit['month_interval'] ?? null,
+            'method_description' => $deposit['method_description'] ?? null,
+        ];
     }
 
     private function hasSecurityDepositSummary(Request $request): bool

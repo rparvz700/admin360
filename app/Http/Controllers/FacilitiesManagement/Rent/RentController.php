@@ -31,8 +31,11 @@ class RentController extends Controller
                 return ($row->agreement ? $row->agreement->agreement_ref_no : '');
             })
             ->editColumn('status', function ($row) {
-                $badge = '<span class="badge bg-' . ($row->agreement->status == 1 ? 'success' : 'danger') . '">' . (($row->agreement->status == 1) ? 'Active' : 'Inactive') . '</span>';
-                return $badge;
+                if (!$row->agreement) {
+                    return '<span class="badge bg-secondary">N/A</span>';
+                }
+
+                return '<span class="badge bg-' . ($row->agreement->status == 1 ? 'success' : 'danger') . '">' . (($row->agreement->status == 1) ? 'Active' : 'Inactive') . '</span>';
             })
             ->filterColumn('agreement', function ($query, $keyword) {
                 $query->whereHas('agreement', function ($q) use ($keyword) {
@@ -89,13 +92,16 @@ class RentController extends Controller
             'remarks'      => $request->remarks,
         ]);
         
+        $runningRent = (float) $baseRent;
         if ($request->has('increments')) {
             foreach ($request->increments as $increment) {
                 $increment['base_rent_id'] = $base->id;
+                $incrementAmount = $this->moneyValue($increment['increment_amount'] ?? null);
+                $runningRent += $incrementAmount;
                 RentIncrement::create([
                     'agreement_id' => $request->agreement_id,
                     'base_rent_id' => $base->id,
-                    'incremented_amount' => $baseRent + $increment['increment_amount'] ?? null,
+                    'incremented_amount' => $runningRent,
                     'increment_start_date' => $increment['increment_start_date'] ?? null,
                     'increment_end_date' => $increment['increment_end_date'] ?? null,
                     'increment_amount' => $increment['increment_amount'] ?? null,
@@ -151,13 +157,16 @@ class RentController extends Controller
             ]
         );
         $base->increments()->delete();
+        $runningRent = (float) $baseRent;
         if ($request->has('increments')) {
             foreach ($request->increments as $increment) {
                 $increment['base_rent_id'] = $base->id;
+                $incrementAmount = $this->moneyValue($increment['increment_amount'] ?? null);
+                $runningRent += $incrementAmount;
                 RentIncrement::create([
                     'agreement_id' => $request->agreement_id,
                     'base_rent_id' => $base->id,
-                    'incremented_amount' => $increment['increment_amount'] ?? null,
+                    'incremented_amount' => $runningRent,
                     'increment_start_date' => $increment['increment_start_date'] ?? null,
                     'increment_end_date' => $increment['increment_end_date'] ?? null,
                     'increment_amount' => $increment['increment_amount'] ?? null,
@@ -215,7 +224,7 @@ class RentController extends Controller
 
         if ($this->hasDepositRows($request)) {
             foreach ($request->input('deposits', []) as $deposit) {
-                \App\Models\SecurityDeposit::create(array_merge($deposit, $summary));
+                \App\Models\SecurityDeposit::create(array_merge($this->depositPayload($deposit), $summary));
             }
             return;
         }
@@ -231,6 +240,17 @@ class RentController extends Controller
             ->contains(function ($deposit) {
                 return collect($deposit)->contains(fn ($value) => $value !== null && $value !== '');
             });
+    }
+
+    private function depositPayload(array $deposit): array
+    {
+        return [
+            'absorb_start_date' => $deposit['absorb_start_date'] ?? null,
+            'absorb_end_date' => $deposit['absorb_end_date'] ?? null,
+            'absorb_amount' => $deposit['absorb_amount'] ?? null,
+            'absorb_frequency' => $deposit['month_interval'] ?? null,
+            'method_description' => $deposit['method_description'] ?? null,
+        ];
     }
 
     private function hasSecurityDepositSummary(Request $request): bool

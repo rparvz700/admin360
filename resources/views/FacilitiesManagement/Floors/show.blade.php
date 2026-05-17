@@ -281,7 +281,8 @@
                                                 style="background-color: rgba(255, 193, 7, 0.1);">
                                                 <small class="text-muted d-block mb-2">Total (Inc. VAT, TAX)</small>
                                                 <h5 class="mb-0">
-                                                    ৳{{ $rentBase->base_rent + $rentBase->vat + $rentBase->tax }}</h5>
+                                                    ৳{{ number_format($rentBase->base_rent + $rentBase->vat + $rentBase->tax, 2) }}
+                                                </h5>
                                             </div>
                                         </div>
                                         {{-- <div class="col-md-3">
@@ -382,13 +383,20 @@
                                                 <th>Adjust Start</th>
                                                 <th>Adjust End</th>
                                                 <th>Amount</th>
-                                                <th>Percentage</th>
-                                                <th>Frequency</th>
+                                                <th>Month Interval</th>
+                                                <th>Adjust / Month</th>
                                                 <th>Method</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @forelse($securityDeposits as $sd)
+                                                @php
+                                                    $monthInterval = (int) ($sd->absorb_frequency ?? 0);
+                                                    $adjustPerMonth =
+                                                        $monthInterval > 0
+                                                            ? ((float) ($sd->absorb_amount ?? 0)) / $monthInterval
+                                                            : null;
+                                                @endphp
                                                 <tr>
                                                     <td><strong>{{ $sd->id }}</strong></td>
                                                     <td><strong
@@ -401,9 +409,10 @@
                                                     <td>{{ $sd->absorb_end_date ? \Carbon\Carbon::parse($sd->absorb_end_date)->format('M d, Y') : 'N/A' }}
                                                     </td>
                                                     <td>৳{{ number_format($sd->absorb_amount, 2) }}</td>
-                                                    <td>{{ $sd->absorb_amount_percentage }}%</td>
                                                     <td><span
-                                                            class="badge bg-secondary">{{ $sd->absorb_frequency }}</span>
+                                                            class="badge bg-secondary">{{ $monthInterval > 0 ? $monthInterval . ' month(s)' : 'N/A' }}</span>
+                                                    </td>
+                                                    <td>{{ $adjustPerMonth !== null ? '৳' . number_format($adjustPerMonth, 2) : 'N/A' }}
                                                     </td>
                                                     <td>{{ $sd->method_description }}</td>
                                                 </tr>

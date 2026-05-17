@@ -162,12 +162,20 @@
                                         <th style="width: 12%;">Adjust Start</th>
                                         <th style="width: 12%;">Adjust End</th>
                                         <th style="width: 10%;">Adjust Amount</th>
-                                        <th style="width: 10%;">Adjust %</th>
+                                        <th style="width: 10%;">Month Interval</th>
+                                        <th style="width: 10%;">Adjust / Month</th>
                                         <th>Method Desc</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @forelse ($base->securityDeposits as $dep)
+                                        @php
+                                            $monthInterval = (int) ($dep->absorb_frequency ?? 0);
+                                            $adjustPerMonth =
+                                                $monthInterval > 0
+                                                    ? ((float) ($dep->absorb_amount ?? 0)) / $monthInterval
+                                                    : null;
+                                        @endphp
                                         <tr>
                                             <td>{{ number_format($dep->security_deposit_total ?? 0, 2) }}</td>
                                             <td>{{ number_format($dep->security_deposit_absorbable ?? 0, 2) }}</td>
@@ -177,12 +185,13 @@
                                             <td>{{ $dep->absorb_end_date ? \Carbon\Carbon::parse($dep->absorb_end_date)->format('Y-m-d') : 'N/A' }}
                                             </td>
                                             <td>{{ number_format($dep->absorb_amount ?? 0, 2) }}</td>
-                                            <td>{{ number_format($dep->absorb_amount_percentage ?? 0, 2) }}%</td>
+                                            <td>{{ $monthInterval > 0 ? $monthInterval . ' month(s)' : 'N/A' }}</td>
+                                            <td>{{ $adjustPerMonth !== null ? number_format($adjustPerMonth, 2) : 'N/A' }}</td>
                                             <td>{{ $dep->method_description ?? 'N/A' }}</td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="8" class="text-center text-muted py-3">No security deposits
+                                            <td colspan="9" class="text-center text-muted py-3">No security deposits
                                                 defined.</td>
                                         </tr>
                                     @endforelse

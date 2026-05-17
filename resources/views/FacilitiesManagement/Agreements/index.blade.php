@@ -40,6 +40,14 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
+            @if (Session::has('error'))
+                <div class="alert alert-danger alert-dismissible m-3 mb-0" role="alert">
+                    <small class="mb-0">
+                        {{ Session::get('error') }}
+                    </small>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
             <div class="block-header block-header-default agreement-block-header">
                 <div>
                     <h3 class="block-title">Agreement Directory</h3>
