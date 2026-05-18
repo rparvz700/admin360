@@ -467,7 +467,7 @@
                             </div>
                             <div class="row g-4">
                                 <div class="col-md-6 mb-2">
-                                    <label class="form-label">Building Code <span class="text-danger">*</span></label>
+                                    <label class="form-label">Site Code <span class="text-danger">*</span></label>
                                     <input type="text" name="building_code"
                                         class="form-control{{ $invalidClass('building_code') }}" required
                                         value="{{ old('building_code') }}">
@@ -617,7 +617,7 @@
                                     @enderror
                                 </div>
                                 <div class="col-md-3 mb-2">
-                                    <label class="form-label">Car Parking</label>
+                                    <label class="form-label">Car Parking (sft)</label>
                                     <input type="number" name="car_parking"
                                         class="form-control{{ $invalidClass('car_parking') }}"
                                         value="{{ old('car_parking') }}">
@@ -747,7 +747,7 @@
                                         <thead>
                                             <tr>
                                                 <th>Start Date</th>
-                                                <th>Years</th> {{-- NEW FIELD HEADER --}}
+                                                <th>Months</th>
                                                 <th>End Date</th>
                                                 <th>Amount</th>
                                                 <th>%</th>
@@ -863,11 +863,11 @@
                                     <table class="table table-bordered table-sm wizard-table" id="depositsTable">
                                         <thead>
                                             <tr>
-                                                <th>Adjust Amount</th>
+                                                <th>Adjustable Amount</th>
                                                 <th>Month Interval</th>
-                                                <th>Adjust / Month</th>
-                                                <th>Adjust Start</th>
-                                                <th>Adjust End</th>
+                                                <th>Adjustable / Month</th>
+                                                <th>Adjustable Start</th>
+                                                <th>Adjustable End</th>
                                                 <th>Method Desc</th>
                                                 <th>Action</th>
                                             </tr>
@@ -1134,7 +1134,7 @@
                 if (!nextRow.length) break; // No more rows to update
 
                 const nextStartDateInput = nextRow.find('.inc-start-date');
-                const nextYearsInput = nextRow.find('.inc-years');
+                const nextMonthsInput = nextRow.find('.inc-years');
                 const nextEndDateInput = nextRow.find('.inc-end-date');
 
                 const newNextStartDate = calculateNextStartDate(currentEndDate);
@@ -1144,8 +1144,8 @@
                     nextStartDateInput.val(newNextStartDate);
                 }
 
-                const nextYears = nextYearsInput.val();
-                const newNextEndDate = calculateEndDate(newNextStartDate, nextYears);
+                const nextMonths = nextMonthsInput.val();
+                const newNextEndDate = calculateMonthEndDate(newNextStartDate, nextMonths);
 
                 // Only update end date if it's different
                 if (nextEndDateInput.val() !== newNextEndDate) {
@@ -1340,9 +1340,9 @@
 
                 const newRow = $('#incrementsTable tbody tr').last();
                 const startDateInput = newRow.find('.inc-start-date');
-                const yearsInput = newRow.find('.inc-years');
-                if (startDateInput.val() && yearsInput.val()) {
-                    const endDate = calculateEndDate(startDateInput.val(), yearsInput.val());
+                const monthsInput = newRow.find('.inc-years');
+                if (startDateInput.val() && monthsInput.val()) {
+                    const endDate = calculateMonthEndDate(startDateInput.val(), monthsInput.val());
                     newRow.find('.inc-end-date').val(endDate);
                     updateSubsequentIncrements(newRow);
                 }
@@ -1368,14 +1368,14 @@
                 }
             });
 
-            // Handle changes to start date or years for any increment row
+            // Handle changes to start date or months for any increment row
             $(document).on('change', '.inc-start-date, .inc-years', function() {
                 const currentRow = $(this).closest('tr');
                 const startDateStr = currentRow.find('.inc-start-date').val();
-                const years = currentRow.find('.inc-years').val();
+                const months = currentRow.find('.inc-years').val();
                 const endDateInput = currentRow.find('.inc-end-date');
 
-                const newEndDate = calculateEndDate(startDateStr, years);
+                const newEndDate = calculateMonthEndDate(startDateStr, months);
                 endDateInput.val(newEndDate);
 
                 updateSubsequentIncrements(currentRow);
@@ -1385,11 +1385,11 @@
             $('#incrementsTable tbody tr').each(function() {
                 const currentRow = $(this);
                 const startDateInput = currentRow.find('.inc-start-date');
-                const yearsInput = currentRow.find('.inc-years');
+                const monthsInput = currentRow.find('.inc-years');
                 const endDateInput = currentRow.find('.inc-end-date');
 
-                if (startDateInput.val() && yearsInput.val()) {
-                    const newEndDate = calculateEndDate(startDateInput.val(), yearsInput.val());
+                if (startDateInput.val() && monthsInput.val()) {
+                    const newEndDate = calculateMonthEndDate(startDateInput.val(), monthsInput.val());
                     if (endDateInput.val() !== newEndDate) {
                         endDateInput.val(newEndDate);
                     }

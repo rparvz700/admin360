@@ -117,7 +117,7 @@
                             <thead>
                                 <tr>
                                     <th>Start Date</th>
-                                    <th>Years</th> {{-- NEW FIELD HEADER --}}
+                                    <th>Months</th>
                                     <th>End Date</th>
                                     <th>Amount</th>
                                     <th>Percentage</th>
@@ -231,11 +231,11 @@
                         <table class="table table-bordered" id="depositsTable">
                             <thead>
                                 <tr>
-                                    <th>Adjust Amount</th>
+                                    <th>Adjustable Amount</th>
                                     <th>Month Interval</th>
-                                    <th>Adjust / Month</th>
-                                    <th>Adjust Start</th>
-                                    <th>Adjust End</th>
+                                    <th>Adjustable / Month</th>
+                                    <th>Adjustable Start</th>
+                                    <th>Adjustable End</th>
                                     <th>Method Desc</th>
                                     <th>Action</th>
                                 </tr>
@@ -249,15 +249,15 @@
                                                     class="form-control abs-amount"
                                                     value="{{ old('deposits.' . $dkey . '.absorb_amount', $deposit->absorb_amount ?? '') }}">
                                             </td>
-                                            <td><input type="number" name="deposits[{{ $dkey }}][month_interval]"
+                                            <td><input type="number"
+                                                    name="deposits[{{ $dkey }}][month_interval]"
                                                     class="form-control dep-months" min="1"
                                                     value="{{ old('deposits.' . $dkey . '.month_interval', $deposit->absorb_frequency ?? '') }}"
                                                     required></td>
                                             <td><input type="number" step="0.01"
                                                     name="deposits[{{ $dkey }}][adjust_per_month]"
                                                     class="form-control dep-per-month"
-                                                    value="{{ old('deposits.' . $dkey . '.adjust_per_month') }}"
-                                                    readonly>
+                                                    value="{{ old('deposits.' . $dkey . '.adjust_per_month') }}" readonly>
                                             </td>
                                             <td><input type="date"
                                                     name="deposits[{{ $dkey }}][absorb_start_date]"
@@ -305,8 +305,8 @@
             One.helpersOnLoad(['jq-select2', 'jq-notify']);
 
             // --- Date Calculation Functions (Copied from previous examples, renamed for generality) ---
-            function calculateEndDate(startDateStr, years) {
-                if (!startDateStr || !years || years <= 0) {
+            function calculateEndDate(startDateStr, months) {
+                if (!startDateStr || !months || months <= 0) {
                     return '';
                 }
                 const startDate = new Date(startDateStr + 'T00:00:00'); // Add time to ensure correct date interpretation
@@ -315,7 +315,7 @@
                 }
 
                 const endDate = new Date(startDate); // Start with the start date
-                endDate.setFullYear(startDate.getFullYear() + parseInt(years, 10)); // Add years
+                endDate.setMonth(startDate.getMonth() + parseInt(months, 10)); // Add months
                 endDate.setDate(endDate.getDate() - 1); // Subtract one day
 
                 // Format date to YYYY-MM-DD
@@ -340,38 +340,6 @@
                 const month = String(nextStartDate.getMonth() + 1).padStart(2, '0');
                 const day = String(nextStartDate.getDate()).padStart(2, '0');
                 return `${year}-${month}-${day}`;
-            }
-
-            // --- NEW FUNCTION: Calculate years from a given start and end date ---
-            function calculateYearsFromDates(startDateStr, endDateStr) {
-                if (!startDateStr || !endDateStr) {
-                    return '';
-                }
-
-                const startDate = new Date(startDateStr + 'T00:00:00');
-                const endDate = new Date(endDateStr + 'T00:00:00');
-
-                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                    return ''; // Invalid date
-                }
-
-                // Our `calculateEndDate` function produces an end date that is (start_date + years - 1 day).
-                // So, to reverse, we need to consider (end_date + 1 day) as the "effective end date"
-                // that would have been the anniversary if the day wasn't subtracted.
-                const effectiveEndDate = new Date(endDate);
-                effectiveEndDate.setDate(endDate.getDate() + 1);
-
-                let years = effectiveEndDate.getFullYear() - startDate.getFullYear();
-
-                // Adjust if the "anniversary" of the start date hasn't been reached yet in the effective end year
-                // This means if effectiveEndDate is before the start date's day/month in the effectiveEndDate's year
-                if (effectiveEndDate.getMonth() < startDate.getMonth() ||
-                    (effectiveEndDate.getMonth() === startDate.getMonth() && effectiveEndDate.getDate() < startDate.getDate())
-                ) {
-                    years--;
-                }
-
-                return years > 0 ? years.toString() : ''; // Return as string, or empty if <= 0
             }
 
             function calculateMonthEndDate(startDateStr, months) {
@@ -433,7 +401,7 @@
                     if (!nextRow.length) break; // No more rows to update
 
                     const nextStartDateInput = nextRow.find('.inc-start-date');
-                    const nextYearsInput = nextRow.find('.inc-years');
+                    const nextMonthsInput = nextRow.find('.inc-years');
                     const nextEndDateInput = nextRow.find('.inc-end-date');
 
                     const newNextStartDate = calculateNextStartDate(currentEndDate);
@@ -443,8 +411,8 @@
                         nextStartDateInput.val(newNextStartDate);
                     }
 
-                    const nextYears = nextYearsInput.val();
-                    const newNextEndDate = calculateEndDate(newNextStartDate, nextYears);
+                    const nextMonths = nextMonthsInput.val();
+                    const newNextEndDate = calculateEndDate(newNextStartDate, nextMonths);
 
                     // Only update end date if it's different
                     if (nextEndDateInput.val() !== newNextEndDate) {
@@ -549,9 +517,9 @@
 
                     const newRow = $('#incrementsTable tbody tr').last();
                     const startDateInput = newRow.find('.inc-start-date');
-                    const yearsInput = newRow.find('.inc-years');
-                    if (startDateInput.val() && yearsInput.val()) {
-                        const endDate = calculateEndDate(startDateInput.val(), yearsInput.val());
+                    const monthsInput = newRow.find('.inc-years');
+                    if (startDateInput.val() && monthsInput.val()) {
+                        const endDate = calculateEndDate(startDateInput.val(), monthsInput.val());
                         newRow.find('.inc-end-date').val(endDate);
                         updateSubsequentIncrements(newRow);
                     }
@@ -573,7 +541,7 @@
                             firstRemainingRow.find('.inc-start-date').val('');
                             firstRemainingRow.find('.inc-end-date').val('');
                             firstRemainingRow.find('.inc-years').val(1).trigger(
-                                'change'); // Default years to 1 and trigger calculation
+                                'change'); // Default months to 1 and trigger calculation
                         }
                     }
                 });
@@ -581,10 +549,10 @@
                 $(document).on('change', '.inc-start-date, .inc-years', function() {
                     const currentRow = $(this).closest('tr');
                     const startDateStr = currentRow.find('.inc-start-date').val();
-                    const years = currentRow.find('.inc-years').val();
+                    const months = currentRow.find('.inc-years').val();
                     const endDateInput = currentRow.find('.inc-end-date');
 
-                    const newEndDate = calculateEndDate(startDateStr, years);
+                    const newEndDate = calculateEndDate(startDateStr, months);
                     endDateInput.val(newEndDate);
 
                     updateSubsequentIncrements(currentRow);
@@ -594,10 +562,10 @@
                     const currentRow = $(this).closest('tr');
                     const startDateStr = currentRow.find('.inc-start-date').val();
                     const endDateStr = currentRow.find('.inc-end-date').val();
-                    const years = calculateYearsFromDates(startDateStr, endDateStr);
+                    const months = calculateMonthsFromDates(startDateStr, endDateStr);
 
-                    if (years) {
-                        currentRow.find('.inc-years').val(years);
+                    if (months) {
+                        currentRow.find('.inc-years').val(months);
                     }
 
                     updateSubsequentIncrements(currentRow);
@@ -608,28 +576,28 @@
                 $('#incrementsTable tbody tr').each(function() {
                     const currentRow = $(this);
                     const startDateInput = currentRow.find('.inc-start-date');
-                    const yearsInput = currentRow.find('.inc-years');
+                    const monthsInput = currentRow.find('.inc-years');
                     const endDateInput = currentRow.find('.inc-end-date');
 
-                    let yearsVal = yearsInput.val();
-                    // If 'years' is missing but start and end dates exist, derive it
-                    if (!yearsVal && startDateInput.val() && endDateInput.val()) {
-                        const derivedYears = calculateYearsFromDates(startDateInput.val(), endDateInput.val());
-                        if (derivedYears !== '') {
-                            yearsInput.val(derivedYears);
-                            yearsVal = derivedYears; // Update yearsVal for subsequent logic
+                    let monthsVal = monthsInput.val();
+                    // If the duration is missing but start and end dates exist, derive it in months.
+                    if (!monthsVal && startDateInput.val() && endDateInput.val()) {
+                        const derivedMonths = calculateMonthsFromDates(startDateInput.val(), endDateInput
+                    .val());
+                        if (derivedMonths !== '') {
+                            monthsInput.val(derivedMonths);
+                            monthsVal = derivedMonths;
                         }
                     }
 
-                    // If years is still empty (e.g., no dates, or derived years were <= 0), default to 1
-                    if (!yearsVal) {
-                        yearsInput.val(1);
-                        yearsVal = 1;
+                    if (!monthsVal) {
+                        monthsInput.val(1);
+                        monthsVal = 1;
                     }
 
                     // On edit, keep the DB/old end date as the default. Only calculate it if it is missing.
-                    if (!endDateInput.val() && startDateInput.val() && yearsVal) {
-                        const newEndDate = calculateEndDate(startDateInput.val(), yearsVal);
+                    if (!endDateInput.val() && startDateInput.val() && monthsVal) {
+                        const newEndDate = calculateEndDate(startDateInput.val(), monthsVal);
                         endDateInput.val(newEndDate);
                     }
                 });
@@ -730,7 +698,8 @@
 
                     let monthsVal = monthsInput.val();
                     if (!monthsVal && startDateInput.val() && endDateInput.val()) {
-                        const derivedMonths = calculateMonthsFromDates(startDateInput.val(), endDateInput.val());
+                        const derivedMonths = calculateMonthsFromDates(startDateInput.val(), endDateInput
+                    .val());
                         if (derivedMonths !== '') {
                             monthsInput.val(derivedMonths);
                             monthsVal = derivedMonths;
@@ -826,14 +795,16 @@
                 $(document).on('input', '.inc-amount', function() {
                     let base = getIncrementBaseForRow($(this).closest('tr'));
                     let amt = parseFloat($(this).val()) || 0;
-                    if (base > 0) $(this).closest('tr').find('.inc-percent').val(((amt / base) * 100).toFixed(2));
+                    if (base > 0) $(this).closest('tr').find('.inc-percent').val(((amt / base) * 100).toFixed(
+                        2));
                     refreshIncrementPercentages();
                 });
 
                 $(document).on('input', '.inc-percent', function() {
                     let base = getIncrementBaseForRow($(this).closest('tr'));
                     let percent = parseFloat($(this).val()) || 0;
-                    if (base > 0) $(this).closest('tr').find('.inc-amount').val(((percent / 100) * base).toFixed(2));
+                    if (base > 0) $(this).closest('tr').find('.inc-amount').val(((percent / 100) * base)
+                        .toFixed(2));
                     refreshIncrementAmountsFromPercentages();
                 });
 
