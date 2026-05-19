@@ -10,6 +10,7 @@ use App\Models\RentBase;
 use App\Models\RentIncrement;
 use App\Models\TableSetting;
 use App\Models\VatTax;
+use App\Services\RentComponentCalculator;
 
 class RentController extends Controller
 {
@@ -56,12 +57,15 @@ class RentController extends Controller
 
     public function create()
     {
-        $agreements = Agreement::where('status', 1)->get();
+        $agreements = Agreement::with('floors')->where('status', 1)->get();
+        $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
+        $componentTypes = RentComponentCalculator::COMPONENTS;
+        $taxableAreaSft = (float) config('facilities.rent_taxable_area_sft', 150);
 
-        return view('FacilitiesManagement.Rent.create', compact('agreements'));
+        return view('FacilitiesManagement.Rent.create', compact('agreements', 'vatTax', 'componentTypes', 'taxableAreaSft'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, RentComponentCalculator $calculator)
     {
         $securityDepositError = $this->validateSecurityDepositRequirement($request);
         if ($securityDepositError) {
@@ -72,25 +76,22 @@ class RentController extends Controller
             ->where('status', 1)
             ->firstOrFail();
 
-        $baseRent = $request->base_rent;
-
-        $vatPercent = $vatTax->vat;
-        $taxPercent = $vatTax->tax;
-
-        $vatAmount = ($baseRent * $vatPercent) / 100;
-        $taxAmount = ($baseRent * $taxPercent) / 100;
+        $componentRows = $calculator->rowsFromRequest($request, $vatTax);
+        $totals = $calculator->totals($componentRows);
+        $baseRent = $totals['base_rent'];
 
         $base = RentBase::create([
             'agreement_id' => $request->agreement_id,
             'base_rent'    => $baseRent,
-            'vat'          => $vatAmount,
-            'tax'          => $taxAmount,
+            'vat'          => $totals['vat'],
+            'tax'          => $totals['tax'],
             'is_at_source' => $request->is_at_source,
             'rent_type'    => $request->rent_type,
             'start_date'   => $request->start_date,
             'end_date'     => $request->end_date,
             'remarks'      => $request->remarks,
         ]);
+        $calculator->saveRows($base->id, $componentRows);
         
         $runningRent = (float) $baseRent;
         if ($request->has('increments')) {
@@ -117,13 +118,16 @@ class RentController extends Controller
 
     public function edit($id)
     {
-        $base = RentBase::with('increments')->findOrFail($id);
-        $agreements = Agreement::where('status', 1)->get();
+        $base = RentBase::with(['increments', 'components', 'agreement.floors'])->findOrFail($id);
+        $agreements = Agreement::with('floors')->where('status', 1)->get();
+        $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
+        $componentTypes = RentComponentCalculator::COMPONENTS;
+        $taxableAreaSft = (float) config('facilities.rent_taxable_area_sft', 150);
 
-        return view('FacilitiesManagement.Rent.edit', compact('base', 'agreements'));
+        return view('FacilitiesManagement.Rent.edit', compact('base', 'agreements', 'vatTax', 'componentTypes', 'taxableAreaSft'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $id, RentComponentCalculator $calculator)
     {
         $securityDepositError = $this->validateSecurityDepositRequirement($request);
         if ($securityDepositError) {
@@ -134,21 +138,17 @@ class RentController extends Controller
             ->where('status', 1)
             ->firstOrFail();
 
-        $baseRent = $request->base_rent;
-
-        $vatPercent = $vatTax->vat;
-        $taxPercent = $vatTax->tax;
-
-        $vatAmount = ($baseRent * $vatPercent) / 100;
-        $taxAmount = ($baseRent * $taxPercent) / 100;
+        $componentRows = $calculator->rowsFromRequest($request, $vatTax);
+        $totals = $calculator->totals($componentRows);
+        $baseRent = $totals['base_rent'];
 
         $base = RentBase::findOrFail($id);
         $base->update(
             [
                 'agreement_id' => $request->agreement_id,
                 'base_rent'    => $baseRent,
-                'vat'          => $vatAmount,
-                'tax'          => $taxAmount,
+                'vat'          => $totals['vat'],
+                'tax'          => $totals['tax'],
                 'is_at_source' => $request->is_at_source,
                 'rent_type'    => $request->rent_type,
                 'start_date'   => $request->start_date,
@@ -156,6 +156,8 @@ class RentController extends Controller
                 'remarks'      => $request->remarks,
             ]
         );
+        $base->components()->delete();
+        $calculator->saveRows($base->id, $componentRows);
         $base->increments()->delete();
         $runningRent = (float) $baseRent;
         if ($request->has('increments')) {
@@ -191,7 +193,7 @@ class RentController extends Controller
 
     public function show($id)
     {
-        $base = RentBase::with(['increments', 'securityDeposits'])->findOrFail($id);
+        $base = RentBase::with(['components', 'increments', 'securityDeposits'])->findOrFail($id);
         return view('FacilitiesManagement.Rent.show', compact('base'));
     }
 
@@ -264,4 +266,5 @@ class RentController extends Controller
     {
         return is_numeric($value) ? (float) $value : 0.0;
     }
+
 }

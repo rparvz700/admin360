@@ -59,11 +59,6 @@
                                 </select>
                             </div>
                             <div class="col-md-6 col-sm-12 mb-4">
-                                <label class="form-label" for="base_rent">Base Rent</label>
-                                <input type="number" step="0.01" class="form-control" id="base_rent" name="base_rent"
-                                    value="{{ old('base_rent') }}" required>
-                            </div>
-                            <div class="col-md-6 col-sm-12 mb-4">
                                 <label class="form-label" for="is_at_source">Is At Source</label>
                                 <select class="form-select" id="is_at_source" name="is_at_source">
                                     <option value="">Select</option>
@@ -91,6 +86,8 @@
                             </div>
                         </div>
                     </section>
+
+                    @include('FacilitiesManagement.Rent.partials.components')
 
                     <!-- Rent Increments Section -->
                     <section class="mb-4 p-3 border rounded rent-panel">
@@ -232,6 +229,19 @@
 @section('scripts')
     <script src="{{ asset('js/plugins/select2/js/select2.full.js') }}"></script>
     <script src="{{ asset('js/plugins/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
+    @php
+        $agreementAreas = $agreements->mapWithKeys(function ($agreement) {
+            return [
+                (string) $agreement->id => [
+                    'floor_area' => (float) $agreement->floors->sum('floor_area_sft'),
+                    'car_parking' => (float) $agreement->floors->sum('car_parking'),
+                    'dg_space' => (float) $agreement->floors->sum('dg_space_sft'),
+                    'store_space' => (float) $agreement->floors->sum('store_space_sft'),
+                ],
+            ];
+        });
+    @endphp
+    @include('FacilitiesManagement.Rent.partials.component-script', ['agreementAreas' => $agreementAreas])
 
     <script>
         One.helpersOnLoad(["jq-select2", "jq-notify"]);

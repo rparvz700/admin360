@@ -618,7 +618,7 @@
                                 </div>
                                 <div class="col-md-3 mb-2">
                                     <label class="form-label">Car Parking (sft)</label>
-                                    <input type="number" name="car_parking"
+                                    <input type="number" step="0.01" name="car_parking"
                                         class="form-control{{ $invalidClass('car_parking') }}"
                                         value="{{ old('car_parking') }}">
                                     @error('car_parking')
@@ -693,15 +693,6 @@
                                 <h5>Base Rent</h5>
                                 <div class="row g-4">
                                     <div class="col-md-4 mb-2">
-                                        <label class="form-label">Base Rent <span class="text-danger">*</span></label>
-                                        <input type="number" step="0.01" name="base_rent" id="base_rent"
-                                            class="form-control{{ $invalidClass('base_rent') }}" required
-                                            value="{{ old('base_rent') }}">
-                                        @error('base_rent')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="col-md-4 mb-2">
                                         <label class="form-label">Rent Type</label>
                                         <select class="form-select{{ $invalidClass('rent_type') }}" name="rent_type">
                                             <option value="Monthly" {{ old('rent_type') == 'Monthly' ? 'selected' : '' }}>
@@ -734,6 +725,11 @@
                                     </div>
                                 </div>
                             </section>
+
+                            @include('FacilitiesManagement.Rent.partials.components', [
+                                'panelClass' => 'wizard-finance-panel',
+                                'invalidClass' => $invalidClass,
+                            ])
 
                             <section class="wizard-finance-panel">
                                 <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
@@ -963,6 +959,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="{{ asset('js/building-location-map.js') }}"></script>
     <script src="{{ asset('js/plugins/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
+    @include('FacilitiesManagement.Rent.partials.component-script', ['agreementAreas' => []])
 
     <script>
         One.helpersOnLoad(["jq-notify"]);

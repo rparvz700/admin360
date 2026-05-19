@@ -11,6 +11,7 @@ use Yajra\DataTables\DataTables;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\TableSetting;
+use App\Models\VatTax;
 
 class FloorsController extends Controller
 {
@@ -25,12 +26,13 @@ class FloorsController extends Controller
         $rentBase = null;
         $rentIncrements = collect();
         $securityDeposits = collect();
+        $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
         if ($agreement) {
-            $rentBase = \App\Models\RentBase::where('agreement_id', $agreement->id)->first();
+            $rentBase = \App\Models\RentBase::with('components')->where('agreement_id', $agreement->id)->first();
             $rentIncrements = \App\Models\RentIncrement::where('agreement_id', $agreement->id)->get();
             $securityDeposits = \App\Models\SecurityDeposit::where('agreement_id', $agreement->id)->get();
         }
-        return view('FacilitiesManagement.Floors.show', compact('floor', 'building', 'agreement', 'rentBase', 'rentIncrements', 'securityDeposits'));
+        return view('FacilitiesManagement.Floors.show', compact('floor', 'building', 'agreement', 'rentBase', 'rentIncrements', 'securityDeposits', 'vatTax'));
     }
 
     public function list(Request $request)
@@ -95,7 +97,7 @@ class FloorsController extends Controller
             'floor_label' => 'nullable|string|max:255',
             'floor_area_sft' => 'nullable|numeric',
             'premises_type' => 'nullable|string|max:255',
-            'car_parking' => 'nullable|integer',
+            'car_parking' => 'nullable|numeric',
             'dg_space_sft' => 'nullable|numeric',
             'store_space_sft' => 'nullable|numeric',
             'project_id' => 'nullable',
@@ -124,7 +126,7 @@ class FloorsController extends Controller
             'floor_label' => 'nullable|string|max:255',
             'floor_area_sft' => 'nullable|numeric',
             'premises_type' => 'nullable|string|max:255',
-            'car_parking' => 'nullable|integer',
+            'car_parking' => 'nullable|numeric',
             'dg_space_sft' => 'nullable|numeric',
             'store_space_sft' => 'nullable|numeric',
             'project_id' => 'nullable',

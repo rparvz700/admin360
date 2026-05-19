@@ -158,8 +158,8 @@
 
         <div class="col-lg-6">
             <label class="form-label" for="car_parking">Car Parking (sft)</label>
-            <input type="number" class="form-control @error('car_parking') is-invalid @enderror" id="car_parking"
-                name="car_parking" value="{{ old('car_parking', $floor->car_parking ?? '') }}">
+            <input type="number" step="0.01" class="form-control @error('car_parking') is-invalid @enderror"
+                id="car_parking" name="car_parking" value="{{ old('car_parking', $floor->car_parking ?? '') }}">
             @error('car_parking')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror

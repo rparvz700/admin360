@@ -12,6 +12,7 @@ use App\Models\RentBase;
 use App\Models\RentIncrement;
 use App\Models\SecurityDeposit;
 use App\Models\VatTax;
+use App\Services\RentComponentCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -42,11 +43,14 @@ class PropertyWizardController extends Controller
         $districts = $districtApiResArr['data'] ?? [];
 
         $projects = Project::where('status', 1)->get();
+        $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
+        $componentTypes = RentComponentCalculator::COMPONENTS;
+        $taxableAreaSft = (float) config('facilities.rent_taxable_area_sft', 150);
 
-        return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects'));
+        return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects', 'vatTax', 'componentTypes', 'taxableAreaSft'));
     }
 
-    public function store(StorePropertyWizardRequest $request)
+    public function store(StorePropertyWizardRequest $request, RentComponentCalculator $calculator)
     {
         DB::beginTransaction();
 
@@ -91,19 +95,20 @@ class PropertyWizardController extends Controller
 
             // 5. Create Rent Base (VAT/Tax Logic from your original Rent controller)
             $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
-            $baseRent = $request->base_rent;
-            $vatAmount = $vatTax ? ($baseRent * $vatTax->vat) / 100 : 0;
-            $taxAmount = $vatTax ? ($baseRent * $vatTax->tax) / 100 : 0;
+            $componentRows = $calculator->rowsFromRequest($request, $vatTax);
+            $totals = $calculator->totals($componentRows);
+            $baseRent = $totals['base_rent'];
 
             $base = RentBase::create([
                 'agreement_id' => $agreement->id,
                 'base_rent'    => $baseRent,
-                'vat'          => $vatAmount,
-                'tax'          => $taxAmount,
+                'vat'          => $totals['vat'],
+                'tax'          => $totals['tax'],
                 'is_at_source' => (int) $request->is_at_source,
                 'rent_type'    => $request->rent_type,
                 'remarks'      => $request->agreement_remarks,
             ]);
+            $calculator->saveRows($base->id, $componentRows);
 
             // 6. Increments
             $runningRent = (float) $baseRent;

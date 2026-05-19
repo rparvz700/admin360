@@ -1,5 +1,3 @@
---- START OF FILE Paste May 11, 2026 - 3:33PM ---
-
 @extends('Partials.app', ['activeMenu' => 'rent'])
 
 @section('title')
@@ -56,8 +54,9 @@
                                         <i class="fa fa-eye"></i>
                                     </a>
                                 </label>
-                                <select id="agreement_id" name="agreement_id" class="form-select js-select2"
-                                    data-placeholder="Select agreement" required>
+                                <input type="hidden" name="agreement_id" value="{{ old('agreement_id', $base->agreement_id) }}">
+                                <select id="agreement_id" class="form-select js-select2"
+                                    data-placeholder="Select agreement" disabled>
                                     <option value=""></option>
                                     @foreach ($agreements as $agreement)
                                         <option value="{{ $agreement->id }}"
@@ -65,11 +64,6 @@
                                             {{ $agreement->agreement_ref_no }}</option>
                                     @endforeach
                                 </select>
-                            </div>
-                            <div class="col-md-6 col-sm-12 mb-4">
-                                <label class="form-label" for="base_rent">Base Rent</label>
-                                <input type="number" step="0.01" class="form-control" id="base_rent" name="base_rent"
-                                    value="{{ old('base_rent', $base->base_rent) }}" required>
                             </div>
                             <div class="col-md-6 col-sm-12 mb-4">
                                 <label class="form-label" for="is_at_source">Is At Source</label>
@@ -109,6 +103,8 @@
                             </div>
                         </div>
                     </section>
+
+                    @include('FacilitiesManagement.Rent.partials.components', ['base' => $base])
 
                     <!-- Rent Increments Section -->
                     <section class="mb-4 p-3 border rounded rent-panel">
@@ -298,9 +294,19 @@
     @section('scripts')
         <script src="{{ asset('js/plugins/select2/js/select2.full.js') }}"></script>
         <script src="{{ asset('js/plugins/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
-    @section('scripts')
-        <script src="{{ asset('js/plugins/select2/js/select2.full.js') }}"></script>
-        <script src="{{ asset('js/plugins/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
+        @php
+            $agreementAreas = $agreements->mapWithKeys(function ($agreement) {
+                return [
+                    (string) $agreement->id => [
+                        'floor_area' => (float) $agreement->floors->sum('floor_area_sft'),
+                        'car_parking' => (float) $agreement->floors->sum('car_parking'),
+                        'dg_space' => (float) $agreement->floors->sum('dg_space_sft'),
+                        'store_space' => (float) $agreement->floors->sum('store_space_sft'),
+                    ],
+                ];
+            });
+        @endphp
+        @include('FacilitiesManagement.Rent.partials.component-script', ['agreementAreas' => $agreementAreas])
         <script>
             One.helpersOnLoad(['jq-select2', 'jq-notify']);
 
@@ -819,4 +825,3 @@
             });
         </script>
     @endsection
-@endsection

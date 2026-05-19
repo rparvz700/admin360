@@ -42,12 +42,15 @@ class StorePropertyWizardRequest extends FormRequest
             'project_id' => 'nullable|exists:projects,id',
             'floor_label' => 'nullable|string|max:255',
             'floor_area_sft' => 'nullable|numeric|min:0',
-            'car_parking' => 'nullable|integer|min:0',
+            'car_parking' => 'nullable|numeric|min:0',
             'dg_space_sft' => 'nullable|numeric|min:0',
             'store_space_sft' => 'nullable|numeric|min:0',
             'premises_type' => 'nullable|string|max:255',
 
             'base_rent' => 'required|numeric|min:0',
+            'rent_components' => 'nullable|array',
+            'rent_components.*.area_sft' => 'nullable|numeric|min:0',
+            'rent_components.*.rent_amount' => 'nullable|numeric|min:0',
             'rent_type' => 'nullable|in:Monthly,Quarterly,Half Yearly,Yearly',
             'is_at_source' => 'required|in:0,1',
 

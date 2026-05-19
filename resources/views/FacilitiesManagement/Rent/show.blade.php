@@ -116,6 +116,44 @@
                             </div>
                         </div>
 
+                        <h4 class="fw-light mt-4 mb-3">Rent Segregation</h4>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped table-vcenter fs-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Space Type</th>
+                                        <th>Area (sft)</th>
+                                        <th>Rent</th>
+                                        <th>VAT/Tax</th>
+                                        <th>VAT</th>
+                                        <th>Tax</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($base->components as $component)
+                                        <tr>
+                                            <td>{{ \App\Services\RentComponentCalculator::COMPONENTS[$component->component_type]['label'] ?? $component->component_type }}</td>
+                                            <td>{{ number_format($component->area_sft ?? 0, 2) }}</td>
+                                            <td>{{ number_format($component->rent_amount ?? 0, 2) }}</td>
+                                            <td>
+                                                <span class="badge bg-{{ $component->vat_applicable ? 'success' : 'secondary' }}">
+                                                    {{ $component->vat_applicable ? 'Yes' : 'No' }}
+                                                </span>
+                                            </td>
+                                            <td>{{ number_format($component->vat_amount ?? 0, 2) }}</td>
+                                            <td>{{ number_format($component->tax_amount ?? 0, 2) }}</td>
+                                            <td>{{ number_format($component->total_amount ?? 0, 2) }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted py-3">No rent segregation defined.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+
                         <!-- Rent Increments Section -->
                         <h4 class="fw-light mt-4 mb-3">Rent Increments</h4>
                         <div class="table-responsive">
