@@ -366,7 +366,7 @@ class VehicleAssignmentController extends Controller
             $ticket->update([
                 'assigned_driver_id' => $driverIdToAssign,
                 'assigned_vehicle_id' => $vehicleIdToAssign,
-                'status' => 'assigned', // Status is 'assigned' regardless of start time
+                // 'status' => 'assigned', // Status is 'assigned' regardless of start time
             ]);
 
             // 8. Create ticket update log

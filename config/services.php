@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'mobile_api' => [
+        'token' => env('MOBILE_API_TOKEN', 'e94f4ee7952ba9e966f3ac503c2198b8d085ff9b'),
+    ],
+
 ];

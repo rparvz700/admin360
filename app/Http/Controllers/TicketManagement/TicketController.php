@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
+use App\Models\Project;
 use Yajra\DataTables\DataTables;
 
 class TicketController extends Controller
@@ -97,7 +98,7 @@ class TicketController extends Controller
         $floors = PropertiesFloor::with('building')->get();
         $assets = Asset::with(['category', 'floor'])->where('status', 'active')->get();
         $companies = array(array("name"=>"SComm","id"=>1),array("name"=>"STL","id"=>2)); // Placeholder for company data
-        $projects = array(array("project_name"=>"Project Alpha","id"=>1),array("project_name"=>"Project Beta","id"=>2)); // Placeholder for project data    
+        $projects = Project::where('status', 1)->get();    
         //dd($companies,$projects);
         return view('TicketManagement.create', compact('vehicleTypes', 'assetCategories', 'floors', 'assets', 'companies', 'projects'));
     }
@@ -124,6 +125,10 @@ class TicketController extends Controller
                 'trip_locations' => 'required|array|min:1',
                 'trip_locations.*.start' => 'required|string|max:255',
                 'trip_locations.*.end' => 'required|string|max:255',
+                'trip_locations.*.start_lat' => 'nullable|numeric|between:-90,90',
+                'trip_locations.*.start_lng' => 'nullable|numeric|between:-180,180',
+                'trip_locations.*.end_lat' => 'nullable|numeric|between:-90,90',
+                'trip_locations.*.end_lng' => 'nullable|numeric|between:-180,180',
             ];
         } elseif ($request->ticket_type === 'asset_request') {
             $rules += [
@@ -159,14 +164,25 @@ class TicketController extends Controller
         // Handle trip locations - convert to JSON format
         if ($request->ticket_type === 'vehicle_support' && $request->filled('trip_locations')) {
             $tripLocations = [];
+            $tripLocationCoordinates = [];
             foreach ($request->trip_locations as $index => $location) {
+                $startCoordinates = $this->coordinatesFromLocation($location, 'start');
+                $endCoordinates = $this->coordinatesFromLocation($location, 'end');
+
                 $tripLocations[] = [
                     'start' => $location['start'],
                     'end' => $location['end'],
                     'stop_order' => $index + 1
                 ];
+
+                $tripLocationCoordinates[] = [
+                    'start' => $startCoordinates,
+                    'end' => $endCoordinates,
+                    'stop_order' => $index + 1
+                ];
             }
             $validated['trip_location_details'] = $tripLocations;
+            $validated['trip_location_coordinates'] = $tripLocationCoordinates;
             unset($validated['trip_locations']);
         }
 
@@ -196,6 +212,38 @@ class TicketController extends Controller
         ]);
 
         return redirect()->route('tickets.show', $ticket)->with('success', 'Ticket created successfully!');
+    }
+
+    private function coordinatesFromLocation(array $location, string $point): array
+    {
+        $latitude = $location["{$point}_lat"] ?? null;
+        $longitude = $location["{$point}_lng"] ?? null;
+
+        if (($latitude === null || $longitude === null) && isset($location[$point])) {
+            $parsedCoordinates = $this->parseCoordinatesFromText($location[$point]);
+            $latitude ??= $parsedCoordinates['latitude'];
+            $longitude ??= $parsedCoordinates['longitude'];
+        }
+
+        return [
+            'latitude' => $latitude !== null ? (float) $latitude : null,
+            'longitude' => $longitude !== null ? (float) $longitude : null,
+        ];
+    }
+
+    private function parseCoordinatesFromText(?string $locationText): array
+    {
+        if ($locationText && preg_match('/Lat:\s*(-?\d+(?:\.\d+)?).*Lng:\s*(-?\d+(?:\.\d+)?)/i', $locationText, $matches)) {
+            return [
+                'latitude' => (float) $matches[1],
+                'longitude' => (float) $matches[2],
+            ];
+        }
+
+        return [
+            'latitude' => null,
+            'longitude' => null,
+        ];
     }
 
     public function show(Ticket $ticket)
