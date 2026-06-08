@@ -124,7 +124,7 @@
                                         <th>Space Type</th>
                                         <th>Area (sft)</th>
                                         <th>Rent</th>
-                                        <th>VAT/Tax</th>
+                                        <th>VAT Applied</th>
                                         <th>VAT</th>
                                         <th>Tax</th>
                                         <th>Total</th>

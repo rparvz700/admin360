@@ -93,7 +93,7 @@ class PropertyWizardController extends Controller
                 'status'          => 'Active',
             ]);
 
-            // 5. Create Rent Base (VAT/Tax Logic from your original Rent controller)
+            // 5. Create Rent Base with component-wise VAT threshold and tax calculation.
             $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
             $componentRows = $calculator->rowsFromRequest($request, $vatTax);
             $totals = $calculator->totals($componentRows);

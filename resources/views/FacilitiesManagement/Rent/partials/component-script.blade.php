@@ -86,18 +86,18 @@
                 const row = $(this);
                 const area = money(row.find('.rc-area').val());
                 const rent = money(row.find('.rc-rent').val());
-                const taxable = area >= taxableAreaSft;
-                const vat = taxable ? (rent * vatPercent) / 100 : 0;
-                const tax = taxable ? (rent * taxPercent) / 100 : 0;
+                const vatApplicable = area >= taxableAreaSft;
+                const vat = vatApplicable ? (rent * vatPercent) / 100 : 0;
+                const tax = (rent * taxPercent) / 100;
                 const total = rent + vat + tax;
 
                 row.find('.rc-vat').val(vat > 0 ? fixed(vat) : '');
                 row.find('.rc-tax').val(tax > 0 ? fixed(tax) : '');
                 row.find('.rc-total').val(total > 0 ? fixed(total) : '');
                 row.find('.rc-tax-badge')
-                    .toggleClass('bg-success', taxable)
-                    .toggleClass('bg-secondary', !taxable)
-                    .text(taxable ? 'Yes' : 'No');
+                    .toggleClass('bg-success', vatApplicable)
+                    .toggleClass('bg-secondary', !vatApplicable)
+                    .text(vatApplicable ? 'Yes' : 'No');
 
                 baseRent += rent;
                 vatTotal += vat;

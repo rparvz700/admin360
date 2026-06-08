@@ -34,8 +34,9 @@
         <div>
             <h5 class="mb-1">Rent Segregation</h5>
             <div class="text-muted fs-sm">
-                VAT {{ number_format((float) optional($vatTax ?? null)->vat, 2) }}% and Tax {{ number_format((float) optional($vatTax ?? null)->tax, 2) }}%
-                apply only when a component area is at least {{ number_format($taxableAreaSft ?? 150, 2) }} sft.
+                VAT {{ number_format((float) optional($vatTax ?? null)->vat, 2) }}% applies when a component area is at least
+                {{ number_format($taxableAreaSft ?? 150, 2) }} sft. Tax {{ number_format((float) optional($vatTax ?? null)->tax, 2) }}%
+                applies to all rent amounts.
             </div>
         </div>
     </div>
@@ -47,7 +48,7 @@
                     <th>Space Type</th>
                     <th style="width: 16%;">Area (sft)</th>
                     <th style="width: 16%;">Rent</th>
-                    <th style="width: 12%;">VAT/Tax</th>
+                    <th style="width: 12%;">VAT</th>
                     <th style="width: 14%;">VAT</th>
                     <th style="width: 14%;">Tax</th>
                     <th style="width: 14%;">Total</th>

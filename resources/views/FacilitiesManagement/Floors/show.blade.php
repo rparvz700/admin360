@@ -334,7 +334,7 @@
                                                     <th>Space</th>
                                                     <th class="text-end">Area (sft)</th>
                                                     <th class="text-end">Rent</th>
-                                                    <th class="text-center">VAT/Tax Applied</th>
+                                                    <th class="text-center">VAT Applied</th>
                                                     <th class="text-end">VAT</th>
                                                     <th class="text-end">Tax</th>
                                                     <th class="text-end">Total</th>

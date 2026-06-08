@@ -111,7 +111,7 @@ class RentComponentCalculator
         $vatPercent = $vatTax ? $this->moneyValue($vatTax->vat) : 0;
         $taxPercent = $vatTax ? $this->moneyValue($vatTax->tax) : 0;
         $vatAmount = $vatApplicable ? round(($rentAmount * $vatPercent) / 100, 2) : 0.0;
-        $taxAmount = $vatApplicable ? round(($rentAmount * $taxPercent) / 100, 2) : 0.0;
+        $taxAmount = round(($rentAmount * $taxPercent) / 100, 2);
 
         return [
             'component_type' => $type,
