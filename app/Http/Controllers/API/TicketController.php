@@ -78,7 +78,7 @@ class TicketController extends Controller
                 'name' => $ticket->user->name,
                 'email' => $ticket->user->email,
             ] : null,
-            'ticket' => $ticket
+            'ticket' => $this->formatTicket($ticket),
         ]);
     }
 
