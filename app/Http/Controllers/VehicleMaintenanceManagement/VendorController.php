@@ -71,7 +71,7 @@ class VendorController extends Controller
         
         Vendor::create($validated);
 
-        return redirect()->route('VehicleManagement.VehicleMaintenance.Vendor.index')
+        return redirect()->route('maintenance.vendors.index')
             ->with('success', 'Vendor created successfully.');
     }
 
