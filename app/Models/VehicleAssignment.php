@@ -20,6 +20,8 @@ class VehicleAssignment extends Model
         'status',
         'location_tracking',
         'notes',
+        'start_odo_meter',
+        'end_odo_meter',
     ];
 
     protected $casts = [

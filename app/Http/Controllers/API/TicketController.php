@@ -238,7 +238,7 @@ class TicketController extends Controller
         ]);
     }
 
-    public function startTrip(VehicleAssignment $vehicleAssignment)
+    public function startTrip(VehicleAssignment $vehicleAssignment, Request $request)
     {
         if (in_array($vehicleAssignment->status, ['completed', 'cancelled'], true)) {
             return response()->json([
@@ -247,8 +247,10 @@ class TicketController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
+        $startOdoMeter = $request->start_odo_meter;
         $vehicleAssignment->update([
             'status' => 'active',
+            'start_odo_meter' => $startOdoMeter
         ]);
 
         return response()->json([
@@ -258,7 +260,7 @@ class TicketController extends Controller
         ]);
     }
 
-    public function completeTrip(VehicleAssignment $vehicleAssignment)
+    public function completeTrip(VehicleAssignment $vehicleAssignment, Request $request)
     {
         if ($vehicleAssignment->status === 'completed') {
             return response()->json([
@@ -275,8 +277,10 @@ class TicketController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
+        $endOdoMeter = $request->end_odo_meter;
         $vehicleAssignment->update([
             'status' => 'completed',
+            'end_odo_meter' => $endOdoMeter,
         ]);
 
         return response()->json([
