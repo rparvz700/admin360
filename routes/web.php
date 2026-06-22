@@ -11,6 +11,7 @@ use App\Http\Controllers\FacilitiesManagement\FloorsController;
 use App\Http\Controllers\FacilitiesManagement\DashboardController;
 use App\Http\Controllers\FacilitiesManagement\AgreementsController;
 use App\Http\Controllers\FacilitiesManagement\Rent\RentController;
+use App\Http\Controllers\FacilitiesManagement\UtilityTypeController;
 use App\Http\Controllers\FacilitiesManagement\AssetManagement\AssetController;
 use App\Http\Controllers\FacilitiesManagement\AssetManagement\AssetCategoryController;
 use App\Http\Controllers\FacilitiesManagement\AssetManagement\AssetAttributeController;
@@ -90,6 +91,7 @@ Route::middleware(['auth'])->group(function(){
         'projects' => ProjectController::class,
         'asset-categories' => AssetCategoryController::class,
         'asset-attributes' => AssetAttributeController::class,
+        'utility-types' => UtilityTypeController::class,
     ]);
 
     // Asset

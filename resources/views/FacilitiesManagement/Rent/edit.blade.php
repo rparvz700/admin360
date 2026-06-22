@@ -106,6 +106,77 @@
 
                     @include('FacilitiesManagement.Rent.partials.components', ['base' => $base])
 
+                    <!-- Utilities & Service Charges Section -->
+                    <section class="mb-4 p-3 border rounded rent-panel">
+                        <h5 class="mb-3">Utilities & Service Charges</h5>
+                        <div class="table-responsive mb-3">
+                            <table class="table table-bordered table-sm wizard-table" id="utilitiesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Utility Type</th>
+                                        <th>Monthly Amount</th>
+                                        <th>Disburse with Rent</th>
+                                        <th style="width: 80px;" class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($utilityTypes as $type)
+                                        @if ($agreementUtilities->has($type->id))
+                                            @php
+                                                $util = $agreementUtilities->get($type->id);
+                                            @endphp
+                                            <tr data-id="{{ $type->id }}">
+                                                <td class="align-middle fw-semibold">
+                                                    {{ $type->name }}
+                                                    <input type="hidden" name="utilities[{{ $type->id }}][id]" value="{{ $type->id }}">
+                                                </td>
+                                                <td>
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text">৳</span>
+                                                        <input type="number" step="0.01" class="form-control form-control-sm" 
+                                                               name="utilities[{{ $type->id }}][amount]" 
+                                                               value="{{ old("utilities.{$type->id}.amount", $util->amount) }}" required>
+                                                    </div>
+                                                </td>
+                                                <td class="align-middle">
+                                                    <div class="form-check form-switch mb-0">
+                                                        <input class="form-check-input" type="checkbox" 
+                                                               name="utilities[{{ $type->id }}][disburse_with_rent]" value="1"
+                                                               {{ old("utilities.{$type->id}.disburse_with_rent", $util->disburse_with_rent) ? 'checked' : '' }}>
+                                                        <label class="form-check-label fs-xs">Disburse with Rent</label>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center align-middle">
+                                                    <button type="button" class="btn btn-sm btn-alt-danger remove-utility-row">
+                                                        <i class="fa fa-times"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @endif
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-4 col-sm-6">
+                                <select id="utility_type_selector" class="form-select">
+                                    <option value="">Choose Utility...</option>
+                                    @foreach ($utilityTypes as $type)
+                                        <option value="{{ $type->id }}" data-name="{{ $type->name }}"
+                                                {{ $agreementUtilities->has($type->id) ? 'disabled' : '' }}>
+                                            {{ $type->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2 col-sm-6">
+                                <button type="button" class="btn btn-alt-primary" id="addUtilityRowBtn">
+                                    <i class="fa fa-plus me-1"></i> Add Utility
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
                     <!-- Rent Increments Section -->
                     <section class="mb-4 p-3 border rounded rent-panel">
                         <h5 class="mb-3">Rent Increments</h5>
@@ -819,6 +890,63 @@
                     $('#depositsTable tbody tr').each(function() {
                         updateDepositPerMonth($(this));
                     });
+                });
+
+                // --- Dynamic Utilities Logic ---
+                const utilitySelector = $('#utility_type_selector');
+                const utilitiesTableBody = $('#utilitiesTable tbody');
+
+                // Add Row
+                $('#addUtilityRowBtn').click(function() {
+                    const selectedOption = utilitySelector.find('option:selected');
+                    const id = selectedOption.val();
+                    const name = selectedOption.data('name');
+
+                    if (!id) {
+                        alert('Please select a utility type.');
+                        return;
+                    }
+
+                    const row = `
+                        <tr data-id="${id}">
+                            <td class="align-middle fw-semibold">
+                                ${name}
+                                <input type="hidden" name="utilities[${id}][id]" value="${id}">
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">৳</span>
+                                    <input type="number" step="0.01" class="form-control form-control-sm" 
+                                           name="utilities[${id}][amount]" placeholder="0.00" required>
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="utilities[${id}][disburse_with_rent]" value="1" checked>
+                                    <label class="form-check-label fs-xs">Disburse with Rent</label>
+                                </div>
+                            </td>
+                            <td class="text-center align-middle">
+                                <button type="button" class="btn btn-sm btn-alt-danger remove-utility-row">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    utilitiesTableBody.append(row);
+
+                    selectedOption.prop('disabled', true);
+                    utilitySelector.val('');
+                });
+
+                // Remove Row
+                utilitiesTableBody.on('click', '.remove-utility-row', function() {
+                    const row = $(this).closest('tr');
+                    const id = row.data('id');
+
+                    utilitySelector.find(`option[value="${id}"]`).prop('disabled', false);
+                    row.remove();
                 });
 
                 refreshIncrementPercentages();

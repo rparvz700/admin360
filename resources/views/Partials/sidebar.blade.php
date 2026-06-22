@@ -48,6 +48,7 @@
                                             $activeMenu == 'floors' ||
                                             $activeMenu == 'agreements' ||
                                             $activeMenu == 'rent' ||
+                                            $activeMenu == 'utility-types' ||
                                             $activeMenu == 'assets' ||
                                             $activeMenu == 'asset-categories' ||
                                             $activeMenu == 'asset-attributes')
@@ -61,7 +62,7 @@
                                         <ul class="nav-main-submenu">
 
                                             <li
-                                                class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'buildings' || $activeMenu == 'floors' || $activeMenu == 'agreements' || $activeMenu == 'rent' || $activeMenu == 'wizard.property') ? 'open' : '' }}">
+                                                class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'buildings' || $activeMenu == 'floors' || $activeMenu == 'agreements' || $activeMenu == 'rent' || $activeMenu == 'utility-types' || $activeMenu == 'wizard.property') ? 'open' : '' }}">
                                                 <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                     aria-haspopup="true" aria-expanded="false" href="#">
                                                     <i class="nav-main-link-icon fa fa-home"></i>
@@ -108,6 +109,22 @@
                                                                 <span class="nav-main-link-name">Rent</span>
                                                             </a>
                                                         </li>
+                                                    @endcanany
+                                                    @canany(['create-rent', 'edit-rent', 'delete-rent'])
+                                                         <li class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'utility-types') ? 'open' : '' }}">
+                                                             <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
+                                                                 aria-haspopup="true" aria-expanded="false" href="#">
+                                                                 <span class="nav-main-link-name">Settings</span>
+                                                             </a>
+                                                             <ul class="nav-main-submenu">
+                                                                 <li class="nav-main-item">
+                                                                     <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'utility-types' ? 'active' : '' }}"
+                                                                         href="{{ route('utility-types.index') }}">
+                                                                         <span class="nav-main-link-name">Utility Types</span>
+                                                                     </a>
+                                                                 </li>
+                                                             </ul>
+                                                         </li>
                                                     @endcanany
                                                 </ul>
                                             </li>

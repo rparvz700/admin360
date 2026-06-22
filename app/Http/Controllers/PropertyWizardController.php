@@ -46,8 +46,9 @@ class PropertyWizardController extends Controller
         $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
         $componentTypes = RentComponentCalculator::COMPONENTS;
         $taxableAreaSft = (float) config('facilities.rent_taxable_area_sft', 150);
+        $utilityTypes = \App\Models\UtilityType::where('is_active', true)->get();
 
-        return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects', 'vatTax', 'componentTypes', 'taxableAreaSft'));
+        return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects', 'vatTax', 'componentTypes', 'taxableAreaSft', 'utilityTypes'));
     }
 
     public function store(StorePropertyWizardRequest $request, RentComponentCalculator $calculator)
@@ -109,6 +110,19 @@ class PropertyWizardController extends Controller
                 'remarks'      => $request->agreement_remarks,
             ]);
             $calculator->saveRows($base->id, $componentRows);
+
+            // Save agreement utilities
+            if ($request->has('utilities')) {
+                foreach ($request->input('utilities', []) as $typeId => $utilData) {
+                    $amount = is_numeric($utilData['amount'] ?? null) ? (float) $utilData['amount'] : 0.00;
+                    \App\Models\AgreementUtility::create([
+                        'agreement_id' => $agreement->id,
+                        'utility_type_id' => $typeId,
+                        'amount' => $amount,
+                        'disburse_with_rent' => isset($utilData['disburse_with_rent']),
+                    ]);
+                }
+            }
 
             // 6. Increments
             $runningRent = (float) $baseRent;

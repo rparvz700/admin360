@@ -236,6 +236,39 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- Utilities & Service Charges Section -->
+                        <h4 class="fw-light mt-4 mb-3">Utilities & Service Charges</h4>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped table-vcenter fs-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 40%;">Utility Type</th>
+                                        <th style="width: 30%;">Amount</th>
+                                        <th style="width: 30%;">Disburse With Rent</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($base->agreement->utilities ?? [] as $utility)
+                                        <tr>
+                                            <td>{{ $utility->utilityType->name ?? 'N/A' }}</td>
+                                            <td>{{ number_format($utility->amount ?? 0, 2) }}</td>
+                                            <td>
+                                                @if ($utility->disburse_with_rent)
+                                                    <span class="badge bg-success">Yes</span>
+                                                @else
+                                                    <span class="badge bg-secondary">No</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted py-3">No utilities or service charges defined.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- History Tab Pane -->
