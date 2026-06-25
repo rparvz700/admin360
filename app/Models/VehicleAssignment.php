@@ -20,6 +20,7 @@ class VehicleAssignment extends Model
         'status',
         'location_tracking',
         'notes',
+        'remarks',
         'start_odo_meter',
         'end_odo_meter',
     ];

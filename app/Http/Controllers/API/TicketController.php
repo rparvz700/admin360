@@ -10,6 +10,7 @@ use App\Models\TicketUpdate;
 use App\Models\TicketAttachment;
 use App\Models\Project;
 use App\Models\VehicleType;
+use App\Models\VehicleOperationalLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -253,6 +254,23 @@ class TicketController extends Controller
             'start_odo_meter' => $startOdoMeter
         ]);
 
+        $loggedBy = \Illuminate\Support\Facades\Auth::id() 
+            ?? $vehicleAssignment->ticket->assigned_to 
+            ?? $vehicleAssignment->ticket->user_id 
+            ?? 1;
+
+        VehicleOperationalLog::create([
+            'vehicle_id' => $vehicleAssignment->vehicle_id,
+            'log_type' => 'assignment',
+            'assigned_department' => $vehicleAssignment->ticket->project_name ?? null,
+            'assigned_user_id' => $vehicleAssignment->ticket->assigned_to ?? $vehicleAssignment->ticket->user_id ?? null,
+            'meter_reading' => $startOdoMeter ?? 0,
+            'vehicle_status' => 'active',
+            'remarks' => 'Trip started (API)',
+            'logged_by' => $loggedBy,
+            'logged_at' => now(),
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Trip started successfully.',
@@ -277,10 +295,35 @@ class TicketController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $endOdoMeter = $request->end_odo_meter;
+        $validated = $request->validate([
+            'end_odo_meter' => 'nullable|integer',
+            'remarks' => 'nullable|string',
+        ]);
+
+        $endOdoMeter = $validated['end_odo_meter'] ?? $request->end_odo_meter;
+        $remarks = $validated['remarks'] ?? $request->remarks;
+
         $vehicleAssignment->update([
             'status' => 'completed',
             'end_odo_meter' => $endOdoMeter,
+            'remarks' => $remarks,
+        ]);
+
+        $loggedBy = \Illuminate\Support\Facades\Auth::id() 
+            ?? $vehicleAssignment->ticket->assigned_to 
+            ?? $vehicleAssignment->ticket->user_id 
+            ?? 1;
+
+        VehicleOperationalLog::create([
+            'vehicle_id' => $vehicleAssignment->vehicle_id,
+            'log_type' => 'assignment',
+            'assigned_department' => $vehicleAssignment->ticket->project_name ?? null,
+            'assigned_user_id' => $vehicleAssignment->ticket->assigned_to ?? $vehicleAssignment->ticket->user_id ?? null,
+            'meter_reading' => $endOdoMeter ?? $vehicleAssignment->start_odo_meter ?? 0,
+            'vehicle_status' => 'active',
+            'remarks' => $remarks ?? 'Trip completed (API)',
+            'logged_by' => $loggedBy,
+            'logged_at' => now(),
         ]);
 
         return response()->json([
