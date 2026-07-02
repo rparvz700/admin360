@@ -42,8 +42,9 @@ class PropertyWizardController extends Controller
         $districts = $districtApiResArr['data'] ?? [];
 
         $projects = Project::where('status', 1)->get();
+        $utilityTypes = \App\Models\UtilityType::where('is_active', true)->get();
 
-        return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects'));
+        return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects', 'utilityTypes'));
     }
 
     public function store(StorePropertyWizardRequest $request)
@@ -104,6 +105,23 @@ class PropertyWizardController extends Controller
                 'rent_type'    => $request->rent_type,
                 'remarks'      => $request->agreement_remarks,
             ]);
+
+            // Save agreement utilities
+            if ($request->has('utilities')) {
+                foreach ($request->input('utilities', []) as $typeId => $utilData) {
+                    $amount = is_numeric($utilData['amount'] ?? null) ? (float) $utilData['amount'] : 0.00;
+                    \App\Models\AgreementUtility::updateOrCreate(
+                        [
+                            'agreement_id' => $agreement->id,
+                            'utility_type_id' => $typeId,
+                        ],
+                        [
+                            'amount' => $amount,
+                            'disburse_with_rent' => isset($utilData['disburse_with_rent']),
+                        ]
+                    );
+                }
+            }
 
             // 6. Increments
             $runningRent = (float) $baseRent;

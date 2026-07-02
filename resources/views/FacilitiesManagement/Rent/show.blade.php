@@ -116,6 +116,39 @@
                             </div>
                         </div>
 
+                        <!-- Utilities & Service Charges Section -->
+                        <h4 class="fw-light mt-4 mb-3">Utilities & Service Charges</h4>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-bordered table-striped table-vcenter fs-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Utility Type</th>
+                                        <th>Monthly Amount</th>
+                                        <th>Disburse with Rent</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($base->agreement->utilities ?? [] as $util)
+                                        <tr>
+                                            <td class="fw-semibold">{{ $util->utilityType->name ?? 'N/A' }}</td>
+                                            <td>৳ {{ number_format($util->amount ?? 0, 2) }}</td>
+                                            <td>
+                                                @if ($util->disburse_with_rent)
+                                                    <span class="badge bg-success">Yes</span>
+                                                @else
+                                                    <span class="badge bg-secondary">No</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted py-3">No utilities or service charges configured.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+
                         <!-- Rent Increments Section -->
                         <h4 class="fw-light mt-4 mb-3">Rent Increments</h4>
                         <div class="table-responsive">
@@ -260,10 +293,9 @@
                         let html = '';
                         if (data && data.length > 0) {
                             data.forEach(log => {
-                                const userName = log.user ? (log.user.name || log.user) :
+                                 const userName = log.user ? (log.user.name || log.user) :
                                     'System';
-                                const logDate = log.date ? new Date(log.date).toLocaleString() :
-                                    'N/A';
+                                 const logDate = log.date ? log.date : 'N/A';
 
                                 if (log.changes && log.changes.length > 0) {
                                     log.changes.forEach(change => {
@@ -277,20 +309,20 @@
                                                 return value === 1 || value ===
                                                     '1' ? 'Yes' : 'No';
                                             }
-                                            // Format currency fields
+                                            // Format currency field                                             
                                             if (['Base Rent', 'Vat', 'Tax',
                                                     'Increment Amount',
                                                     'Security Deposit Total',
                                                     'Security Deposit Absorbable',
                                                     'Security Deposit Non Absorbable',
                                                     'Absorb Amount'
-                                                ].includes(field)) {
-                                                return parseFloat(value)
+                                                ].includes(field) || (field.endsWith('Amount') && value !== 'Removed')) {
+                                                return parseFloat(value.toString().replace(/,/g, ''))
                                                     .toLocaleString(undefined, {
                                                         minimumFractionDigits: 2,
                                                         maximumFractionDigits: 2
                                                     });
-                                            }
+                                            } 
                                             // Format percentage fields
                                             if (['Increment Percentage',
                                                     'Absorb Amount Percentage'
