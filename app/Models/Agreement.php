@@ -30,6 +30,11 @@ class Agreement extends Model
         return $this->hasMany(PropertiesFloor::class, 'agreement_id');
     }
 
+    public function utilities()
+    {
+        return $this->hasMany(AgreementUtility::class, 'agreement_id');
+    }
+
     public function payments()
     {
         return $this->hasMany(Payment::class, 'agreement_id');
