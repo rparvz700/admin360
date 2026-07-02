@@ -11,7 +11,6 @@ use App\Http\Controllers\FacilitiesManagement\FloorsController;
 use App\Http\Controllers\FacilitiesManagement\DashboardController;
 use App\Http\Controllers\FacilitiesManagement\AgreementsController;
 use App\Http\Controllers\FacilitiesManagement\Rent\RentController;
-use App\Http\Controllers\FacilitiesManagement\UtilityTypeController;
 use App\Http\Controllers\FacilitiesManagement\AssetManagement\AssetController;
 use App\Http\Controllers\FacilitiesManagement\AssetManagement\AssetCategoryController;
 use App\Http\Controllers\FacilitiesManagement\AssetManagement\AssetAttributeController;
@@ -23,7 +22,6 @@ use App\Http\Controllers\GenericDocumentManagement\GenericDocumentController;
 use App\Http\Controllers\TicketManagement\TicketController;
 use App\Http\Controllers\TicketManagement\AdminTicketController;
 use App\Http\Controllers\TicketManagement\VehicleAssignmentController;
-use App\Http\Controllers\ExportController;
 
 use App\Http\Controllers\VehicleMaintenanceManagement\VendorController;
 use App\Http\Controllers\VehicleMaintenanceManagement\VehicleMaintenanceController;
@@ -55,8 +53,6 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::middleware(['auth'])->group(function(){
-    Route::get('exports/tables/{table}', [ExportController::class, 'table'])->name('exports.tables.show');
-
     // Vehicle Management: Vehicle Documents CRUD
     //Route::resource('vehicle-documents', App\Http\Controllers\VehicleManagement\VehicleDocumentController::class);
     //Route::get('vehicle-documents-list', [App\Http\Controllers\VehicleManagement\VehicleDocumentController::class, 'list'])->name('vehicle-documents.list');
@@ -91,7 +87,6 @@ Route::middleware(['auth'])->group(function(){
         'projects' => ProjectController::class,
         'asset-categories' => AssetCategoryController::class,
         'asset-attributes' => AssetAttributeController::class,
-        'utility-types' => UtilityTypeController::class,
     ]);
 
     // Asset

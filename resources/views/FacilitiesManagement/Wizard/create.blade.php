@@ -467,7 +467,7 @@
                             </div>
                             <div class="row g-4">
                                 <div class="col-md-6 mb-2">
-                                    <label class="form-label">Site Code <span class="text-danger">*</span></label>
+                                    <label class="form-label">Building Code <span class="text-danger">*</span></label>
                                     <input type="text" name="building_code"
                                         class="form-control{{ $invalidClass('building_code') }}" required
                                         value="{{ old('building_code') }}">
@@ -617,8 +617,8 @@
                                     @enderror
                                 </div>
                                 <div class="col-md-3 mb-2">
-                                    <label class="form-label">Car Parking (sft)</label>
-                                    <input type="number" step="0.01" name="car_parking"
+                                    <label class="form-label">Car Parking</label>
+                                    <input type="number" name="car_parking"
                                         class="form-control{{ $invalidClass('car_parking') }}"
                                         value="{{ old('car_parking') }}">
                                     @error('car_parking')
@@ -693,6 +693,15 @@
                                 <h5>Base Rent</h5>
                                 <div class="row g-4">
                                     <div class="col-md-4 mb-2">
+                                        <label class="form-label">Base Rent <span class="text-danger">*</span></label>
+                                        <input type="number" step="0.01" name="base_rent" id="base_rent"
+                                            class="form-control{{ $invalidClass('base_rent') }}" required
+                                            value="{{ old('base_rent') }}">
+                                        @error('base_rent')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="col-md-4 mb-2">
                                         <label class="form-label">Rent Type</label>
                                         <select class="form-select{{ $invalidClass('rent_type') }}" name="rent_type">
                                             <option value="Monthly" {{ old('rent_type') == 'Monthly' ? 'selected' : '' }}>
@@ -726,45 +735,6 @@
                                 </div>
                             </section>
 
-                            @include('FacilitiesManagement.Rent.partials.components', [
-                                'panelClass' => 'wizard-finance-panel',
-                                'invalidClass' => $invalidClass,
-                             ])
-
-                            <section class="wizard-finance-panel">
-                                <h5 class="mb-3">Utilities & Service Charges</h5>
-                                <div class="table-responsive mb-3">
-                                    <table class="table table-bordered table-sm wizard-table" id="utilitiesTable">
-                                        <thead>
-                                            <tr>
-                                                <th>Utility Type</th>
-                                                <th>Monthly Amount</th>
-                                                <th>Disburse with Rent</th>
-                                                <th style="width: 80px;" class="text-center">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Dynamic rows will go here -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="row g-2 align-items-center">
-                                    <div class="col-md-4 col-sm-6">
-                                        <select id="utility_type_selector" class="form-select">
-                                            <option value="">Choose Utility...</option>
-                                            @foreach ($utilityTypes as $type)
-                                                <option value="{{ $type->id }}" data-name="{{ $type->name }}">{{ $type->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2 col-sm-6">
-                                        <button type="button" class="btn btn-sm btn-alt-primary" id="addUtilityRowBtn">
-                                            <i class="fa fa-plus me-1"></i> Add Utility
-                                        </button>
-                                    </div>
-                                </div>
-                            </section>
-
                             <section class="wizard-finance-panel">
                                 <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
                                     <h5 class="mb-0">Rent Increments</h5>
@@ -777,7 +747,7 @@
                                         <thead>
                                             <tr>
                                                 <th>Start Date</th>
-                                                <th>Months</th>
+                                                <th>Years</th> {{-- NEW FIELD HEADER --}}
                                                 <th>End Date</th>
                                                 <th>Amount</th>
                                                 <th>%</th>
@@ -893,11 +863,11 @@
                                     <table class="table table-bordered table-sm wizard-table" id="depositsTable">
                                         <thead>
                                             <tr>
-                                                <th>Adjustable Amount</th>
+                                                <th>Adjust Amount</th>
                                                 <th>Month Interval</th>
-                                                <th>Adjustable / Month</th>
-                                                <th>Adjustable Start</th>
-                                                <th>Adjustable End</th>
+                                                <th>Adjust / Month</th>
+                                                <th>Adjust Start</th>
+                                                <th>Adjust End</th>
                                                 <th>Method Desc</th>
                                                 <th>Action</th>
                                             </tr>
@@ -993,7 +963,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="{{ asset('js/building-location-map.js') }}"></script>
     <script src="{{ asset('js/plugins/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
-    @include('FacilitiesManagement.Rent.partials.component-script', ['agreementAreas' => []])
 
     <script>
         One.helpersOnLoad(["jq-notify"]);
@@ -1165,7 +1134,7 @@
                 if (!nextRow.length) break; // No more rows to update
 
                 const nextStartDateInput = nextRow.find('.inc-start-date');
-                const nextMonthsInput = nextRow.find('.inc-years');
+                const nextYearsInput = nextRow.find('.inc-years');
                 const nextEndDateInput = nextRow.find('.inc-end-date');
 
                 const newNextStartDate = calculateNextStartDate(currentEndDate);
@@ -1175,8 +1144,8 @@
                     nextStartDateInput.val(newNextStartDate);
                 }
 
-                const nextMonths = nextMonthsInput.val();
-                const newNextEndDate = calculateMonthEndDate(newNextStartDate, nextMonths);
+                const nextYears = nextYearsInput.val();
+                const newNextEndDate = calculateEndDate(newNextStartDate, nextYears);
 
                 // Only update end date if it's different
                 if (nextEndDateInput.val() !== newNextEndDate) {
@@ -1343,63 +1312,6 @@
             }
 
 
-            // --- Dynamic Utilities Logic ---
-            const utilitySelector = $('#utility_type_selector');
-            const utilitiesTableBody = $('#utilitiesTable tbody');
-
-            // Add Row
-            $('#addUtilityRowBtn').click(function() {
-                const selectedOption = utilitySelector.find('option:selected');
-                const id = selectedOption.val();
-                const name = selectedOption.data('name');
-
-                if (!id) {
-                    alert('Please select a utility type.');
-                    return;
-                }
-
-                const row = `
-                    <tr data-id="${id}">
-                        <td class="align-middle fw-semibold">
-                            ${name}
-                            <input type="hidden" name="utilities[${id}][id]" value="${id}">
-                        </td>
-                        <td>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text">৳</span>
-                                <input type="number" step="0.01" class="form-control form-control-sm" 
-                                       name="utilities[${id}][amount]" placeholder="0.00" required>
-                            </div>
-                        </td>
-                        <td class="align-middle">
-                            <div class="form-check form-switch mb-0">
-                                <input class="form-check-input" type="checkbox" 
-                                       name="utilities[${id}][disburse_with_rent]" value="1" checked>
-                                <label class="form-check-label fs-xs">Disburse with Rent</label>
-                            </div>
-                        </td>
-                        <td class="text-center align-middle">
-                            <button type="button" class="btn btn-sm btn-alt-danger remove-utility-row">
-                                <i class="fa fa-times"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                utilitiesTableBody.append(row);
-
-                selectedOption.prop('disabled', true);
-                utilitySelector.val('');
-            });
-
-            // Remove Row
-            utilitiesTableBody.on('click', '.remove-utility-row', function() {
-                const row = $(this).closest('tr');
-                const id = row.data('id');
-
-                utilitySelector.find(`option[value="${id}"]`).prop('disabled', false);
-                row.remove();
-            });
-
             // --- Rent Increment Logic ---
             let incIdx = {{ count(old('increments', [])) }}; // Initialize index based on old data
 
@@ -1428,9 +1340,9 @@
 
                 const newRow = $('#incrementsTable tbody tr').last();
                 const startDateInput = newRow.find('.inc-start-date');
-                const monthsInput = newRow.find('.inc-years');
-                if (startDateInput.val() && monthsInput.val()) {
-                    const endDate = calculateMonthEndDate(startDateInput.val(), monthsInput.val());
+                const yearsInput = newRow.find('.inc-years');
+                if (startDateInput.val() && yearsInput.val()) {
+                    const endDate = calculateEndDate(startDateInput.val(), yearsInput.val());
                     newRow.find('.inc-end-date').val(endDate);
                     updateSubsequentIncrements(newRow);
                 }
@@ -1456,14 +1368,14 @@
                 }
             });
 
-            // Handle changes to start date or months for any increment row
+            // Handle changes to start date or years for any increment row
             $(document).on('change', '.inc-start-date, .inc-years', function() {
                 const currentRow = $(this).closest('tr');
                 const startDateStr = currentRow.find('.inc-start-date').val();
-                const months = currentRow.find('.inc-years').val();
+                const years = currentRow.find('.inc-years').val();
                 const endDateInput = currentRow.find('.inc-end-date');
 
-                const newEndDate = calculateMonthEndDate(startDateStr, months);
+                const newEndDate = calculateEndDate(startDateStr, years);
                 endDateInput.val(newEndDate);
 
                 updateSubsequentIncrements(currentRow);
@@ -1473,11 +1385,11 @@
             $('#incrementsTable tbody tr').each(function() {
                 const currentRow = $(this);
                 const startDateInput = currentRow.find('.inc-start-date');
-                const monthsInput = currentRow.find('.inc-years');
+                const yearsInput = currentRow.find('.inc-years');
                 const endDateInput = currentRow.find('.inc-end-date');
 
-                if (startDateInput.val() && monthsInput.val()) {
-                    const newEndDate = calculateMonthEndDate(startDateInput.val(), monthsInput.val());
+                if (startDateInput.val() && yearsInput.val()) {
+                    const newEndDate = calculateEndDate(startDateInput.val(), yearsInput.val());
                     if (endDateInput.val() !== newEndDate) {
                         endDateInput.val(newEndDate);
                     }

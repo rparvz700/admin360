@@ -62,16 +62,6 @@
 
         @yield('scripts')
 
-        @auth
-            <script>
-                window.admin360TableExport = {
-                    url: @json(route('exports.tables.show', ['table' => '__TABLE__'])),
-                    paths: @json(config('table_exports.paths', []))
-                };
-            </script>
-            <script src="{{ asset('js/table-export.js') }}"></script>
-        @endauth
-
         
 
 </body>

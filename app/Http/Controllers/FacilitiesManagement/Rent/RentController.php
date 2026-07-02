@@ -10,7 +10,6 @@ use App\Models\RentBase;
 use App\Models\RentIncrement;
 use App\Models\TableSetting;
 use App\Models\VatTax;
-use App\Services\RentComponentCalculator;
 
 class RentController extends Controller
 {
@@ -57,16 +56,12 @@ class RentController extends Controller
 
     public function create()
     {
-        $agreements = Agreement::with('floors')->where('status', 1)->get();
-        $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
-        $componentTypes = RentComponentCalculator::COMPONENTS;
-        $taxableAreaSft = (float) config('facilities.rent_taxable_area_sft', 150);
-        $utilityTypes = \App\Models\UtilityType::where('is_active', true)->get();
+        $agreements = Agreement::where('status', 1)->get();
 
-        return view('FacilitiesManagement.Rent.create', compact('agreements', 'vatTax', 'componentTypes', 'taxableAreaSft', 'utilityTypes'));
+        return view('FacilitiesManagement.Rent.create', compact('agreements'));
     }
 
-    public function store(Request $request, RentComponentCalculator $calculator)
+    public function store(Request $request)
     {
         $securityDepositError = $this->validateSecurityDepositRequirement($request);
         if ($securityDepositError) {
@@ -77,38 +72,25 @@ class RentController extends Controller
             ->where('status', 1)
             ->firstOrFail();
 
-        $componentRows = $calculator->rowsFromRequest($request, $vatTax);
-        $totals = $calculator->totals($componentRows);
-        $baseRent = $totals['base_rent'];
+        $baseRent = $request->base_rent;
+
+        $vatPercent = $vatTax->vat;
+        $taxPercent = $vatTax->tax;
+
+        $vatAmount = ($baseRent * $vatPercent) / 100;
+        $taxAmount = ($baseRent * $taxPercent) / 100;
 
         $base = RentBase::create([
             'agreement_id' => $request->agreement_id,
             'base_rent'    => $baseRent,
-            'vat'          => $totals['vat'],
-            'tax'          => $totals['tax'],
+            'vat'          => $vatAmount,
+            'tax'          => $taxAmount,
             'is_at_source' => $request->is_at_source,
             'rent_type'    => $request->rent_type,
             'start_date'   => $request->start_date,
             'end_date'     => $request->end_date,
             'remarks'      => $request->remarks,
         ]);
-        $calculator->saveRows($base->id, $componentRows);
-
-        if ($request->has('utilities')) {
-            foreach ($request->input('utilities', []) as $typeId => $utilData) {
-                $amount = is_numeric($utilData['amount'] ?? null) ? (float) $utilData['amount'] : 0.00;
-                \App\Models\AgreementUtility::updateOrCreate(
-                    [
-                        'agreement_id' => $request->agreement_id,
-                        'utility_type_id' => $typeId,
-                    ],
-                    [
-                        'amount' => $amount,
-                        'disburse_with_rent' => isset($utilData['disburse_with_rent']),
-                    ]
-                );
-            }
-        }
         
         $runningRent = (float) $baseRent;
         if ($request->has('increments')) {
@@ -135,20 +117,13 @@ class RentController extends Controller
 
     public function edit($id)
     {
-        $base = RentBase::with(['increments', 'components', 'agreement.floors'])->findOrFail($id);
-        $agreements = Agreement::with('floors')->where('status', 1)->get();
-        $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
-        $componentTypes = RentComponentCalculator::COMPONENTS;
-        $taxableAreaSft = (float) config('facilities.rent_taxable_area_sft', 150);
-        $utilityTypes = \App\Models\UtilityType::where('is_active', true)->get();
-        $agreementUtilities = \App\Models\AgreementUtility::where('agreement_id', $base->agreement_id)
-            ->get()
-            ->keyBy('utility_type_id');
+        $base = RentBase::with('increments')->findOrFail($id);
+        $agreements = Agreement::where('status', 1)->get();
 
-        return view('FacilitiesManagement.Rent.edit', compact('base', 'agreements', 'vatTax', 'componentTypes', 'taxableAreaSft', 'utilityTypes', 'agreementUtilities'));
+        return view('FacilitiesManagement.Rent.edit', compact('base', 'agreements'));
     }
 
-    public function update(Request $request, $id, RentComponentCalculator $calculator)
+    public function update(Request $request, $id)
     {
         $securityDepositError = $this->validateSecurityDepositRequirement($request);
         if ($securityDepositError) {
@@ -159,17 +134,21 @@ class RentController extends Controller
             ->where('status', 1)
             ->firstOrFail();
 
-        $componentRows = $calculator->rowsFromRequest($request, $vatTax);
-        $totals = $calculator->totals($componentRows);
-        $baseRent = $totals['base_rent'];
+        $baseRent = $request->base_rent;
+
+        $vatPercent = $vatTax->vat;
+        $taxPercent = $vatTax->tax;
+
+        $vatAmount = ($baseRent * $vatPercent) / 100;
+        $taxAmount = ($baseRent * $taxPercent) / 100;
 
         $base = RentBase::findOrFail($id);
         $base->update(
             [
                 'agreement_id' => $request->agreement_id,
                 'base_rent'    => $baseRent,
-                'vat'          => $totals['vat'],
-                'tax'          => $totals['tax'],
+                'vat'          => $vatAmount,
+                'tax'          => $taxAmount,
                 'is_at_source' => $request->is_at_source,
                 'rent_type'    => $request->rent_type,
                 'start_date'   => $request->start_date,
@@ -177,84 +156,6 @@ class RentController extends Controller
                 'remarks'      => $request->remarks,
             ]
         );
-        $base->components()->delete();
-        $calculator->saveRows($base->id, $componentRows);
-
-        // Update agreement utilities and log changes
-        $agreementId = $base->agreement_id;
-        $agreement = \App\Models\Agreement::findOrFail($agreementId);
-        $oldUtilities = \App\Models\AgreementUtility::where('agreement_id', $agreementId)
-            ->get()
-            ->keyBy('utility_type_id');
-
-        $oldLogValues = [];
-        $newLogValues = [];
-
-        $submittedUtilities = $request->input('utilities', []);
-        $submittedIds = array_keys($submittedUtilities);
-
-        // Delete removed utilities and log them
-        foreach ($oldUtilities as $typeId => $oldUtil) {
-            if (!in_array($typeId, $submittedIds)) {
-                $utilityType = \App\Models\UtilityType::find($typeId);
-                $typeName = $utilityType ? $utilityType->name : "Utility #$typeId";
-
-                $oldLogValues["{$typeName} Amount"] = number_format((float) $oldUtil->amount, 2);
-                $newLogValues["{$typeName} Amount"] = 'Removed';
-
-                $oldLogValues["{$typeName} Disburse With Rent"] = $oldUtil->disburse_with_rent ? 'Yes' : 'No';
-                $newLogValues["{$typeName} Disburse With Rent"] = 'Removed';
-
-                $oldUtil->delete();
-            }
-        }
-
-        // Save new/updated utilities and log them
-        foreach ($submittedUtilities as $typeId => $utilData) {
-            $newAmount = is_numeric($utilData['amount'] ?? null) ? (float) $utilData['amount'] : 0.00;
-            $newDisburse = isset($utilData['disburse_with_rent']);
-
-            $oldUtil = $oldUtilities->get($typeId);
-            $oldAmount = $oldUtil ? (float) $oldUtil->amount : 0.00;
-            $oldDisburse = $oldUtil ? (bool) $oldUtil->disburse_with_rent : false;
-
-            if ($newAmount !== $oldAmount || $newDisburse !== $oldDisburse) {
-                $utilityType = \App\Models\UtilityType::find($typeId);
-                $typeName = $utilityType ? $utilityType->name : "Utility #$typeId";
-
-                \App\Models\AgreementUtility::updateOrCreate(
-                    [
-                        'agreement_id' => $agreementId,
-                        'utility_type_id' => $typeId,
-                    ],
-                    [
-                        'amount' => $newAmount,
-                        'disburse_with_rent' => $newDisburse,
-                    ]
-                );
-
-                if ($newAmount !== $oldAmount) {
-                    $oldLogValues["{$typeName} Amount"] = number_format($oldAmount, 2);
-                    $newLogValues["{$typeName} Amount"] = number_format($newAmount, 2);
-                }
-                if ($newDisburse !== $oldDisburse) {
-                    $oldLogValues["{$typeName} Disburse With Rent"] = $oldDisburse ? 'Yes' : 'No';
-                    $newLogValues["{$typeName} Disburse With Rent"] = $newDisburse ? 'Yes' : 'No';
-                }
-            }
-        }
-
-        if (!empty($newLogValues)) {
-            activity()
-                ->performedOn($agreement)
-                ->causedBy(auth()->user())
-                ->withProperties([
-                    'attributes' => $newLogValues,
-                    'old' => $oldLogValues
-                ])
-                ->log('updated');
-        }
-
         $base->increments()->delete();
         $runningRent = (float) $baseRent;
         if ($request->has('increments')) {
@@ -290,71 +191,15 @@ class RentController extends Controller
 
     public function show($id)
     {
-        $base = RentBase::with(['components', 'increments', 'securityDeposits', 'agreement.utilities.utilityType'])->findOrFail($id);
+        $base = RentBase::with(['increments', 'securityDeposits'])->findOrFail($id);
         return view('FacilitiesManagement.Rent.show', compact('base'));
     }
 
     public function getHistory($id)
     {
-        $rentBase = RentBase::findOrFail($id);
-        
-        // 1. Fetch RentBase activities
-        $rentActivities = $rentBase->activities()->with('causer')->latest()->get();
-
-        // 2. Fetch Agreement activities containing utility changes
-        $agreementActivities = collect();
-        if ($rentBase->agreement_id) {
-            $agreement = Agreement::find($rentBase->agreement_id);
-            if ($agreement) {
-                $rawAgreementActivities = $agreement->activities()->with('causer')->latest()->get();
-                $agreementActivities = $rawAgreementActivities->filter(function ($activity) {
-                    $attributes = $activity->changes['attributes'] ?? [];
-                    foreach ($attributes as $key => $value) {
-                        if (str_contains($key, 'Amount') || str_contains($key, 'Disburse With Rent')) {
-                            return true;
-                        }
-                    }
-                    return false;
-                });
-            }
-        }
-        
-        // 3. Merge both collections and sort by created_at desc
-        $allActivities = $rentActivities->concat($agreementActivities)->sortByDesc('created_at');
-        
-        // 4. Map them using formatting consistent with Helpers::getHistory
-        $history = $allActivities->map(function ($activity) {
-            $details = [];
-            $newValues = $activity->changes['attributes'] ?? [];
-            $oldValues = $activity->changes['old'] ?? [];
-
-            foreach ($newValues as $field => $newValue) {
-                $oldValue = $oldValues[$field] ?? null;
-
-                // Filter out non-utility fields for Agreement activities
-                if ($activity->subject_type === Agreement::class) {
-                    if (!str_contains($field, 'Amount') && !str_contains($field, 'Disburse With Rent')) {
-                        continue;
-                    }
-                }
-
-                $details[] = [
-                    'field' => ucfirst(str_replace('_', ' ', $field)),
-                    'from'  => \App\Services\LogResolverService::resolve($field, $oldValue),
-                    'to'    => \App\Services\LogResolverService::resolve($field, $newValue),
-                ];
-            }
-
-            return [
-                'user' => $activity->causer->name ?? 'System',
-                'date' => $activity->created_at->format('d M Y, h:i A'),
-                'changes' => $details
-            ];
-        })->values();
-
+        $history = Helpers::getHistory(RentBase::class, $id);
         return $history;
     }
-
 
     private function validateSecurityDepositRequirement(Request $request): ?string
     {
@@ -419,5 +264,4 @@ class RentController extends Controller
     {
         return is_numeric($value) ? (float) $value : 0.0;
     }
-
 }

@@ -3,6 +3,167 @@
     View Ticket
 @endsection
 
+@section('styles')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        .trip-timeline-container {
+            border-radius: 12px;
+            background: #ffffff;
+            border: 1px solid #e3e6f0;
+        }
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #e74a3b;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(231, 74, 59, 0.7);
+            animation: pulse-red 2s infinite;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+        @keyframes pulse-red {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(231, 74, 59, 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 8px rgba(231, 74, 59, 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(231, 74, 59, 0);
+            }
+        }
+
+        /* Realistic Road Track Styling */
+        .road-track {
+            position: relative;
+            height: 28px;
+            background: #2b303a; /* Asphalt gray */
+            border-radius: 14px;
+            border: 2px solid #1a1e24;
+            overflow: visible; /* to allow markers and car to overflow */
+            display: flex;
+            align-items: center;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.15);
+        }
+        .road-line {
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            right: 15px;
+            height: 2px;
+            transform: translateY(-50%);
+            background: repeating-linear-gradient(90deg, #ffc107 0px, #ffc107 8px, transparent 8px, transparent 16px);
+            z-index: 1;
+        }
+        .road-progress-fill {
+            position: absolute;
+            height: 100%;
+            left: 0;
+            border-radius: 12px 0 0 12px;
+            background: linear-gradient(90deg, rgba(13, 110, 253, 0.45), rgba(13, 110, 253, 0.8));
+            transition: width 0.5s ease-out;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 2;
+        }
+        .road-marker {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 5;
+            width: 26px;
+            height: 26px;
+            background: #fff;
+            border-radius: 50%;
+            border: 2px solid #1a1e24;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+        }
+        .road-marker.start-marker {
+            left: -10px;
+        }
+        .road-marker.end-marker {
+            right: -10px;
+        }
+        .road-car-container {
+            position: absolute;
+            top: 50%;
+            left: 0%; /* updated by JS */
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            transition: left 0.5s ease-out;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+        }
+        .driving-car {
+            font-size: 20px;
+            color: #e74a3b; /* Vibrant red */
+            text-shadow: 0 0 8px rgba(231, 74, 59, 0.6);
+            animation: car-wiggle 0.12s ease-in-out infinite alternate, car-bounce 0.35s ease-in-out infinite alternate;
+            display: inline-block;
+        }
+        
+        /* Exhaust smoke animation */
+        .car-exhaust {
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 2px;
+            padding-right: 4px;
+        }
+        .exhaust-bubble {
+            width: 4px;
+            height: 4px;
+            background-color: rgba(180, 185, 195, 0.65);
+            border-radius: 50%;
+            animation: smoke-fade 0.5s infinite;
+        }
+        .exhaust-bubble:nth-child(2) {
+            animation-delay: 0.15s;
+            width: 6px;
+            height: 6px;
+        }
+        .exhaust-bubble:nth-child(3) {
+            animation-delay: 0.3s;
+            width: 8px;
+            height: 8px;
+        }
+        
+        @keyframes car-wiggle {
+            0% { transform: rotate(-1.5deg); }
+            100% { transform: rotate(1.5deg); }
+        }
+        @keyframes car-bounce {
+            0% { transform: translateY(-0.5px); }
+            100% { transform: translateY(-2.5px); }
+        }
+        @keyframes smoke-fade {
+            0% {
+                transform: scale(0.2) translate(0, 0);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.4) translate(-12px, -3px);
+                opacity: 0;
+            }
+        }
+        .fs-xs {
+            font-size: 0.75rem;
+        }
+        .text-xs {
+            font-size: 0.7rem;
+        }
+    </style>
+@endsection
+
 
 @section('content')
     <div class="container-fluid">
@@ -299,14 +460,22 @@
                                 <h6 class="mb-0">Assign Vehicle & Driver</h6>
                             </div>
                             <div class="card-body">
-                                <button type="button" class="btn btn-success w-100"
-                                    onclick="initAssignmentModal({{ $ticket->id }})" data-bs-toggle="modal"
-                                    data-bs-target="#assignmentModal">
-                                    <i class="fas fa-car"></i> Open Assignment Dashboard
-                                </button>
-                                <small class="text-muted d-block mt-2">
-                                    View real-time availability and assign resources
-                                </small>
+                                @if ($ticket->latestVehicleAssignment && in_array($ticket->latestVehicleAssignment->status, ['completed', 'complete']))
+                                    <button type="button" class="btn btn-info w-100"
+                                        data-bs-toggle="modal" data-bs-target="#tripDetailsModal"
+                                        onclick="showTripDetails()">
+                                        <i class="fas fa-route"></i> Trip Details
+                                    </button>
+                                @else
+                                    <button type="button" class="btn btn-success w-100"
+                                        onclick="initAssignmentModal({{ $ticket->id }})" data-bs-toggle="modal"
+                                        data-bs-target="#assignmentModal">
+                                        <i class="fas fa-car"></i> Open Assignment Dashboard
+                                    </button>
+                                    <small class="text-muted d-block mt-2">
+                                        View real-time availability and assign resources
+                                    </small>
+                                @endif
 
 
                                 @if ($ticket->latestVehicleAssignment && $ticket->latestVehicleAssignment->status === 'scheduled')
@@ -323,13 +492,77 @@
                                 @endif
 
                                 @if ($ticket->latestVehicleAssignment && $ticket->latestVehicleAssignment->status === 'active')
+                                    <!-- Animated Timeline -->
+                                    <div class="trip-timeline-container my-3 p-4 border rounded bg-white shadow-sm">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <span class="badge bg-danger d-flex align-items-center px-2 py-1 fs-7">
+                                                <span class="pulse-dot"></span> Live Trip
+                                            </span>
+                                            <span class="text-primary fw-bold" id="trip-progress-percent">0%</span>
+                                        </div>
+
+                                        <!-- Realistic Road Track -->
+                                        <div class="position-relative my-4 py-2">
+                                            <div class="road-track">
+                                                <!-- Road yellow dashed line -->
+                                                <div class="road-line"></div>
+                                                
+                                                <!-- Progress Fill (Glowing Blue) -->
+                                                <div class="road-progress-fill" id="trip-progress-fill" style="width: 0%;"></div>
+                                                
+                                                <!-- Start marker -->
+                                                <div class="road-marker start-marker" title="Start Point">
+                                                    <i class="fas fa-play text-success fs-xs"></i>
+                                                </div>
+
+                                                <!-- End marker -->
+                                                <div class="road-marker end-marker" title="End Point">
+                                                    <i class="fas fa-flag-checkered text-dark fs-xs"></i>
+                                                </div>
+
+                                                <!-- Animated Car Container -->
+                                                <div class="road-car-container" id="trip-car-container" style="left: 0%;">
+                                                    <div class="car-exhaust">
+                                                        <div class="exhaust-bubble"></div>
+                                                        <div class="exhaust-bubble"></div>
+                                                        <div class="exhaust-bubble"></div>
+                                                    </div>
+                                                    <div class="driving-car">
+                                                        <i class="fas fa-car-side"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between text-muted small mb-3">
+                                            <div>
+                                                <span class="d-block text-xs text-uppercase tracking-wider">Start Time</span>
+                                                <strong class="text-dark">{{ $ticket->latestVehicleAssignment->start_datetime->format('h:i A') }}</strong>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="d-block text-xs text-uppercase tracking-wider">Est. Arrival</span>
+                                                <strong class="text-dark">{{ $ticket->latestVehicleAssignment->end_datetime->format('h:i A') }}</strong>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-center bg-light p-2 border rounded">
+                                            <span class="text-muted d-block small">Elapsed Duration</span>
+                                            <h5 class="mb-0 text-primary font-monospace" id="trip-elapsed-timer">00:00:00</h5>
+                                        </div>
+                                    </div>
+
                                     <form
                                         action="{{ route('admin.tickets.trip.completed', $ticket->activeVehicleAssignment->id) }}"
-                                        method="POST">
+                                        method="POST" class="mt-3">
                                         @csrf
                                         @method('PATCH')
 
-                                        <button type="submit" class="btn btn-warning w-100 btn-sm mt-4">
+                                        <div class="mb-3">
+                                            <label for="remarks" class="form-label small text-muted">Remarks (Optional)</label>
+                                            <textarea name="remarks" id="remarks" rows="2" class="form-control form-control-sm" placeholder="Enter trip completion remarks..."></textarea>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-warning w-100 btn-sm">
                                             <i class="fas fa-pause"></i> Trip End
                                         </button>
                                     </form>
@@ -381,6 +614,360 @@
 
     <!-- Include Assignment Modal -->
     @include('TicketManagement.partials.assignment-modal')
+    @include('TicketManagement.partials.trip-details-modal')
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Trip Details scripts inside content block -->
+    <script>
+        let tripDetailsData = null;
+        let tripMap = null;
+        let actualPolyline = null;
+        let plannedPolyline = null;
+        let tripMarkers = [];
+
+        async function getRoadPath(points) {
+            if (!points || points.length < 2) return points;
+            
+            // OSRM coordinates format is longitude,latitude separated by semicolons
+            const coordString = points.map(p => `${p[1]},${p[0]}`).join(';');
+            const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+                    return data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                }
+            } catch (e) {
+                console.error("OSRM Routing API failed:", e);
+            }
+            return points;
+        }
+
+        function showTripDetails() {
+            if (!tripDetailsData) {
+                console.error("Trip details data is not available.");
+                return;
+            }
+            try {
+                document.getElementById('dt-ticket-no').textContent = tripDetailsData.ticketNo || 'N/A';
+                document.getElementById('dt-purpose').textContent = tripDetailsData.purpose || 'N/A';
+                document.getElementById('dt-passengers').textContent = tripDetailsData.passengers || 'N/A';
+                
+                const priorityBadge = document.getElementById('dt-priority');
+                if (priorityBadge) {
+                    priorityBadge.textContent = (tripDetailsData.priority || 'medium').toUpperCase();
+                    priorityBadge.className = 'badge bg-' + (tripDetailsData.priorityColor || 'secondary');
+                }
+                
+                const routeDiv = document.getElementById('dt-planned-route');
+                if (routeDiv) {
+                    routeDiv.innerHTML = '';
+                    if (tripDetailsData.plannedLocations && tripDetailsData.plannedLocations.length > 0) {
+                        tripDetailsData.plannedLocations.forEach((loc, idx) => {
+                            const start = loc.start || 'Start';
+                            const end = loc.end || 'End';
+                            routeDiv.innerHTML += `<div><strong>Leg ${idx + 1}:</strong> ${start} &rarr; ${end}</div>`;
+                        });
+                    } else {
+                        routeDiv.textContent = 'No planned route details available.';
+                    }
+                }
+                
+                document.getElementById('dt-vehicle').textContent = tripDetailsData.vehicle || 'N/A';
+                document.getElementById('dt-driver').textContent = tripDetailsData.driver || 'N/A';
+                document.getElementById('dt-driver-phone').textContent = tripDetailsData.driverPhone || 'N/A';
+                document.getElementById('dt-seating').textContent = tripDetailsData.seating || 'N/A';
+                
+                document.getElementById('dt-start-odo').textContent = tripDetailsData.startOdo || 'N/A';
+                document.getElementById('dt-end-odo').textContent = tripDetailsData.endOdo || 'N/A';
+                
+                const distanceSpan = document.getElementById('dt-distance');
+                if (distanceSpan) {
+                    if (tripDetailsData.startOdo !== 'N/A' && tripDetailsData.endOdo !== 'N/A' && !isNaN(tripDetailsData.startOdo) && !isNaN(tripDetailsData.endOdo)) {
+                        const dist = parseFloat(tripDetailsData.endOdo) - parseFloat(tripDetailsData.startOdo);
+                        distanceSpan.textContent = dist.toFixed(1) + ' km';
+                        distanceSpan.className = 'badge bg-success';
+                    } else {
+                        distanceSpan.textContent = 'N/A';
+                        distanceSpan.className = 'badge bg-secondary';
+                    }
+                }
+                
+                document.getElementById('dt-remarks').textContent = tripDetailsData.remarks || 'No remarks provided';
+                
+                const trackingStatus = document.getElementById('dt-tracking-status');
+                if (trackingStatus) {
+                    const hasTracking = Array.isArray(tripDetailsData.locationTracking) && tripDetailsData.locationTracking.length > 0;
+                    trackingStatus.textContent = hasTracking ? 'GPS Tracked' : 'Planned Route Only';
+                    trackingStatus.className = 'badge bg-' + (hasTracking ? 'success' : 'warning');
+                }
+            } catch (e) {
+                console.error("Error displaying trip details:", e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalEl = document.getElementById('tripDetailsModal');
+            if (modalEl) {
+                modalEl.addEventListener('shown.bs.modal', async function () {
+                    if (!tripDetailsData) return;
+                    try {
+                        if (!tripMap) {
+                            tripMap = L.map('trip-map');
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                attribution: '&copy; OpenStreetMap contributors'
+                            }).addTo(tripMap);
+                        } else {
+                            tripMap.invalidateSize();
+                        }
+                        
+                        if (actualPolyline) {
+                            tripMap.removeLayer(actualPolyline);
+                            actualPolyline = null;
+                        }
+                        if (plannedPolyline) {
+                            tripMap.removeLayer(plannedPolyline);
+                            plannedPolyline = null;
+                        }
+                        tripMarkers.forEach(m => tripMap.removeLayer(m));
+                        tripMarkers = [];
+                        
+                        const mapBounds = [];
+                        
+                        let trackingPoints = tripDetailsData.locationTracking;
+                        if (typeof trackingPoints === 'string') {
+                            try {
+                                trackingPoints = JSON.parse(trackingPoints);
+                            } catch(err) {
+                                trackingPoints = [];
+                            }
+                        }
+                        
+                        if (Array.isArray(trackingPoints) && trackingPoints.length > 0) {
+                            const points = trackingPoints.map(pt => [pt.latitude, pt.longitude]);
+                            points.forEach(p => mapBounds.push(p));
+
+                            // Query OSRM to get road-wise coordinates
+                            const roadPoints = await getRoadPath(points);
+                            
+                            actualPolyline = L.polyline(roadPoints, { 
+                                color: '#0d6efd', // Blue
+                                weight: 6, 
+                                opacity: 0.9,
+                                lineJoin: 'round',
+                                lineCap: 'round'
+                            }).addTo(tripMap);
+                            
+                            const startPt = points[0];
+                            const startMarker = L.marker(startPt, {
+                                icon: L.divIcon({
+                                    className: 'custom-map-marker-start',
+                                    html: '<i class="fas fa-play-circle" style="color: #0d6efd; font-size: 22px; background: white; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.3);"></i>',
+                                    iconSize: [22, 22],
+                                    iconAnchor: [11, 11],
+                                    popupAnchor: [0, -11]
+                                })
+                            }).bindPopup('Actual GPS Start').addTo(tripMap);
+                            tripMarkers.push(startMarker);
+                            
+                            const endPt = points[points.length - 1];
+                            const endMarker = L.marker(endPt, {
+                                icon: L.divIcon({
+                                    className: 'custom-map-marker-end',
+                                    html: '<i class="fas fa-stop-circle" style="color: #dc3545; font-size: 22px; background: white; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.3);"></i>',
+                                    iconSize: [22, 22],
+                                    iconAnchor: [11, 11],
+                                    popupAnchor: [0, -11]
+                                })
+                            }).bindPopup('Actual GPS End').addTo(tripMap);
+                            tripMarkers.push(endMarker);
+                        }
+                        
+                        if (tripDetailsData.plannedCoordinates && tripDetailsData.plannedCoordinates.length > 0) {
+                            const plannedPoints = [];
+                            
+                            tripDetailsData.plannedCoordinates.forEach((coord) => {
+                                if (coord.start && coord.start.latitude && coord.start.longitude) {
+                                    plannedPoints.push({
+                                        lat: parseFloat(coord.start.latitude),
+                                        lng: parseFloat(coord.start.longitude),
+                                        address: coord.start.address || ''
+                                    });
+                                }
+                                if (coord.end && coord.end.latitude && coord.end.longitude) {
+                                    plannedPoints.push({
+                                        lat: parseFloat(coord.end.latitude),
+                                        lng: parseFloat(coord.end.longitude),
+                                        address: coord.end.address || ''
+                                    });
+                                }
+                            });
+
+                            if (plannedPoints.length > 0) {
+                                plannedPoints.forEach(pt => mapBounds.push([pt.lat, pt.lng]));
+
+                                // 1. First Start Marker of the entire list
+                                const firstPt = plannedPoints[0];
+                                const startMarker = L.marker([firstPt.lat, firstPt.lng], {
+                                    icon: L.divIcon({
+                                        className: 'custom-fa-marker-start',
+                                        html: '<i class="fas fa-map-marker-alt" style="color: #28a745; font-size: 28px; text-shadow: 0 0 3px rgba(0,0,0,0.3);"></i>',
+                                        iconSize: [28, 28],
+                                        iconAnchor: [14, 28],
+                                        popupAnchor: [0, -28]
+                                    })
+                                }).bindPopup(`Planned Start: ${firstPt.address}`).addTo(tripMap);
+                                tripMarkers.push(startMarker);
+
+                                // 2. Last End Marker of the entire list
+                                const lastPt = plannedPoints[plannedPoints.length - 1];
+                                const endMarker = L.marker([lastPt.lat, lastPt.lng], {
+                                    icon: L.divIcon({
+                                        className: 'custom-fa-marker-end',
+                                        html: '<i class="fas fa-flag-checkered" style="color: #1a1a1a; font-size: 26px; text-shadow: 0 0 3px rgba(0,0,0,0.3);"></i>',
+                                        iconSize: [26, 26],
+                                        iconAnchor: [13, 26],
+                                        popupAnchor: [0, -26]
+                                    })
+                                }).bindPopup(`Planned End: ${lastPt.address}`).addTo(tripMap);
+                                tripMarkers.push(endMarker);
+
+                                // 3. Intermediate Stop Waypoints (if any)
+                                for (let i = 1; i < plannedPoints.length - 1; i++) {
+                                    const pt = plannedPoints[i];
+                                    const prevPt = plannedPoints[i - 1];
+                                    
+                                    // Skip duplicate intermediate transitions (e.g., Leg 1 end equals Leg 2 start)
+                                    if (Math.abs(pt.lat - prevPt.lat) < 0.0001 && Math.abs(pt.lng - prevPt.lng) < 0.0001) {
+                                        continue;
+                                    }
+                                    
+                                    const wpMarker = L.marker([pt.lat, pt.lng], {
+                                        icon: L.divIcon({
+                                            className: 'custom-fa-marker-waypoint',
+                                            html: '<div style="background-color: #6c757d; width: 10px; height: 10px; border-radius: 50%; border: 2.5px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></div>',
+                                            iconSize: [10, 10],
+                                            iconAnchor: [5, 5]
+                                        })
+                                    }).bindPopup(`Stop Waypoint: ${pt.address}`).addTo(tripMap);
+                                    tripMarkers.push(wpMarker);
+                                }
+
+                                // Draw planned route path line (routed road-wise)
+                                if (plannedPoints.length > 1) {
+                                    const pathCoords = plannedPoints.map(pt => [pt.lat, pt.lng]);
+                                    const plannedRoadPoints = await getRoadPath(pathCoords);
+                                    
+                                    plannedPolyline = L.polyline(plannedRoadPoints, { 
+                                        color: '#0d6efd', // Blue
+                                        weight: 4, 
+                                        dashArray: '6, 12', 
+                                        opacity: 0.8 
+                                    }).addTo(tripMap);
+                                }
+                            }
+                        }
+                        
+                        if (mapBounds.length > 0) {
+                            tripMap.fitBounds(mapBounds, { padding: [50, 50] });
+                        } else {
+                            tripMap.setView([23.7516691, 90.3901753], 13);
+                        }
+                    } catch (e) {
+                        console.error("Error loading map:", e);
+                    }
+                });
+            }
+        });
+    </script>
+
+    @if ($ticket->latestVehicleAssignment)
+    <script>
+        tripDetailsData = {
+            ticketNo: @json($ticket->ticket_number),
+            purpose: @json($ticket->trip_purpose ?? 'N/A'),
+            passengers: @json($ticket->passenger_count ?? 'N/A'),
+            priority: @json($ticket->priority ?? 'medium'),
+            priorityColor: @json($ticket->priority_color ?? 'secondary'),
+            plannedLocations: @json($ticket->trip_location_details ?? []),
+            plannedCoordinates: @json($ticket->trip_location_coordinates ?? []),
+            vehicle: @json($ticket->latestVehicleAssignment->vehicle ? $ticket->latestVehicleAssignment->vehicle->registration_number . ' (' . $ticket->latestVehicleAssignment->vehicle->brand . ' ' . $ticket->latestVehicleAssignment->vehicle->model . ')' : ($ticket->latestVehicleAssignment->notes ?? 'Ad-hoc vehicle')),
+            driver: @json($ticket->latestVehicleAssignment->driver ? $ticket->latestVehicleAssignment->driver->full_name : 'Ad-hoc driver'),
+            driverPhone: @json($ticket->latestVehicleAssignment->driver ? $ticket->latestVehicleAssignment->driver->phone : 'N/A'),
+            seating: @json($ticket->latestVehicleAssignment->vehicle ? $ticket->latestVehicleAssignment->vehicle->seating_capacity : 'N/A'),
+            startOdo: @json($ticket->latestVehicleAssignment->start_odo_meter ?? 'N/A'),
+            endOdo: @json($ticket->latestVehicleAssignment->end_odo_meter ?? 'N/A'),
+            remarks: @json($ticket->latestVehicleAssignment->remarks ?? 'No remarks provided'),
+            locationTracking: @json($ticket->latestVehicleAssignment->location_tracking ?? [])
+        };
+    </script>
+    @endif
+
+    @if ($ticket->latestVehicleAssignment && $ticket->latestVehicleAssignment->status === 'active')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const startTimeStr = "{{ $ticket->latestVehicleAssignment->start_datetime->toIso8601String() }}";
+            const endTimeStr = "{{ $ticket->latestVehicleAssignment->end_datetime->toIso8601String() }}";
+            
+            const startTime = new Date(startTimeStr);
+            const endTime = new Date(endTimeStr);
+            
+            const timerElement = document.getElementById('trip-elapsed-timer');
+            const roadProgressFill = document.getElementById('trip-progress-fill');
+            const roadCarContainer = document.getElementById('trip-car-container');
+            const progressPercentText = document.getElementById('trip-progress-percent');
+            
+            function tick() {
+                const now = new Date();
+                const elapsedMs = now - startTime;
+                
+                if (elapsedMs < 0) {
+                    if (timerElement) timerElement.textContent = "Scheduled to start soon";
+                    if (roadProgressFill) roadProgressFill.style.width = '0%';
+                    if (roadCarContainer) roadCarContainer.style.left = '0%';
+                    if (progressPercentText) progressPercentText.textContent = '0%';
+                    return;
+                }
+                
+                const totalSecs = Math.floor(elapsedMs / 1000);
+                const hours = Math.floor(totalSecs / 3600);
+                const minutes = Math.floor((totalSecs % 3600) / 60);
+                const seconds = totalSecs % 60;
+                
+                if (timerElement) {
+                    timerElement.textContent = 
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+                    
+                const totalDurationMs = endTime - startTime;
+                let percent = (elapsedMs / totalDurationMs) * 100;
+                
+                if (percent >= 100) {
+                    percent = 100;
+                    const drivingCarElement = document.querySelector('.driving-car');
+                    if (drivingCarElement) {
+                        drivingCarElement.style.animation = 'none';
+                    }
+                    const carExhaustElement = document.querySelector('.car-exhaust');
+                    if (carExhaustElement) {
+                        carExhaustElement.style.display = 'none';
+                    }
+                }
+                
+                if (roadProgressFill) roadProgressFill.style.width = percent.toFixed(2) + '%';
+                if (roadCarContainer) roadCarContainer.style.left = percent.toFixed(2) + '%';
+                if (progressPercentText) progressPercentText.textContent = Math.round(percent) + '%';
+            }
+            
+            tick();
+            setInterval(tick, 1000);
+        });
+    </script>
+    @endif
 
 @endsection
 

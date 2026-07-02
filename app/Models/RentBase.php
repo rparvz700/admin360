@@ -51,11 +51,6 @@ class RentBase extends Model
         return $this->hasMany(RentIncrement::class, 'base_rent_id');
     }
 
-    public function components()
-    {
-        return $this->hasMany(RentComponent::class, 'rent_base_id');
-    }
-
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

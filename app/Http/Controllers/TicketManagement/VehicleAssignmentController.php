@@ -8,6 +8,7 @@ use App\Models\Driver;
 use App\Models\VehicleAssignment;
 use App\Models\Ticket;
 use App\Models\TicketUpdate;
+use App\Models\VehicleOperationalLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -366,7 +367,7 @@ class VehicleAssignmentController extends Controller
             $ticket->update([
                 'assigned_driver_id' => $driverIdToAssign,
                 'assigned_vehicle_id' => $vehicleIdToAssign,
-                'status' => 'assigned', // Status is 'assigned' regardless of start time
+                // 'status' => 'assigned', // Status is 'assigned' regardless of start time
             ]);
 
             // 8. Create ticket update log
@@ -499,11 +500,28 @@ class VehicleAssignmentController extends Controller
             'status' => 'active',
         ]);
 
+        $loggedBy = Auth::id() 
+            ?? $assignment->ticket->assigned_to 
+            ?? $assignment->ticket->user_id 
+            ?? 1;
+
+        VehicleOperationalLog::create([
+            'vehicle_id' => $assignment->vehicle_id,
+            'log_type' => 'assignment',
+            'assigned_department' => $assignment->ticket->project_name ?? null,
+            'assigned_user_id' => $assignment->ticket->assigned_to ?? $assignment->ticket->user_id ?? null,
+            'meter_reading' => $assignment->start_odo_meter ?? 0,
+            'vehicle_status' => 'active',
+            'remarks' => 'Trip started (Web)',
+            'logged_by' => $loggedBy,
+            'logged_at' => now(),
+        ]);
+
         return back()->with('success', 'Trip started successfully');
     }
 
 
-    public function tripCompleted($id)
+    public function tripCompleted(Request $request, $id)
     {
         $assignment = VehicleAssignment::findOrFail($id);
 
@@ -511,8 +529,28 @@ class VehicleAssignmentController extends Controller
             abort(400, 'Trip cannot be complete');
         }
 
+        $remarks = $request->input('remarks');
+
         $assignment->update([
             'status' => 'completed',
+            'remarks' => $remarks,
+        ]);
+
+        $loggedBy = Auth::id() 
+            ?? $assignment->ticket->assigned_to 
+            ?? $assignment->ticket->user_id 
+            ?? 1;
+
+        VehicleOperationalLog::create([
+            'vehicle_id' => $assignment->vehicle_id,
+            'log_type' => 'assignment',
+            'assigned_department' => $assignment->ticket->project_name ?? null,
+            'assigned_user_id' => $assignment->ticket->assigned_to ?? $assignment->ticket->user_id ?? null,
+            'meter_reading' => $assignment->end_odo_meter ?? $assignment->start_odo_meter ?? 0,
+            'vehicle_status' => 'active',
+            'remarks' => $remarks ?? 'Trip completed (Web)',
+            'logged_by' => $loggedBy,
+            'logged_at' => now(),
         ]);
 
         return back()->with('success', 'Trip completed successfully');

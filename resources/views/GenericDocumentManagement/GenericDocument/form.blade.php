@@ -61,10 +61,7 @@
 </div>
 <div class="mb-3">
     <label class="form-label" for="file">Upload File</label>
-    <input type="file" class="form-control @error('file') is-invalid @enderror" id="file" name="file" accept=".jpg,.jpeg,.png,.xls,.xlsx,.csv,.pdf,image/jpeg,image/png,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv">
-    @error('file')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
+    <input type="file" class="form-control" id="file" name="file" accept="image/*,application/pdf">
 
     @if (!empty($doc->file_path))
         @php

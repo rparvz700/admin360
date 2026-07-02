@@ -95,7 +95,7 @@
                                         <div class="p-3 rounded"
                                             style="background-color: rgba(40, 167, 69, 0.05); border-left: 3px solid #28a745;">
                                             <small class="text-muted d-block mb-1">Car Parking</small>
-                                            <strong>{{ number_format($floor->car_parking ?? 0, 2) }}</strong>
+                                            <strong>{{ $floor->car_parking }}</strong>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -276,7 +276,7 @@
                                                     ৳{{ number_format($rentBase->base_rent, 2) }}</h4>
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-6">
                                             <div class="p-3 text-center rounded"
                                                 style="background-color: rgba(255, 193, 7, 0.1);">
                                                 <small class="text-muted d-block mb-2">Total (Inc. VAT, TAX)</small>
@@ -299,7 +299,7 @@
                                                 <h5 class="mb-0">{{ $rentBase->is_at_source ? 'Yes' : 'No' }}</h5>
                                             </div>
                                         </div>
-                                        <div class="col-3">
+                                        <div class="col-12">
                                             <div class="p-3 rounded" style="background-color: rgba(255, 193, 7, 0.1);">
                                                 <small class="text-muted d-block mb-1">Rent Type</small>
                                                 <strong>{{ $rentBase->rent_type }}</strong>
@@ -309,87 +309,6 @@
                                 @else
                                     <div class="alert alert-warning mb-0"><i
                                             class="fa fa-exclamation-triangle me-2"></i>No rent base data available.</div>
-                                @endif
-                            </div>
-                        </div>
-
-                        <!-- Rent Breakdown Card -->
-                        <div class="card border-0 shadow-sm mb-4">
-                            <div class="card-header text-white"
-                                style="background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);">
-                                <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
-                                    <h5 class="mb-0"><i class="fa fa-table me-2"></i>Rent Breakdown</h5>
-                                    <span class="badge bg-light text-dark">
-                                        VAT {{ number_format((float) optional($vatTax)->vat, 2) }}% | Tax
-                                        {{ number_format((float) optional($vatTax)->tax, 2) }}%
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="card-body p-0">
-                                @if ($rentBase && $rentBase->components->isNotEmpty())
-                                    <div class="table-responsive">
-                                        <table class="table table-hover table-striped align-middle mb-0">
-                                            <thead style="background-color: #f0fdfa;">
-                                                <tr>
-                                                    <th>Space</th>
-                                                    <th class="text-end">Area (sft)</th>
-                                                    <th class="text-end">Rent</th>
-                                                    <th class="text-center">VAT Applied</th>
-                                                    <th class="text-end">VAT</th>
-                                                    <th class="text-end">Tax</th>
-                                                    <th class="text-end">Total</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($rentBase->components as $component)
-                                                    <tr>
-                                                        <td>
-                                                            <strong>{{ \App\Services\RentComponentCalculator::COMPONENTS[$component->component_type]['label'] ?? $component->component_type }}</strong>
-                                                            @if ((float) $component->rate > 0)
-                                                                <div class="text-muted fs-sm">Calculated rate: BDT
-                                                                    {{ number_format($component->rate, 2) }}/sft</div>
-                                                            @endif
-                                                        </td>
-                                                        <td class="text-end">
-                                                            {{ number_format($component->area_sft ?? 0, 2) }}</td>
-                                                        <td class="text-end">BDT
-                                                            {{ number_format($component->rent_amount ?? 0, 2) }}</td>
-                                                        <td class="text-center">
-                                                            <span
-                                                                class="badge bg-{{ $component->vat_applicable ? 'success' : 'secondary' }}">
-                                                                {{ $component->vat_applicable ? 'Applied' : 'Not Applied' }}
-                                                            </span>
-                                                        </td>
-                                                        <td class="text-end text-success">BDT
-                                                            {{ number_format($component->vat_amount ?? 0, 2) }}</td>
-                                                        <td class="text-end text-danger">BDT
-                                                            {{ number_format($component->tax_amount ?? 0, 2) }}</td>
-                                                        <td class="text-end fw-semibold">BDT
-                                                            {{ number_format($component->total_amount ?? 0, 2) }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                            <tfoot style="background-color: #f8fafc;">
-                                                <tr>
-                                                    <th colspan="2">Total</th>
-                                                    <th class="text-end">BDT
-                                                        {{ number_format($rentBase->base_rent ?? 0, 2) }}</th>
-                                                    <th></th>
-                                                    <th class="text-end text-success">BDT
-                                                        {{ number_format($rentBase->vat ?? 0, 2) }}</th>
-                                                    <th class="text-end text-danger">BDT
-                                                        {{ number_format($rentBase->tax ?? 0, 2) }}</th>
-                                                    <th class="text-end">BDT
-                                                        {{ number_format(($rentBase->base_rent ?? 0) + ($rentBase->vat ?? 0) + ($rentBase->tax ?? 0), 2) }}
-                                                    </th>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-                                @else
-                                    <div class="alert alert-info m-3 mb-3">
-                                        <i class="fa fa-info-circle me-2"></i>No rent breakdown data available.
-                                    </div>
                                 @endif
                             </div>
                         </div>

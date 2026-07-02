@@ -239,7 +239,6 @@ class GenericDocumentController extends Controller
             'category_id'       => 'required|exists:generic_document_categories,id',
             'issue_date'        => 'required|date',
             'expiry_date'       => 'nullable|date',
-            'file'              => 'nullable|file|mimes:jpg,jpeg,png,xls,xlsx,csv,pdf|max:5120',
         ]);
 
         $docTypeKey = $validated['documentable_type'];
@@ -438,7 +437,6 @@ class GenericDocumentController extends Controller
             'category_id'       => 'required|exists:generic_document_categories,id',
             'issue_date'        => 'required|date',
             'expiry_date'       => 'nullable|date',
-            'file'              => 'nullable|file|mimes:jpg,jpeg,png,xls,xlsx,csv,pdf|max:5120',
         ]);
         
         $documentableTypes = config('app.documentableTypes');

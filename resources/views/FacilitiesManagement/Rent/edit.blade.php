@@ -1,3 +1,5 @@
+--- START OF FILE Paste May 11, 2026 - 3:33PM ---
+
 @extends('Partials.app', ['activeMenu' => 'rent'])
 
 @section('title')
@@ -54,9 +56,8 @@
                                         <i class="fa fa-eye"></i>
                                     </a>
                                 </label>
-                                <input type="hidden" name="agreement_id" value="{{ old('agreement_id', $base->agreement_id) }}">
-                                <select id="agreement_id" class="form-select js-select2"
-                                    data-placeholder="Select agreement" disabled>
+                                <select id="agreement_id" name="agreement_id" class="form-select js-select2"
+                                    data-placeholder="Select agreement" required>
                                     <option value=""></option>
                                     @foreach ($agreements as $agreement)
                                         <option value="{{ $agreement->id }}"
@@ -64,6 +65,11 @@
                                             {{ $agreement->agreement_ref_no }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+                            <div class="col-md-6 col-sm-12 mb-4">
+                                <label class="form-label" for="base_rent">Base Rent</label>
+                                <input type="number" step="0.01" class="form-control" id="base_rent" name="base_rent"
+                                    value="{{ old('base_rent', $base->base_rent) }}" required>
                             </div>
                             <div class="col-md-6 col-sm-12 mb-4">
                                 <label class="form-label" for="is_at_source">Is At Source</label>
@@ -104,79 +110,6 @@
                         </div>
                     </section>
 
-                    @include('FacilitiesManagement.Rent.partials.components', ['base' => $base])
-
-                    <!-- Utilities & Service Charges Section -->
-                    <section class="mb-4 p-3 border rounded rent-panel">
-                        <h5 class="mb-3">Utilities & Service Charges</h5>
-                        <div class="table-responsive mb-3">
-                            <table class="table table-bordered table-sm wizard-table" id="utilitiesTable">
-                                <thead>
-                                    <tr>
-                                        <th>Utility Type</th>
-                                        <th>Monthly Amount</th>
-                                        <th>Disburse with Rent</th>
-                                        <th style="width: 80px;" class="text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($utilityTypes as $type)
-                                        @if ($agreementUtilities->has($type->id))
-                                            @php
-                                                $util = $agreementUtilities->get($type->id);
-                                            @endphp
-                                            <tr data-id="{{ $type->id }}">
-                                                <td class="align-middle fw-semibold">
-                                                    {{ $type->name }}
-                                                    <input type="hidden" name="utilities[{{ $type->id }}][id]" value="{{ $type->id }}">
-                                                </td>
-                                                <td>
-                                                    <div class="input-group input-group-sm">
-                                                        <span class="input-group-text">৳</span>
-                                                        <input type="number" step="0.01" class="form-control form-control-sm" 
-                                                               name="utilities[{{ $type->id }}][amount]" 
-                                                               value="{{ old("utilities.{$type->id}.amount", $util->amount) }}" required>
-                                                    </div>
-                                                </td>
-                                                <td class="align-middle">
-                                                    <div class="form-check form-switch mb-0">
-                                                        <input class="form-check-input" type="checkbox" 
-                                                               name="utilities[{{ $type->id }}][disburse_with_rent]" value="1"
-                                                               {{ old("utilities.{$type->id}.disburse_with_rent", $util->disburse_with_rent) ? 'checked' : '' }}>
-                                                        <label class="form-check-label fs-xs">Disburse with Rent</label>
-                                                    </div>
-                                                </td>
-                                                <td class="text-center align-middle">
-                                                    <button type="button" class="btn btn-sm btn-alt-danger remove-utility-row">
-                                                        <i class="fa fa-times"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        @endif
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="row g-2 align-items-center">
-                            <div class="col-md-4 col-sm-6">
-                                <select id="utility_type_selector" class="form-select">
-                                    <option value="">Choose Utility...</option>
-                                    @foreach ($utilityTypes as $type)
-                                        <option value="{{ $type->id }}" data-name="{{ $type->name }}"
-                                                {{ $agreementUtilities->has($type->id) ? 'disabled' : '' }}>
-                                            {{ $type->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-2 col-sm-6">
-                                <button type="button" class="btn btn-alt-primary" id="addUtilityRowBtn">
-                                    <i class="fa fa-plus me-1"></i> Add Utility
-                                </button>
-                            </div>
-                        </div>
-                    </section>
-
                     <!-- Rent Increments Section -->
                     <section class="mb-4 p-3 border rounded rent-panel">
                         <h5 class="mb-3">Rent Increments</h5>
@@ -184,7 +117,7 @@
                             <thead>
                                 <tr>
                                     <th>Start Date</th>
-                                    <th>Months</th>
+                                    <th>Years</th> {{-- NEW FIELD HEADER --}}
                                     <th>End Date</th>
                                     <th>Amount</th>
                                     <th>Percentage</th>
@@ -298,11 +231,11 @@
                         <table class="table table-bordered" id="depositsTable">
                             <thead>
                                 <tr>
-                                    <th>Adjustable Amount</th>
+                                    <th>Adjust Amount</th>
                                     <th>Month Interval</th>
-                                    <th>Adjustable / Month</th>
-                                    <th>Adjustable Start</th>
-                                    <th>Adjustable End</th>
+                                    <th>Adjust / Month</th>
+                                    <th>Adjust Start</th>
+                                    <th>Adjust End</th>
                                     <th>Method Desc</th>
                                     <th>Action</th>
                                 </tr>
@@ -316,15 +249,15 @@
                                                     class="form-control abs-amount"
                                                     value="{{ old('deposits.' . $dkey . '.absorb_amount', $deposit->absorb_amount ?? '') }}">
                                             </td>
-                                            <td><input type="number"
-                                                    name="deposits[{{ $dkey }}][month_interval]"
+                                            <td><input type="number" name="deposits[{{ $dkey }}][month_interval]"
                                                     class="form-control dep-months" min="1"
                                                     value="{{ old('deposits.' . $dkey . '.month_interval', $deposit->absorb_frequency ?? '') }}"
                                                     required></td>
                                             <td><input type="number" step="0.01"
                                                     name="deposits[{{ $dkey }}][adjust_per_month]"
                                                     class="form-control dep-per-month"
-                                                    value="{{ old('deposits.' . $dkey . '.adjust_per_month') }}" readonly>
+                                                    value="{{ old('deposits.' . $dkey . '.adjust_per_month') }}"
+                                                    readonly>
                                             </td>
                                             <td><input type="date"
                                                     name="deposits[{{ $dkey }}][absorb_start_date]"
@@ -365,25 +298,15 @@
     @section('scripts')
         <script src="{{ asset('js/plugins/select2/js/select2.full.js') }}"></script>
         <script src="{{ asset('js/plugins/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
-        @php
-            $agreementAreas = $agreements->mapWithKeys(function ($agreement) {
-                return [
-                    (string) $agreement->id => [
-                        'floor_area' => (float) $agreement->floors->sum('floor_area_sft'),
-                        'car_parking' => (float) $agreement->floors->sum('car_parking'),
-                        'dg_space' => (float) $agreement->floors->sum('dg_space_sft'),
-                        'store_space' => (float) $agreement->floors->sum('store_space_sft'),
-                    ],
-                ];
-            });
-        @endphp
-        @include('FacilitiesManagement.Rent.partials.component-script', ['agreementAreas' => $agreementAreas])
+    @section('scripts')
+        <script src="{{ asset('js/plugins/select2/js/select2.full.js') }}"></script>
+        <script src="{{ asset('js/plugins/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
         <script>
             One.helpersOnLoad(['jq-select2', 'jq-notify']);
 
             // --- Date Calculation Functions (Copied from previous examples, renamed for generality) ---
-            function calculateEndDate(startDateStr, months) {
-                if (!startDateStr || !months || months <= 0) {
+            function calculateEndDate(startDateStr, years) {
+                if (!startDateStr || !years || years <= 0) {
                     return '';
                 }
                 const startDate = new Date(startDateStr + 'T00:00:00'); // Add time to ensure correct date interpretation
@@ -392,7 +315,7 @@
                 }
 
                 const endDate = new Date(startDate); // Start with the start date
-                endDate.setMonth(startDate.getMonth() + parseInt(months, 10)); // Add months
+                endDate.setFullYear(startDate.getFullYear() + parseInt(years, 10)); // Add years
                 endDate.setDate(endDate.getDate() - 1); // Subtract one day
 
                 // Format date to YYYY-MM-DD
@@ -417,6 +340,38 @@
                 const month = String(nextStartDate.getMonth() + 1).padStart(2, '0');
                 const day = String(nextStartDate.getDate()).padStart(2, '0');
                 return `${year}-${month}-${day}`;
+            }
+
+            // --- NEW FUNCTION: Calculate years from a given start and end date ---
+            function calculateYearsFromDates(startDateStr, endDateStr) {
+                if (!startDateStr || !endDateStr) {
+                    return '';
+                }
+
+                const startDate = new Date(startDateStr + 'T00:00:00');
+                const endDate = new Date(endDateStr + 'T00:00:00');
+
+                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                    return ''; // Invalid date
+                }
+
+                // Our `calculateEndDate` function produces an end date that is (start_date + years - 1 day).
+                // So, to reverse, we need to consider (end_date + 1 day) as the "effective end date"
+                // that would have been the anniversary if the day wasn't subtracted.
+                const effectiveEndDate = new Date(endDate);
+                effectiveEndDate.setDate(endDate.getDate() + 1);
+
+                let years = effectiveEndDate.getFullYear() - startDate.getFullYear();
+
+                // Adjust if the "anniversary" of the start date hasn't been reached yet in the effective end year
+                // This means if effectiveEndDate is before the start date's day/month in the effectiveEndDate's year
+                if (effectiveEndDate.getMonth() < startDate.getMonth() ||
+                    (effectiveEndDate.getMonth() === startDate.getMonth() && effectiveEndDate.getDate() < startDate.getDate())
+                ) {
+                    years--;
+                }
+
+                return years > 0 ? years.toString() : ''; // Return as string, or empty if <= 0
             }
 
             function calculateMonthEndDate(startDateStr, months) {
@@ -478,7 +433,7 @@
                     if (!nextRow.length) break; // No more rows to update
 
                     const nextStartDateInput = nextRow.find('.inc-start-date');
-                    const nextMonthsInput = nextRow.find('.inc-years');
+                    const nextYearsInput = nextRow.find('.inc-years');
                     const nextEndDateInput = nextRow.find('.inc-end-date');
 
                     const newNextStartDate = calculateNextStartDate(currentEndDate);
@@ -488,8 +443,8 @@
                         nextStartDateInput.val(newNextStartDate);
                     }
 
-                    const nextMonths = nextMonthsInput.val();
-                    const newNextEndDate = calculateEndDate(newNextStartDate, nextMonths);
+                    const nextYears = nextYearsInput.val();
+                    const newNextEndDate = calculateEndDate(newNextStartDate, nextYears);
 
                     // Only update end date if it's different
                     if (nextEndDateInput.val() !== newNextEndDate) {
@@ -594,9 +549,9 @@
 
                     const newRow = $('#incrementsTable tbody tr').last();
                     const startDateInput = newRow.find('.inc-start-date');
-                    const monthsInput = newRow.find('.inc-years');
-                    if (startDateInput.val() && monthsInput.val()) {
-                        const endDate = calculateEndDate(startDateInput.val(), monthsInput.val());
+                    const yearsInput = newRow.find('.inc-years');
+                    if (startDateInput.val() && yearsInput.val()) {
+                        const endDate = calculateEndDate(startDateInput.val(), yearsInput.val());
                         newRow.find('.inc-end-date').val(endDate);
                         updateSubsequentIncrements(newRow);
                     }
@@ -618,7 +573,7 @@
                             firstRemainingRow.find('.inc-start-date').val('');
                             firstRemainingRow.find('.inc-end-date').val('');
                             firstRemainingRow.find('.inc-years').val(1).trigger(
-                                'change'); // Default months to 1 and trigger calculation
+                                'change'); // Default years to 1 and trigger calculation
                         }
                     }
                 });
@@ -626,10 +581,10 @@
                 $(document).on('change', '.inc-start-date, .inc-years', function() {
                     const currentRow = $(this).closest('tr');
                     const startDateStr = currentRow.find('.inc-start-date').val();
-                    const months = currentRow.find('.inc-years').val();
+                    const years = currentRow.find('.inc-years').val();
                     const endDateInput = currentRow.find('.inc-end-date');
 
-                    const newEndDate = calculateEndDate(startDateStr, months);
+                    const newEndDate = calculateEndDate(startDateStr, years);
                     endDateInput.val(newEndDate);
 
                     updateSubsequentIncrements(currentRow);
@@ -639,10 +594,10 @@
                     const currentRow = $(this).closest('tr');
                     const startDateStr = currentRow.find('.inc-start-date').val();
                     const endDateStr = currentRow.find('.inc-end-date').val();
-                    const months = calculateMonthsFromDates(startDateStr, endDateStr);
+                    const years = calculateYearsFromDates(startDateStr, endDateStr);
 
-                    if (months) {
-                        currentRow.find('.inc-years').val(months);
+                    if (years) {
+                        currentRow.find('.inc-years').val(years);
                     }
 
                     updateSubsequentIncrements(currentRow);
@@ -653,28 +608,28 @@
                 $('#incrementsTable tbody tr').each(function() {
                     const currentRow = $(this);
                     const startDateInput = currentRow.find('.inc-start-date');
-                    const monthsInput = currentRow.find('.inc-years');
+                    const yearsInput = currentRow.find('.inc-years');
                     const endDateInput = currentRow.find('.inc-end-date');
 
-                    let monthsVal = monthsInput.val();
-                    // If the duration is missing but start and end dates exist, derive it in months.
-                    if (!monthsVal && startDateInput.val() && endDateInput.val()) {
-                        const derivedMonths = calculateMonthsFromDates(startDateInput.val(), endDateInput
-                    .val());
-                        if (derivedMonths !== '') {
-                            monthsInput.val(derivedMonths);
-                            monthsVal = derivedMonths;
+                    let yearsVal = yearsInput.val();
+                    // If 'years' is missing but start and end dates exist, derive it
+                    if (!yearsVal && startDateInput.val() && endDateInput.val()) {
+                        const derivedYears = calculateYearsFromDates(startDateInput.val(), endDateInput.val());
+                        if (derivedYears !== '') {
+                            yearsInput.val(derivedYears);
+                            yearsVal = derivedYears; // Update yearsVal for subsequent logic
                         }
                     }
 
-                    if (!monthsVal) {
-                        monthsInput.val(1);
-                        monthsVal = 1;
+                    // If years is still empty (e.g., no dates, or derived years were <= 0), default to 1
+                    if (!yearsVal) {
+                        yearsInput.val(1);
+                        yearsVal = 1;
                     }
 
                     // On edit, keep the DB/old end date as the default. Only calculate it if it is missing.
-                    if (!endDateInput.val() && startDateInput.val() && monthsVal) {
-                        const newEndDate = calculateEndDate(startDateInput.val(), monthsVal);
+                    if (!endDateInput.val() && startDateInput.val() && yearsVal) {
+                        const newEndDate = calculateEndDate(startDateInput.val(), yearsVal);
                         endDateInput.val(newEndDate);
                     }
                 });
@@ -775,8 +730,7 @@
 
                     let monthsVal = monthsInput.val();
                     if (!monthsVal && startDateInput.val() && endDateInput.val()) {
-                        const derivedMonths = calculateMonthsFromDates(startDateInput.val(), endDateInput
-                    .val());
+                        const derivedMonths = calculateMonthsFromDates(startDateInput.val(), endDateInput.val());
                         if (derivedMonths !== '') {
                             monthsInput.val(derivedMonths);
                             monthsVal = derivedMonths;
@@ -872,16 +826,14 @@
                 $(document).on('input', '.inc-amount', function() {
                     let base = getIncrementBaseForRow($(this).closest('tr'));
                     let amt = parseFloat($(this).val()) || 0;
-                    if (base > 0) $(this).closest('tr').find('.inc-percent').val(((amt / base) * 100).toFixed(
-                        2));
+                    if (base > 0) $(this).closest('tr').find('.inc-percent').val(((amt / base) * 100).toFixed(2));
                     refreshIncrementPercentages();
                 });
 
                 $(document).on('input', '.inc-percent', function() {
                     let base = getIncrementBaseForRow($(this).closest('tr'));
                     let percent = parseFloat($(this).val()) || 0;
-                    if (base > 0) $(this).closest('tr').find('.inc-amount').val(((percent / 100) * base)
-                        .toFixed(2));
+                    if (base > 0) $(this).closest('tr').find('.inc-amount').val(((percent / 100) * base).toFixed(2));
                     refreshIncrementAmountsFromPercentages();
                 });
 
@@ -892,64 +844,8 @@
                     });
                 });
 
-                // --- Dynamic Utilities Logic ---
-                const utilitySelector = $('#utility_type_selector');
-                const utilitiesTableBody = $('#utilitiesTable tbody');
-
-                // Add Row
-                $('#addUtilityRowBtn').click(function() {
-                    const selectedOption = utilitySelector.find('option:selected');
-                    const id = selectedOption.val();
-                    const name = selectedOption.data('name');
-
-                    if (!id) {
-                        alert('Please select a utility type.');
-                        return;
-                    }
-
-                    const row = `
-                        <tr data-id="${id}">
-                            <td class="align-middle fw-semibold">
-                                ${name}
-                                <input type="hidden" name="utilities[${id}][id]" value="${id}">
-                            </td>
-                            <td>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">৳</span>
-                                    <input type="number" step="0.01" class="form-control form-control-sm" 
-                                           name="utilities[${id}][amount]" placeholder="0.00" required>
-                                </div>
-                            </td>
-                            <td class="align-middle">
-                                <div class="form-check form-switch mb-0">
-                                    <input class="form-check-input" type="checkbox" 
-                                           name="utilities[${id}][disburse_with_rent]" value="1" checked>
-                                    <label class="form-check-label fs-xs">Disburse with Rent</label>
-                                </div>
-                            </td>
-                            <td class="text-center align-middle">
-                                <button type="button" class="btn btn-sm btn-alt-danger remove-utility-row">
-                                    <i class="fa fa-times"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                    utilitiesTableBody.append(row);
-
-                    selectedOption.prop('disabled', true);
-                    utilitySelector.val('');
-                });
-
-                // Remove Row
-                utilitiesTableBody.on('click', '.remove-utility-row', function() {
-                    const row = $(this).closest('tr');
-                    const id = row.data('id');
-
-                    utilitySelector.find(`option[value="${id}"]`).prop('disabled', false);
-                    row.remove();
-                });
-
                 refreshIncrementPercentages();
             });
         </script>
     @endsection
+@endsection

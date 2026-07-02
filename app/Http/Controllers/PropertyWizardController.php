@@ -12,7 +12,6 @@ use App\Models\RentBase;
 use App\Models\RentIncrement;
 use App\Models\SecurityDeposit;
 use App\Models\VatTax;
-use App\Services\RentComponentCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -43,15 +42,11 @@ class PropertyWizardController extends Controller
         $districts = $districtApiResArr['data'] ?? [];
 
         $projects = Project::where('status', 1)->get();
-        $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
-        $componentTypes = RentComponentCalculator::COMPONENTS;
-        $taxableAreaSft = (float) config('facilities.rent_taxable_area_sft', 150);
-        $utilityTypes = \App\Models\UtilityType::where('is_active', true)->get();
 
-        return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects', 'vatTax', 'componentTypes', 'taxableAreaSft', 'utilityTypes'));
+        return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects'));
     }
 
-    public function store(StorePropertyWizardRequest $request, RentComponentCalculator $calculator)
+    public function store(StorePropertyWizardRequest $request)
     {
         DB::beginTransaction();
 
@@ -94,35 +89,21 @@ class PropertyWizardController extends Controller
                 'status'          => 'Active',
             ]);
 
-            // 5. Create Rent Base with component-wise VAT threshold and tax calculation.
+            // 5. Create Rent Base (VAT/Tax Logic from your original Rent controller)
             $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
-            $componentRows = $calculator->rowsFromRequest($request, $vatTax);
-            $totals = $calculator->totals($componentRows);
-            $baseRent = $totals['base_rent'];
+            $baseRent = $request->base_rent;
+            $vatAmount = $vatTax ? ($baseRent * $vatTax->vat) / 100 : 0;
+            $taxAmount = $vatTax ? ($baseRent * $vatTax->tax) / 100 : 0;
 
             $base = RentBase::create([
                 'agreement_id' => $agreement->id,
                 'base_rent'    => $baseRent,
-                'vat'          => $totals['vat'],
-                'tax'          => $totals['tax'],
+                'vat'          => $vatAmount,
+                'tax'          => $taxAmount,
                 'is_at_source' => (int) $request->is_at_source,
                 'rent_type'    => $request->rent_type,
                 'remarks'      => $request->agreement_remarks,
             ]);
-            $calculator->saveRows($base->id, $componentRows);
-
-            // Save agreement utilities
-            if ($request->has('utilities')) {
-                foreach ($request->input('utilities', []) as $typeId => $utilData) {
-                    $amount = is_numeric($utilData['amount'] ?? null) ? (float) $utilData['amount'] : 0.00;
-                    \App\Models\AgreementUtility::create([
-                        'agreement_id' => $agreement->id,
-                        'utility_type_id' => $typeId,
-                        'amount' => $amount,
-                        'disburse_with_rent' => isset($utilData['disburse_with_rent']),
-                    ]);
-                }
-            }
 
             // 6. Increments
             $runningRent = (float) $baseRent;

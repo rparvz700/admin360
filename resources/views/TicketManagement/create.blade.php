@@ -159,9 +159,9 @@
                             <select name="project_name" class="form-select @error('project_name') is-invalid @enderror">
                                 <option value="">Select Project</option>
                                 @foreach ($projects as $project)
-                                    <option value="{{ $project['id'] }}"
-                                        {{ old('project_name') == $project['id'] ? 'selected' : '' }}>
-                                        {{ $project['project_name'] }}
+                                    <option value="{{ $project->id }}"
+                                        {{ old('project_name') == $project->id ? 'selected' : '' }}>
+                                        {{ $project->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -489,12 +489,13 @@
          * @param {string} startLocation - Initial value for the start location textarea.
          * @param {string} endLocation - Initial value for the end location textarea.
          */
-        function addTripLocation(startLocation = '', endLocation = '') {
+        function addTripLocation(startLocation = '', endLocation = '', startCoordinates = {}, endCoordinates = {}) {
             const container = document.getElementById('trip_locations_container');
             const index = tripLocationIndex++; // Use a continuously incrementing index for unique names
 
             // Auto-fill start location from previous stop's end location
             let initialStartLocation = startLocation;
+            let initialStartCoordinates = startCoordinates || {};
             if (!initialStartLocation) { // Only auto-fill if startLocation is not explicitly provided
                 const existingRows = container.querySelectorAll('.trip-location-row');
                 if (existingRows.length > 0) {
@@ -502,9 +503,15 @@
                     const lastRowEndInput = existingRows[existingRows.length - 1].querySelector('textarea[name$="[end]"]');
                     if (lastRowEndInput) {
                         initialStartLocation = lastRowEndInput.value;
+                        initialStartCoordinates = getLocationCoordinates(lastRowEndInput);
                     }
                 }
             }
+
+            const startLat = initialStartCoordinates.latitude ?? initialStartCoordinates.lat ?? '';
+            const startLng = initialStartCoordinates.longitude ?? initialStartCoordinates.lng ?? '';
+            const endLat = endCoordinates.latitude ?? endCoordinates.lat ?? '';
+            const endLng = endCoordinates.longitude ?? endCoordinates.lng ?? '';
 
             const row = document.createElement('div');
             row.className = 'trip-location-row mb-2';
@@ -522,6 +529,8 @@
                             placeholder="Start Location (e.g., Office)"
                             rows="2"
                             required>${initialStartLocation}</textarea>
+                        <input type="hidden" name="trip_locations[${index}][start_lat]" value="${escapeHtml(startLat)}">
+                        <input type="hidden" name="trip_locations[${index}][start_lng]" value="${escapeHtml(startLng)}">
                     </div>
 
                     <div class="col-md-5">
@@ -532,6 +541,8 @@
                             placeholder="End Location (e.g., Airport)"
                             rows="2"
                             required>${endLocation}</textarea>
+                        <input type="hidden" name="trip_locations[${index}][end_lat]" value="${escapeHtml(endLat)}">
+                        <input type="hidden" name="trip_locations[${index}][end_lng]" value="${escapeHtml(endLng)}">
                     </div>
 
                     <div class="col-md-1">
@@ -556,6 +567,52 @@
             });
 
             updateTripLocationLabels(); // Update labels after adding
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function getLocationPoint(input) {
+            return input.name.match(/\[(start|end)\]$/)?.[1] || null;
+        }
+
+        function getLocationCoordinates(input) {
+            const point = getLocationPoint(input);
+            const row = input.closest('.trip-location-row');
+
+            if (!point || !row) {
+                return {};
+            }
+
+            return {
+                latitude: row.querySelector(`input[name$="[${point}_lat]"]`)?.value || '',
+                longitude: row.querySelector(`input[name$="[${point}_lng]"]`)?.value || '',
+            };
+        }
+
+        function setLocationCoordinates(input, latitude, longitude) {
+            const point = getLocationPoint(input);
+            const row = input.closest('.trip-location-row');
+
+            if (!point || !row) {
+                return;
+            }
+
+            const latInput = row.querySelector(`input[name$="[${point}_lat]"]`);
+            const lngInput = row.querySelector(`input[name$="[${point}_lng]"]`);
+
+            if (latInput) {
+                latInput.value = Number(latitude).toFixed(6);
+            }
+
+            if (lngInput) {
+                lngInput.value = Number(longitude).toFixed(6);
+            }
         }
 
         /**
@@ -604,7 +661,16 @@
 
             if (oldTripLocations && oldTripLocations.length > 0) {
                 oldTripLocations.forEach(location => {
-                    addTripLocation(location.start, location.end);
+                    addTripLocation(
+                        location.start,
+                        location.end, {
+                            latitude: location.start_lat,
+                            longitude: location.start_lng
+                        }, {
+                            latitude: location.end_lat,
+                            longitude: location.end_lng
+                        }
+                    );
                 });
             } else {
                 addTripLocation(); // Add one empty row by default
@@ -772,9 +838,15 @@
                 initMap();
                 map.invalidateSize();
 
-                const match = input.value.match(/Lat:\s*(-?\d+\.\d+).*Lng:\s*(-?\d+\.\d+)/);
+                const existingCoordinates = getLocationCoordinates(input);
+                const match = input.value.match(/Lat:\s*(-?\d+(?:\.\d+)?).*Lng:\s*(-?\d+(?:\.\d+)?)/);
 
-                if (match) {
+                if (existingCoordinates.latitude && existingCoordinates.longitude) {
+                    const lat = parseFloat(existingCoordinates.latitude);
+                    const lng = parseFloat(existingCoordinates.longitude);
+                    map.setView([lat, lng], 15);
+                    placeMarker(lat, lng);
+                } else if (match) {
                     const lat = parseFloat(match[1]);
                     const lng = parseFloat(match[2]);
                     map.setView([lat, lng], 15);
@@ -800,6 +872,7 @@
 
             activeInput.value =
                 `${selectedAddr} (Lat: ${selectedLat.toFixed(6)}, Lng: ${selectedLng.toFixed(6)})`;
+            setLocationCoordinates(activeInput, selectedLat, selectedLng);
 
             document.getElementById('mapModal').style.display = 'none';
         };

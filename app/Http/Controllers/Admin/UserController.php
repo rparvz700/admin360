@@ -90,7 +90,7 @@ class UserController extends Controller
             // "department_id" => $request->department,
             // "subcenter_id" => $request->subcenter,
             "status" => $request->status,
-            "created_by" => Auth::user()->id
+            // "created_by" => Auth::user()->id
         ];
 
         $save = User::create($data);

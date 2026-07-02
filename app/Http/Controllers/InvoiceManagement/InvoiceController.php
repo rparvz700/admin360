@@ -7,7 +7,6 @@ use App\Models\Invoice;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Yajra\DataTables\DataTables;
 
 class InvoiceController extends Controller
 {
@@ -17,50 +16,31 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            // Start with your base query builder, including relationships
-            // Yajra DataTables will handle the orderBy, pagination, searching, etc.
-            $query = Invoice::with('vendor');
+            $invoices = Invoice::with('vendor')
+                ->orderByDesc('invoice_date')
+                ->get();
 
-            // Now, pass the query to DataTables
-            return DataTables::of($query)
-                // Add your custom columns or modify existing ones
-                // invoice_number and id are direct attributes, Yajra handles them by default
+            $data = $invoices->map(function ($invoice) {
+                return [
+                    'id'             => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'vendor'         => $invoice->vendor->name ?? 'N/A',
+                    'invoice_date'   => $invoice->invoice_date->format('d M Y'),
+                    'due_date'       => $invoice->due_date
+                                        ? $invoice->due_date->format('d M Y')
+                                        : '<span class="text-muted">N/A</span>',
+                    'total_amount'   => '৳ ' . number_format($invoice->total_amount, 2),
+                    'paid_amount'    => '৳ ' . number_format($invoice->paid_amount, 2),
+                    'outstanding'    => $invoice->getOutstandingAmount() > 0
+                                        ? '<span class="text-danger">৳ ' . number_format($invoice->getOutstandingAmount(), 2) . '</span>'
+                                        : '<span class="text-success">৳ 0.00</span>',
+                    'payment_status' => '<span class="badge bg-' . $invoice->getPaymentStatusBadge() . '">'
+                                        . $invoice->getPaymentStatusLabel() . '</span>',
+                    'actions'        => view('InvoiceManagement.partials.actions', compact('invoice'))->render(),
+                ];
+            });
 
-                ->addColumn('vendor', function ($invoice) {
-                    return $invoice->vendor->name ?? 'N/A';
-                })
-                ->addColumn('invoice_date', function ($invoice) {
-                    // Ensure invoice_date is a Carbon instance, or handle null gracefully
-                    return $invoice->invoice_date ? $invoice->invoice_date->format('d M Y') : '';
-                })
-                ->addColumn('due_date', function ($invoice) {
-                    return $invoice->due_date
-                                    ? $invoice->due_date->format('d M Y')
-                                    : '<span class="text-muted">N/A</span>';
-                })
-                ->addColumn('total_amount', function ($invoice) {
-                    return '৳ ' . number_format($invoice->total_amount, 2);
-                })
-                ->addColumn('paid_amount', function ($invoice) {
-                    return '৳ ' . number_format($invoice->paid_amount, 2);
-                })
-                ->addColumn('outstanding', function ($invoice) {
-                    $outstanding = $invoice->getOutstandingAmount();
-                    return $outstanding > 0
-                                    ? '<span class="text-danger">৳ ' . number_format($outstanding, 2) . '</span>'
-                                    : '<span class="text-success">৳ 0.00</span>';
-                })
-                ->addColumn('payment_status', function ($invoice) {
-                    return '<span class="badge bg-' . $invoice->getPaymentStatusBadge() . '">'
-                                    . $invoice->getPaymentStatusLabel() . '</span>';
-                })
-                ->addColumn('actions', function ($invoice) {
-                    // Keep your partial view for actions, it's a good practice
-                    return view('InvoiceManagement.partials.actions', compact('invoice'))->render();
-                })
-                // Specify any columns that contain raw HTML to prevent escaping
-                ->rawColumns(['due_date', 'outstanding', 'payment_status', 'actions'])
-                ->make(true);
+            return response()->json(['data' => $data]);
         }
 
         return view('InvoiceManagement.index');

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\VehicleMaintenanceManagement;
 use App\Http\Controllers\Controller;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
-use Yajra\DataTables\DataTables;
 
 class VendorController extends Controller
 {
@@ -15,36 +14,27 @@ class VendorController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            // Start with your base query builder
-            $query = Vendor::with('maintenances', 'invoices')
-                           ->withCount('maintenances');
+            $vendors = Vendor::with('maintenances', 'invoices')
+                ->withCount('maintenances')
+                ->get()
+                ->map(function ($vendor) {
+                    return [
+                        'id' => $vendor->id,
+                        'vendor_code' => $vendor->vendor_code,
+                        'name' => $vendor->name,
+                        'vendor_type' => $vendor->getVendorTypeLabel(),
+                        'contact_person' => $vendor->contact_person,
+                        'phone' => $vendor->phone,
+                        'email' => $vendor->email,
+                        'rating' => $vendor->rating ? number_format($vendor->rating, 1) : 'N/A',
+                        'maintenances_count' => $vendor->maintenances_count,
+                        'total_cost' => number_format($vendor->getTotalMaintenanceCost(), 2),
+                        'is_active' => $vendor->is_active,
+                        'actions' => view('VehicleManagement.VehicleMaintenance.Vendor.partials.actions', compact('vendor'))->render(),
+                    ];
+                });
 
-            // Now, pass the query to DataTables
-            return DataTables::of($query)
-                // Add your custom columns or modify existing ones
-                ->addColumn('vendor_type', function ($vendor) {
-                    return $vendor->getVendorTypeLabel();
-                })
-                // maintenances_count is automatically handled by withCount() because it's a direct attribute
-                ->addColumn('rating', function ($vendor) {
-                    return $vendor->rating ? number_format($vendor->rating, 1) : 'N/A';
-                })
-                ->addColumn('total_cost', function ($vendor) {
-                    // Assuming getTotalMaintenanceCost() is a method on your Vendor model
-                    return number_format($vendor->getTotalMaintenanceCost(), 2);
-                })
-                ->addColumn('is_active', function ($vendor) {
-                    // Return the raw boolean value. Your frontend JS will render the badge.
-                    return $vendor->is_active;
-                })
-                ->addColumn('actions', function ($vendor) {
-                    // Keep your partial view for actions, it's a good practice
-                    return view('VehicleManagement.VehicleMaintenance.Vendor.partials.actions', compact('vendor'))->render();
-                })
-                // Specify any columns that contain raw HTML to prevent escaping
-                ->rawColumns(['actions'])
-                // Finally, generate the DataTables response
-                ->make(true);
+            return response()->json(['data' => $vendors]);
         }
 
         return view('VehicleManagement.VehicleMaintenance.Vendor.index');
@@ -81,7 +71,7 @@ class VendorController extends Controller
         
         Vendor::create($validated);
 
-        return redirect()->route('VehicleManagement.VehicleMaintenance.Vendor.index')
+        return redirect()->route('maintenance.vendors.index')
             ->with('success', 'Vendor created successfully.');
     }
 
