@@ -120,7 +120,7 @@ class VehiclePartController extends Controller
         $part->load(['maintenanceParts.maintenance.vehicle', 'maintenanceParts.vendor']);
         
         $stats = [
-            'total_replacements' => $part->maintenanceParts()->where('action_type', 'replace')->count(),
+            'total_replacements' => $part->maintenanceParts()->whereIn('action_type', ['replace', 'replace_brand_new', 'replace_recondition'])->count(),
             'total_repairs' => $part->maintenanceParts()->where('action_type', 'repair')->count(),
             'total_services' => $part->maintenanceParts()->where('action_type', 'service')->count(),
             'total_cost' => $part->maintenanceParts()->sum('part_cost'),

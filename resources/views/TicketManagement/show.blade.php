@@ -102,6 +102,21 @@
                                     @if ($ticket->assignedDriver || $ticket->assignedVehicle)
                                         <hr>
                                         <h6 class="text-success">Assignment Details</h6>
+                                        @if ($ticket->latestVehicleAssignment)
+                                            <p><strong>Trip Status:</strong>
+                                                @if ($ticket->latestVehicleAssignment->status === 'scheduled')
+                                                    <span class="badge bg-info">Scheduled</span>
+                                                @elseif ($ticket->latestVehicleAssignment->status === 'active')
+                                                    <span class="badge bg-warning text-white">Active / On Trip</span>
+                                                @elseif ($ticket->latestVehicleAssignment->status === 'completed')
+                                                    <span class="badge bg-success">Completed</span>
+                                                @elseif ($ticket->latestVehicleAssignment->status === 'cancelled')
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                @else
+                                                    <span class="badge bg-secondary">{{ ucfirst($ticket->latestVehicleAssignment->status) }}</span>
+                                                @endif
+                                            </p>
+                                        @endif
                                         @if ($ticket->assignedDriver)
                                             <p><strong>Driver:</strong> {{ $ticket->assignedDriver->name }}
                                                 {{ $ticket->assignedDriver->sur_name }}</p>

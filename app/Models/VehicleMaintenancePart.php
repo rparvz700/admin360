@@ -77,20 +77,24 @@ class VehicleMaintenancePart extends Model
     public function getActionTypeLabel()
     {
         return match($this->action_type) {
-            'replace' => 'Replaced',
-            'repair'  => 'Repaired',
-            'service' => 'Serviced',
-            default   => 'Unknown',
+            'replace'             => 'Replace',
+            'replace_brand_new'   => 'Replace: Brand New',
+            'replace_recondition' => 'Replace: Recondition',
+            'repair'              => 'Repaired',
+            'service'             => 'Serviced',
+            default               => 'Unknown',
         };
     }
 
     public function getActionTypeBadge()
     {
         return match($this->action_type) {
-            'replace' => 'danger',
-            'repair'  => 'warning',
-            'service' => 'info',
-            default   => 'secondary',
+            'replace'             => 'danger',
+            'replace_brand_new'   => 'danger',
+            'replace_recondition' => 'info',
+            'repair'              => 'warning',
+            'service'             => 'info',
+            default               => 'secondary',
         };
     }
 

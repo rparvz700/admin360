@@ -204,4 +204,44 @@ class Vehicle extends Model
         return $this->brand . ' ' . $this->model . ' (' . $this->registration_number . ')';
     }
 
+    public static function getBrands()
+    {
+        return [
+            'Mercedes Benz',
+            'Toyota-Prado',
+            'Land Rover',
+            'Nissan-Sylphy',
+            'Toyota-Premio',
+            'Toyota-Axio',
+            'Toyota-Fielder',
+            'Toyota-Microbus',
+            'Toyota',
+            'Toyota Hilux',
+            'Isuzu',
+            'Tata',
+            'JAC',
+            'Ashok Leyland',
+            'Mitsubishi (Fuso)',
+        ];
+    }
+
+    public static function getColors()
+    {
+        return [
+            'White',
+            'Black',
+            'Silver',
+            'Gray',
+            'Blue',
+            'Red',
+            'Green',
+            'Yellow',
+            'Gold',
+            'Beige',
+            'Bronze',
+            'Brown',
+            'Orange',
+        ];
+    }
+
 }

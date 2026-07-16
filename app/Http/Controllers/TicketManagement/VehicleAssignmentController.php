@@ -26,6 +26,11 @@ class VehicleAssignmentController extends Controller
         
         $ticket = Ticket::findOrFail($ticketId);
 
+        // Fetch existing assignment to ignore availability issues for currently assigned resources
+        $existingAssignment = VehicleAssignment::where('ticket_id', $ticket->id)->first();
+        $existingVehicleId = $existingAssignment->vehicle_id ?? null;
+        $existingDriverId = $existingAssignment->driver_id ?? null;
+
         // Get all vehicles with their current status
         $vehicles = Vehicle::with([
             'vehicleType',
@@ -34,9 +39,14 @@ class VehicleAssignmentController extends Controller
             'upcomingAssignments' => function($query) {
                 $query->limit(3);
             }
-        ])->get()->map(function($vehicle) use ($ticket) {
+        ])->get()->map(function($vehicle) use ($ticket, $existingVehicleId) {
             $status = $vehicle->getCurrentStatus();
             
+            $isAvailable = $vehicle->isAvailable();
+            if ($existingVehicleId && $vehicle->id == $existingVehicleId) {
+                $isAvailable = true;
+            }
+
             return [
                 'id' => $vehicle->id,
                 'registration_number' => $vehicle->registration_number,
@@ -46,7 +56,7 @@ class VehicleAssignmentController extends Controller
                 'seating_capacity' => $vehicle->seating_capacity,
                 'ownership' => $vehicle->getOwnershipType(),
                 'color' => $vehicle->color,
-                'is_available' => $vehicle->isAvailable(),
+                'is_available' => $isAvailable,
                 'status' => $status['status'],
                 'status_label' => $status['label'],
                 'status_color' => $status['color'],
@@ -68,9 +78,14 @@ class VehicleAssignmentController extends Controller
             'upcomingAssignments' => function($query) {
                 $query->limit(3);
             }
-        ])->get()->map(function($driver) {
+        ])->get()->map(function($driver) use ($existingDriverId) {
             $status = $driver->getCurrentStatus();
             
+            $isAvailable = $driver->isAvailable();
+            if ($existingDriverId && $driver->id == $existingDriverId) {
+                $isAvailable = true;
+            }
+
             return [
                 'id' => $driver->id,
                 'name' => $driver->full_name,
@@ -80,7 +95,7 @@ class VehicleAssignmentController extends Controller
                 'job_location' => $driver->job_location,
                 'image_path' => $driver->image_path,
                 'employment_contract' => $driver->employment_contract,
-                'is_available' => $driver->isAvailable(),
+                'is_available' => $isAvailable,
                 'status' => $status['status'],
                 'status_label' => $status['label'],
                 'status_color' => $status['color'],
@@ -105,9 +120,12 @@ class VehicleAssignmentController extends Controller
                 'end_datetime' => $ticket->trip_end_datetime,
                 'passenger_count' => $ticket->passenger_count,
                 'vehicle_type' => $ticket->vehicleType->type_name ?? 'N/A',
+                'assigned_vehicle_id' => $ticket->assigned_vehicle_id,
+                'assigned_driver_id' => $ticket->assigned_driver_id,
             ],
         ]);
     }
+
 
     /**
      * Assign vehicle and driver to ticket
