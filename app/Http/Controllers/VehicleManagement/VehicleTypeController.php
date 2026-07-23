@@ -8,6 +8,15 @@ use App\Models\VehicleType;
 
 class VehicleTypeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:vehicle-management|create-vehicle-type|edit-vehicle-type|delete-vehicle-type', ['only' => ['index', 'show', 'list']]);
+        $this->middleware('permission:create-vehicle-type', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-vehicle-type', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-vehicle-type', ['only' => ['destroy']]);
+    }
+
     public function index()
     {
         return view('VehicleManagement.VehicleTypes.index');

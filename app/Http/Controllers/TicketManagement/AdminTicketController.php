@@ -17,6 +17,12 @@ use Yajra\DataTables\DataTables;
 
 class AdminTicketController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:admin-ticket-management');
+    }
+
     public function index(Request $request) // This is for the admin_index view
     {
         if ($request->ajax()) {

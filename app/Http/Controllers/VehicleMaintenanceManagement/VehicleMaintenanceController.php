@@ -17,6 +17,15 @@ use Yajra\DataTables\DataTables;
 
 class VehicleMaintenanceController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:vehicle-maintenance-management|create-maintenance|edit-maintenance|delete-maintenance', ['only' => ['index', 'show', 'approve', 'generateInvoice']]);
+        $this->middleware('permission:create-maintenance', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-maintenance', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-maintenance', ['only' => ['destroy']]);
+    }
+
     /**
      * Display a listing of maintenance records
      */

@@ -11,6 +11,15 @@ use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\DataTables;
 class VehicleOperationalLogController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:vehicle-maintenance-management|create-operational-log|edit-operational-log|delete-operational-log', ['only' => ['index', 'show', 'quickMeterReading']]);
+        $this->middleware('permission:create-operational-log', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-operational-log', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-operational-log', ['only' => ['destroy']]);
+    }
+
     /**
      * Display a listing of operational logs
      */

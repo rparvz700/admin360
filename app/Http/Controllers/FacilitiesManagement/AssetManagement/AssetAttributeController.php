@@ -9,6 +9,15 @@ use App\Models\AssetCategory;
 
 class AssetAttributeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:asset-management|create-asset-attribute|edit-asset-attribute|delete-asset-attribute', ['only' => ['index', 'show']]);
+        $this->middleware('permission:create-asset-attribute', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-asset-attribute', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-asset-attribute', ['only' => ['destroy']]);
+    }
+
     public function index(Request $request)
     {
         if ($request->ajax()) {

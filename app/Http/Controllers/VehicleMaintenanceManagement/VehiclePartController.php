@@ -10,6 +10,15 @@ use Yajra\DataTables\DataTables;
 
 class VehiclePartController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:vehicle-maintenance-management|create-vehicle-part|edit-vehicle-part|delete-vehicle-part', ['only' => ['index', 'show', 'partHistory']]);
+        $this->middleware('permission:create-vehicle-part', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-vehicle-part', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-vehicle-part', ['only' => ['destroy']]);
+    }
+
     /**
      * Display a listing of vehicle parts
      */

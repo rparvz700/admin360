@@ -11,6 +11,15 @@ use Yajra\DataTables\DataTables;
 
 class GenericDocumentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:document-management|create-generic-document|edit-generic-document|delete-generic-document', ['only' => ['index', 'show', 'list', 'fetchDocumentables']]);
+        $this->middleware('permission:create-generic-document', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-generic-document', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-generic-document', ['only' => ['destroy']]);
+    }
+
     public function index(Request $request)
     {
         if ($request->ajax()) {

@@ -9,6 +9,15 @@ use App\Models\GenericDocumentCategory;
 
 class GenericDocumentAttributeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:document-management|create-generic-document-attribute|edit-generic-document-attribute|delete-generic-document-attribute', ['only' => ['index', 'show', 'list']]);
+        $this->middleware('permission:create-generic-document-attribute', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-generic-document-attribute', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-generic-document-attribute', ['only' => ['destroy']]);
+    }
+
     public function index()
     {
         return view('GenericDocumentManagement.GenericDocumentAttributes.index');

@@ -15,6 +15,12 @@ use Illuminate\Support\Str;
 
 class MaintenanceReportController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:vehicle-maintenance-management|view-maintenance-report');
+    }
+
     /**
      * Display maintenance dashboard
      */

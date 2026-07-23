@@ -18,6 +18,12 @@ use Yajra\DataTables\DataTables;
 
 class TicketController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:user-ticket-management');
+    }
+
     public function index(Request $request)
     {
         if ($request->ajax()) {

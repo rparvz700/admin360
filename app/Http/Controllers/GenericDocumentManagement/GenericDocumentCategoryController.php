@@ -8,6 +8,15 @@ use App\Models\GenericDocumentCategory;
 
 class GenericDocumentCategoryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:document-management|create-generic-document-category|edit-generic-document-category|delete-generic-document-category', ['only' => ['index', 'show', 'list']]);
+        $this->middleware('permission:create-generic-document-category', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-generic-document-category', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-generic-document-category', ['only' => ['destroy']]);
+    }
+
     public function index()
     {
         return view('GenericDocumentManagement.GenericDocumentCategories.index');

@@ -13,6 +13,15 @@ use App\Models\VatTax;
 
 class RentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:create-rent|edit-rent|delete-rent', ['only' => ['index', 'show', 'list', 'getHistory']]);
+        $this->middleware('permission:create-rent', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-rent', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-rent', ['only' => ['destroy']]);
+    }
+
     public function list(Request $request)
     {
         $query = RentBase::with('agreement')->orderBy('id', 'desc');
