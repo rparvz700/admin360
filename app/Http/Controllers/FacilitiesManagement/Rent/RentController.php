@@ -58,11 +58,12 @@ class RentController extends Controller
     public function create()
     {
         $agreements = Agreement::with('floors')->where('status', 1)->get();
+        $utilityTypes = \App\Models\UtilityType::where('is_active', true)->get();
         $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
         $componentTypes = RentComponentCalculator::COMPONENTS;
         $taxableAreaSft = (float) config('facilities.rent_taxable_area_sft', 150);
 
-        return view('FacilitiesManagement.Rent.create', compact('agreements', 'vatTax', 'componentTypes', 'taxableAreaSft'));
+        return view('FacilitiesManagement.Rent.create', compact('agreements', 'utilityTypes', 'vatTax', 'componentTypes', 'taxableAreaSft'));
     }
 
     public function store(Request $request, RentComponentCalculator $calculator)
@@ -113,6 +114,23 @@ class RentController extends Controller
             }
         }
         $this->saveSecurityDeposits($request, $base->agreement_id);
+
+        if ($request->has('utilities')) {
+            foreach ($request->input('utilities', []) as $typeId => $utilData) {
+                $amount = is_numeric($utilData['amount'] ?? null) ? (float) $utilData['amount'] : 0.00;
+                \App\Models\AgreementUtility::updateOrCreate(
+                    [
+                        'agreement_id' => $request->agreement_id,
+                        'utility_type_id' => $typeId,
+                    ],
+                    [
+                        'amount' => $amount,
+                        'disburse_with_rent' => isset($utilData['disburse_with_rent']),
+                    ]
+                );
+            }
+        }
+
         return redirect()->route('rent.index')->with('success', 'Rent created successfully.');
     }
 
@@ -120,11 +138,15 @@ class RentController extends Controller
     {
         $base = RentBase::with(['increments', 'components', 'agreement.floors'])->findOrFail($id);
         $agreements = Agreement::with('floors')->where('status', 1)->get();
+        $utilityTypes = \App\Models\UtilityType::where('is_active', true)->get();
+        $agreementUtilities = \App\Models\AgreementUtility::where('agreement_id', $base->agreement_id)
+            ->get()
+            ->keyBy('utility_type_id');
         $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
         $componentTypes = RentComponentCalculator::COMPONENTS;
         $taxableAreaSft = (float) config('facilities.rent_taxable_area_sft', 150);
 
-        return view('FacilitiesManagement.Rent.edit', compact('base', 'agreements', 'vatTax', 'componentTypes', 'taxableAreaSft'));
+        return view('FacilitiesManagement.Rent.edit', compact('base', 'agreements', 'utilityTypes', 'agreementUtilities', 'vatTax', 'componentTypes', 'taxableAreaSft'));
     }
 
     public function update(Request $request, $id, RentComponentCalculator $calculator)
@@ -180,6 +202,23 @@ class RentController extends Controller
         }
         \App\Models\SecurityDeposit::where('agreement_id', $base->agreement_id)->delete();
         $this->saveSecurityDeposits($request, $base->agreement_id);
+
+        if ($request->has('utilities')) {
+            foreach ($request->input('utilities', []) as $typeId => $utilData) {
+                $amount = is_numeric($utilData['amount'] ?? null) ? (float) $utilData['amount'] : 0.00;
+                \App\Models\AgreementUtility::updateOrCreate(
+                    [
+                        'agreement_id' => $request->agreement_id,
+                        'utility_type_id' => $typeId,
+                    ],
+                    [
+                        'amount' => $amount,
+                        'disburse_with_rent' => isset($utilData['disburse_with_rent']),
+                    ]
+                );
+            }
+        }
+
         return redirect()->route('rent.index')->with('success', 'Rent updated successfully.');
     }
 

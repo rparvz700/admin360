@@ -16,6 +16,7 @@ class Agreement extends Model
 
     protected $fillable = [
         'agreement_ref_no',
+        'vendor_id',
         'agreement_date',
         'from_date',
         'to_date',
@@ -25,14 +26,14 @@ class Agreement extends Model
         'updated_at',
     ];
 
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class, 'vendor_id');
+    }
+
     public function floors()
     {
         return $this->hasMany(PropertiesFloor::class, 'agreement_id');
-    }
-
-    public function utilities()
-    {
-        return $this->hasMany(AgreementUtility::class, 'agreement_id');
     }
 
     public function payments()

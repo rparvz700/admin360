@@ -406,6 +406,20 @@
                                     @enderror
                                 </div>
                                 <div class="col-md-6 mb-2">
+                                    <label class="form-label">Vendor</label>
+                                    <select name="vendor_id" id="vendor_id" class="form-select js-select2{{ $invalidClass('vendor_id') }}" data-placeholder="Select Vendor (Optional)" style="width: 100%;">
+                                        <option value=""></option>
+                                        @foreach ($vendors as $vendor)
+                                            <option value="{{ $vendor->id }}" {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>
+                                                {{ $vendor->name }} ({{ $vendor->vendor_code }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('vendor_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6 mb-2">
                                     <label class="form-label">Agreement Date</label>
                                     <input type="date" name="agreement_date"
                                         class="form-control{{ $invalidClass('agreement_date') }}"

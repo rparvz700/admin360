@@ -62,6 +62,7 @@
                             <tr>
                                 <th class="text-center all">ID</th>
                                 <th class="all">Reference No</th>
+                                <th class="all">Vendor</th>
                                 <th class="all">Agreement Date</th>
                                 <th class="all">From Date</th>
                                 <th class="all">To Date</th>
@@ -155,6 +156,10 @@
                             {
                                 data: 'agreement_ref_no',
                                 name: 'agreement_ref_no'
+                            },
+                            {
+                                data: 'vendor',
+                                name: 'vendor'
                             },
                             {
                                 data: 'agreement_date',

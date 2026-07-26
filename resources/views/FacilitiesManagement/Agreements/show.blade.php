@@ -56,6 +56,10 @@
                                             <td>{{ $agreement->agreement_ref_no ?? 'N/A' }}</td>
                                         </tr>
                                         <tr>
+                                            <th>Vendor</th>
+                                            <td>{{ $agreement->vendor->name ?? 'N/A' }} {{ $agreement->vendor ? '(' . $agreement->vendor->vendor_code . ')' : '' }}</td>
+                                        </tr>
+                                        <tr>
                                             <th>Agreement Date</th>
                                             <td>{{ $agreement->agreement_date ? \Carbon\Carbon::parse($agreement->agreement_date)->format('Y-m-d') : 'N/A' }}
                                             </td>

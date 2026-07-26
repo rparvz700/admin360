@@ -9,6 +9,7 @@ use Yajra\DataTables\DataTables;
 use Illuminate\Http\Request;
 use App\Models\GenericDocument;
 use App\Models\TableSetting;
+use App\Models\Vendor;
 
 class AgreementsController extends Controller
 {
@@ -18,9 +19,10 @@ class AgreementsController extends Controller
         $tableConfig = $globalSettings ? $globalSettings->settings : null;
 
         if ($request->ajax()) {
-            $query = Agreement::orderBy('id', 'desc')->get();
+            $query = Agreement::with('vendor')->orderBy('id', 'desc')->get();
             return DataTables::of($query)
                 ->addIndexColumn()
+                ->addColumn('vendor', function($row) { return $row->vendor ? $row->vendor->name : '-'; })
                 ->addColumn('agreement_date', function($row) { return $row->agreement_date; })
                 ->addColumn('from_date', function($row) { return $row->from_date; })
                 ->addColumn('to_date', function($row) { return $row->to_date; })
@@ -40,26 +42,28 @@ class AgreementsController extends Controller
 
     public function show($id)
     {
-        $agreement = Agreement::findOrFail($id);
+        $agreement = Agreement::with('vendor')->findOrFail($id);
         return view('FacilitiesManagement.Agreements.show', compact('agreement'));
     }
 
     public function create()
     {   
         $documents = GenericDocument::with('category')->get();
+        $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
         $agreement = new Agreement();
-        return view('FacilitiesManagement.Agreements.create', compact('agreement','documents'));
+        return view('FacilitiesManagement.Agreements.create', compact('agreement','documents', 'vendors'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'agreement_ref_no' => 'required|string|max:255',
-            // Add other fields as needed
+            'vendor_id' => 'nullable|exists:vendors,id',
         ]);
 
         $data = [
             'agreement_ref_no' => $request->agreement_ref_no,
+            'vendor_id' => $request->vendor_id,
             'agreement_date' => $request->agreement_date,
             'from_date' => $request->from_date,
             'to_date' => $request->to_date,
@@ -81,8 +85,9 @@ class AgreementsController extends Controller
     public function edit($id)
     {
         $documents = GenericDocument::with('category')->get();
+        $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
         $agreement = Agreement::findOrFail($id);
-        return view('FacilitiesManagement.Agreements.edit', compact('agreement', 'documents'));
+        return view('FacilitiesManagement.Agreements.edit', compact('agreement', 'documents', 'vendors'));
     }
 
     public function update(Request $request, $id)
@@ -90,11 +95,12 @@ class AgreementsController extends Controller
         $agreement = Agreement::findOrFail($id);
         $validated = $request->validate([
             'agreement_ref_no' => 'required|string|max:255',
-            // Add other fields as needed
+            'vendor_id' => 'nullable|exists:vendors,id',
         ]);
 
         $data = [
             'agreement_ref_no' => $request->agreement_ref_no,
+            'vendor_id' => $request->vendor_id,
             'agreement_date' => $request->agreement_date,
             'from_date' => $request->from_date,
             'to_date' => $request->to_date,

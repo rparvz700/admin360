@@ -43,8 +43,9 @@ class PropertyWizardController extends Controller
 
         $projects = Project::where('status', 1)->get();
         $utilityTypes = \App\Models\UtilityType::where('is_active', true)->get();
+        $vendors = \App\Models\Vendor::where('is_active', true)->orderBy('name')->get();
 
-        return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects', 'utilityTypes'));
+        return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects', 'utilityTypes', 'vendors'));
     }
 
     public function store(StorePropertyWizardRequest $request)
@@ -55,6 +56,7 @@ class PropertyWizardController extends Controller
             // 2. Create Agreement
             $agreement = Agreement::create([
                 'agreement_ref_no' => $request->agreement_ref_no,
+                'vendor_id'        => $request->vendor_id,
                 'agreement_date'   => $request->agreement_date,
                 'from_date'        => $request->from_date,
                 'to_date'          => $request->to_date,

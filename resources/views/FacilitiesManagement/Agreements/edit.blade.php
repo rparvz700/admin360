@@ -8,6 +8,10 @@
     Edit Agreement
 @endsection
 
+@section('styles')
+    <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">
+@endsection
+
 @section('content')
     <div class="content">
         <div class="agreement-page-header">
@@ -53,4 +57,11 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>
+    <script>
+        One.helpersOnLoad(["jq-select2"]);
+    </script>
 @endsection

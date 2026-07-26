@@ -45,6 +45,11 @@ class Vendor extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function agreements()
+    {
+        return $this->hasMany(Agreement::class);
+    }
+
     // Scopes
     public function scopeActive($query)
     {

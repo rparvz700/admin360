@@ -23,6 +23,7 @@ class StorePropertyWizardRequest extends FormRequest
     {
         return [
             'agreement_ref_no' => 'required|string|max:255',
+            'vendor_id' => 'nullable|exists:vendors,id',
             'agreement_date' => 'nullable|date',
             'from_date' => 'nullable|date',
             'to_date' => 'nullable|date|after_or_equal:from_date',
@@ -105,6 +106,7 @@ class StorePropertyWizardRequest extends FormRequest
     {
         return [
             'agreement_ref_no' => 'Agreement Reference No',
+            'vendor_id' => 'Vendor',
             'agreement_date' => 'Agreement Date',
             'from_date' => 'From Date',
             'to_date' => 'To Date',

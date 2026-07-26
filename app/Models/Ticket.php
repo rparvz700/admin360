@@ -24,7 +24,6 @@ class Ticket extends Model
         'trip_start_datetime',
         'trip_end_datetime',
         'trip_location_details',
-        'trip_location_coordinates',
         'passenger_count',
         'trip_purpose',
         'asset_id',
@@ -46,7 +45,6 @@ class Ticket extends Model
         'assigned_at' => 'datetime',
         'completed_at' => 'datetime',
         'trip_location_details' => 'array',
-        'trip_location_coordinates' => 'array',
     ];
 
     protected static function boot()
