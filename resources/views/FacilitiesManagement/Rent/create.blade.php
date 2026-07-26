@@ -59,11 +59,6 @@
                                 </select>
                             </div>
                             <div class="col-md-6 col-sm-12 mb-4">
-                                <label class="form-label" for="base_rent">Base Rent</label>
-                                <input type="number" step="0.01" class="form-control" id="base_rent" name="base_rent"
-                                    value="{{ old('base_rent') }}" required>
-                            </div>
-                            <div class="col-md-6 col-sm-12 mb-4">
                                 <label class="form-label" for="is_at_source">Is At Source</label>
                                 <select class="form-select" id="is_at_source" name="is_at_source">
                                     <option value="">Select</option>
@@ -92,40 +87,7 @@
                         </div>
                     </section>
 
-                    <!-- Utilities & Service Charges Section -->
-                    <section class="mb-4 p-3 border rounded rent-panel">
-                        <h5 class="mb-3">Utilities & Service Charges</h5>
-                        <div class="table-responsive mb-3">
-                            <table class="table table-bordered table-sm wizard-table" id="utilitiesTable">
-                                <thead>
-                                    <tr>
-                                        <th>Utility Type</th>
-                                        <th>Monthly Amount</th>
-                                        <th>Disburse with Rent</th>
-                                        <th style="width: 80px;" class="text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Dynamic rows will go here -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="row g-2 align-items-center">
-                            <div class="col-md-4 col-sm-6">
-                                <select id="utility_type_selector" class="form-select">
-                                    <option value="">Choose Utility...</option>
-                                    @foreach ($utilityTypes as $type)
-                                        <option value="{{ $type->id }}" data-name="{{ $type->name }}">{{ $type->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-2 col-sm-6">
-                                <button type="button" class="btn btn-alt-primary" id="addUtilityRowBtn">
-                                    <i class="fa fa-plus me-1"></i> Add Utility
-                                </button>
-                            </div>
-                        </div>
-                    </section>
+                    @include('FacilitiesManagement.Rent.partials.components')
 
                     <!-- Rent Increments Section -->
                     <section class="mb-4 p-3 border rounded rent-panel">
@@ -134,7 +96,7 @@
                             <thead>
                                 <tr>
                                     <th>Start Date</th>
-                                    <th>Years</th>
+                                    <th>Months</th>
                                     <th>End Date</th>
                                     <th>Amount</th>
                                     <th>Percentage</th>
@@ -205,11 +167,11 @@
                         <table class="table table-bordered" id="depositsTable">
                             <thead>
                                 <tr>
-                                    <th>Adjust Amount</th>
-                                    <th>Adjust %</th>
-                                    <th>Adjust Start</th>
-                                    <th>Years</th> {{-- NEW FIELD HEADER for Deposits --}}
-                                    <th>Adjust End</th>
+                                    <th>Adjustable Amount</th>
+                                    <th>Month Interval</th>
+                                    <th>Adjustable / Month</th>
+                                    <th>Adjustable Start</th>
+                                    <th>Adjustable End</th>
                                     <th>Method Desc</th>
                                     <th>Action</th>
                                 </tr>
@@ -222,18 +184,19 @@
                                                     name="deposits[{{ $index }}][absorb_amount]"
                                                     class="form-control abs-amount"
                                                     value="{{ $deposit['absorb_amount'] ?? '' }}"></td>
+                                            <td><input type="number"
+                                                    name="deposits[{{ $index }}][month_interval]"
+                                                    class="form-control dep-months" min="1"
+                                                    value="{{ $deposit['month_interval'] ?? ($deposit['years'] ?? 1) }}"
+                                                    required></td>
                                             <td><input type="number" step="0.01"
-                                                    name="deposits[{{ $index }}][absorb_amount_percentage]"
-                                                    class="form-control abs-percent"
-                                                    value="{{ $deposit['absorb_amount_percentage'] ?? '' }}"></td>
+                                                    name="deposits[{{ $index }}][adjust_per_month]"
+                                                    class="form-control dep-per-month"
+                                                    value="{{ $deposit['adjust_per_month'] ?? '' }}" readonly></td>
                                             <td><input type="date"
                                                     name="deposits[{{ $index }}][absorb_start_date]"
                                                     class="form-control dep-start-date"
                                                     value="{{ $deposit['absorb_start_date'] ?? '' }}"></td>
-                                            <td><input type="number" name="deposits[{{ $index }}][years]"
-                                                    class="form-control dep-years" min="1"
-                                                    value="{{ $deposit['years'] ?? 1 }}" required></td>
-                                            {{-- NEW INPUT for Deposits --}}
                                             <td><input type="date"
                                                     name="deposits[{{ $index }}][absorb_end_date]"
                                                     class="form-control dep-end-date"
@@ -266,29 +229,38 @@
 @section('scripts')
     <script src="{{ asset('js/plugins/select2/js/select2.full.js') }}"></script>
     <script src="{{ asset('js/plugins/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
+    @php
+        $agreementAreas = $agreements->mapWithKeys(function ($agreement) {
+            return [
+                (string) $agreement->id => [
+                    'floor_area' => (float) $agreement->floors->sum('floor_area_sft'),
+                    'car_parking' => (float) $agreement->floors->sum('car_parking'),
+                    'dg_space' => (float) $agreement->floors->sum('dg_space_sft'),
+                    'store_space' => (float) $agreement->floors->sum('store_space_sft'),
+                ],
+            ];
+        });
+    @endphp
+    @include('FacilitiesManagement.Rent.partials.component-script', ['agreementAreas' => $agreementAreas])
 
     <script>
         One.helpersOnLoad(["jq-select2", "jq-notify"]);
 
         // --- Date Calculation Functions (Renamed for generality) ---
-        function calculateEndDate(startDateStr, years) {
-            if (!startDateStr || !years || years <= 0) {
+        function calculateMonthEndDate(startDateStr, months) {
+            if (!startDateStr || !months || months <= 0) {
                 return '';
             }
             const startDate = new Date(startDateStr);
-            // Ensure date is valid and adjust for timezone issues if any by getting UTC components
-            const startYear = startDate.getFullYear();
-            const startMonth = startDate.getMonth();
-            const startDay = startDate.getDate();
 
             if (isNaN(startDate.getTime())) {
-                return ''; // Invalid date
+                return '';
             }
 
-            const endDate = new Date(startYear + parseInt(years, 10), startMonth, startDay);
-            endDate.setDate(endDate.getDate() - 1); // Subtract one day
+            const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + parseInt(months, 10), startDate
+                .getDate());
+            endDate.setDate(endDate.getDate() - 1);
 
-            // Format date to YYYY-MM-DD
             const year = endDate.getFullYear();
             const month = String(endDate.getMonth() + 1).padStart(2, '0');
             const day = String(endDate.getDate()).padStart(2, '0');
@@ -326,7 +298,7 @@
                 if (!nextRow.length) break; // No more rows to update
 
                 const nextStartDateInput = nextRow.find('.inc-start-date');
-                const nextYearsInput = nextRow.find('.inc-years');
+                const nextMonthsInput = nextRow.find('.inc-years');
                 const nextEndDateInput = nextRow.find('.inc-end-date');
 
                 const newNextStartDate = calculateNextStartDate(currentEndDate);
@@ -336,8 +308,8 @@
                     nextStartDateInput.val(newNextStartDate);
                 }
 
-                const nextYears = nextYearsInput.val();
-                const newNextEndDate = calculateEndDate(newNextStartDate, nextYears);
+                const nextMonths = nextMonthsInput.val();
+                const newNextEndDate = calculateMonthEndDate(newNextStartDate, nextMonths);
 
                 // Only update end date if it's different
                 if (nextEndDateInput.val() !== newNextEndDate) {
@@ -362,7 +334,7 @@
                 if (!nextRow.length) break; // No more rows to update
 
                 const nextStartDateInput = nextRow.find('.dep-start-date');
-                const nextYearsInput = nextRow.find('.dep-years');
+                const nextMonthsInput = nextRow.find('.dep-months');
                 const nextEndDateInput = nextRow.find('.dep-end-date');
 
                 const newNextStartDate = calculateNextStartDate(currentEndDate);
@@ -371,8 +343,8 @@
                     nextStartDateInput.val(newNextStartDate);
                 }
 
-                const nextYears = nextYearsInput.val();
-                const newNextEndDate = calculateEndDate(newNextStartDate, nextYears);
+                const nextMonths = nextMonthsInput.val();
+                const newNextEndDate = calculateMonthEndDate(newNextStartDate, nextMonths);
 
                 if (nextEndDateInput.val() !== newNextEndDate) {
                     nextEndDateInput.val(newNextEndDate);
@@ -380,10 +352,17 @@
 
                 currentEndDate = newNextEndDate;
                 currentRow = nextRow;
+                updateDepositPerMonth(nextRow);
                 if (!currentEndDate) {
                     break;
                 }
             }
+        }
+
+        function updateDepositPerMonth(row) {
+            const amount = parseFloat(row.find('.abs-amount').val()) || 0;
+            const months = parseInt(row.find('.dep-months').val(), 10) || 0;
+            row.find('.dep-per-month').val(amount > 0 && months > 0 ? (amount / months).toFixed(2) : '');
         }
 
 
@@ -415,12 +394,12 @@
                         </tr>
                     `);
 
-                    // Immediately try to calculate end date for the newly added row if start date and years are present
+                    // Immediately try to calculate end date for the newly added row if start date and months are present
                     const newRow = $('#incrementsTable tbody tr').last();
                     const startDateInput = newRow.find('.inc-start-date');
-                    const yearsInput = newRow.find('.inc-years');
-                    if (startDateInput.val() && yearsInput.val()) {
-                        const endDate = calculateEndDate(startDateInput.val(), yearsInput.val());
+                    const monthsInput = newRow.find('.inc-years');
+                    if (startDateInput.val() && monthsInput.val()) {
+                        const endDate = calculateMonthEndDate(startDateInput.val(), monthsInput.val());
                         newRow.find('.inc-end-date').val(endDate);
                         updateSubsequentIncrements(newRow); // Trigger update from this new row
                     }
@@ -451,14 +430,14 @@
                     }
                 });
 
-                // Handle changes to start date or years for any increment row
+                // Handle changes to start date or months for any increment row
                 $(document).on('change', '.inc-start-date, .inc-years', function() {
                     const currentRow = $(this).closest('tr');
                     const startDateStr = currentRow.find('.inc-start-date').val();
-                    const years = currentRow.find('.inc-years').val();
+                    const months = currentRow.find('.inc-years').val();
                     const endDateInput = currentRow.find('.inc-end-date');
 
-                    const newEndDate = calculateEndDate(startDateStr, years);
+                    const newEndDate = calculateMonthEndDate(startDateStr, months);
                     endDateInput.val(newEndDate);
 
                     // Trigger cascading update for subsequent rows
@@ -469,11 +448,11 @@
                 $('#incrementsTable tbody tr').each(function() {
                     const currentRow = $(this);
                     const startDateInput = currentRow.find('.inc-start-date');
-                    const yearsInput = currentRow.find('.inc-years');
+                    const monthsInput = currentRow.find('.inc-years');
                     const endDateInput = currentRow.find('.inc-end-date');
 
-                    if (startDateInput.val() && yearsInput.val()) {
-                        const newEndDate = calculateEndDate(startDateInput.val(), yearsInput.val());
+                    if (startDateInput.val() && monthsInput.val()) {
+                        const newEndDate = calculateMonthEndDate(startDateInput.val(), monthsInput.val());
                         if (endDateInput.val() !== newEndDate) {
                             endDateInput.val(newEndDate);
                         }
@@ -503,9 +482,9 @@
                     $('#depositsTable tbody').append(`
                         <tr>
                             <td><input type="number" step="0.01" name="deposits[${depositIndex}][absorb_amount]" class="form-control abs-amount"></td>
-                            <td><input type="number" step="0.01" name="deposits[${depositIndex}][absorb_amount_percentage]" class="form-control abs-percent"></td>
+                            <td><input type="number" name="deposits[${depositIndex}][month_interval]" class="form-control dep-months" min="1" value="1" required></td>
+                            <td><input type="number" step="0.01" name="deposits[${depositIndex}][adjust_per_month]" class="form-control dep-per-month" readonly></td>
                             <td><input type="date" name="deposits[${depositIndex}][absorb_start_date]" class="form-control dep-start-date" value="${newStartDate}"></td>
-                            <td><input type="number" name="deposits[${depositIndex}][years]" class="form-control dep-years" min="1" value="1" required></td>
                             <td><input type="date" name="deposits[${depositIndex}][absorb_end_date]" class="form-control dep-end-date" required></td>
                             <td><input type="text" name="deposits[${depositIndex}][method_description]" class="form-control"></td>
                             <td><button type="button" class="btn btn-alt-danger btn-sm remove-deposit">Remove</button></td>
@@ -514,10 +493,11 @@
 
                     const newRow = $('#depositsTable tbody tr').last();
                     const startDateInput = newRow.find('.dep-start-date');
-                    const yearsInput = newRow.find('.dep-years');
-                    if (startDateInput.val() && yearsInput.val()) {
-                        const endDate = calculateEndDate(startDateInput.val(), yearsInput.val());
+                    const monthsInput = newRow.find('.dep-months');
+                    if (startDateInput.val() && monthsInput.val()) {
+                        const endDate = calculateMonthEndDate(startDateInput.val(), monthsInput.val());
                         newRow.find('.dep-end-date').val(endDate);
+                        updateDepositPerMonth(newRow);
                         updateSubsequentDeposits(newRow);
                     }
 
@@ -536,20 +516,21 @@
                         if (firstRemainingRow.length) {
                             firstRemainingRow.find('.dep-start-date').val('');
                             firstRemainingRow.find('.dep-end-date').val('');
-                            firstRemainingRow.find('.dep-years').trigger('change');
+                            firstRemainingRow.find('.dep-months').trigger('change');
                         }
                     }
                 });
 
-                // Handle changes to start date or years for any deposit row
-                $(document).on('change', '.dep-start-date, .dep-years', function() {
+                // Handle changes to start date or months for any deposit row
+                $(document).on('change input', '.dep-start-date, .dep-months, .abs-amount', function() {
                     const currentRow = $(this).closest('tr');
                     const startDateStr = currentRow.find('.dep-start-date').val();
-                    const years = currentRow.find('.dep-years').val();
+                    const months = currentRow.find('.dep-months').val();
                     const endDateInput = currentRow.find('.dep-end-date');
 
-                    const newEndDate = calculateEndDate(startDateStr, years);
+                    const newEndDate = calculateMonthEndDate(startDateStr, months);
                     endDateInput.val(newEndDate);
+                    updateDepositPerMonth(currentRow);
 
                     updateSubsequentDeposits(currentRow);
                 });
@@ -558,11 +539,13 @@
                 $('#depositsTable tbody tr').each(function() {
                     const currentRow = $(this);
                     const startDateInput = currentRow.find('.dep-start-date');
-                    const yearsInput = currentRow.find('.dep-years');
+                    const monthsInput = currentRow.find('.dep-months');
                     const endDateInput = currentRow.find('.dep-end-date');
 
-                    if (startDateInput.val() && yearsInput.val()) {
-                        const newEndDate = calculateEndDate(startDateInput.val(), yearsInput.val());
+                    updateDepositPerMonth(currentRow);
+
+                    if (startDateInput.val() && monthsInput.val()) {
+                        const newEndDate = calculateMonthEndDate(startDateInput.val(), monthsInput.val());
                         if (endDateInput.val() !== newEndDate) {
                             endDateInput.val(newEndDate);
                         }
@@ -582,12 +565,12 @@
                         0;
                     const depositRows = $('#depositsTable tbody tr').filter(function() {
                         return $(this).find('input').filter(function() {
-                            // Consider a row "entered" if any of its main fields (amount, percentage, start date, years) are filled
+                            // Consider a row "entered" if any of its main fields (amount, start date, month interval) are filled
                             return $(this).hasClass('abs-amount') && $(this).val() !== '' ||
-                                $(this).hasClass('abs-percent') && $(this).val() !== '' ||
                                 $(this).hasClass('dep-start-date') && $(this).val() !==
                                 '' ||
-                                $(this).hasClass('dep-years') && $(this).val() !== '1' && $(
+                                $(this).hasClass('dep-months') && $(this).val() !== '1' &&
+                                $(
                                     this).val() !==
                                 ''; // Default is 1, so check for non-default or empty
                         }).length > 0;
@@ -701,102 +684,9 @@
             refreshIncrementAmountsFromPercentages();
         });
 
-        // Deposit: If Amount is typed, calculate Percentage
-        $(document).on('input', '.abs-amount', function() {
-            let baseRent = getBaseRent();
-            let amount = parseFloat($(this).val()) || 0;
-            let row = $(this).closest('tr');
-
-            if (baseRent > 0) {
-                let percentage = (amount / baseRent) * 100;
-                row.find('.abs-percent').val(percentage.toFixed(2));
-            }
-        });
-
-        // Deposit: If Percentage is typed, calculate Amount
-        $(document).on('input', '.abs-percent', function() {
-            let baseRent = getBaseRent();
-            let percentage = parseFloat($(this).val()) || 0;
-            let row = $(this).closest('tr');
-
-            if (baseRent > 0) {
-                let amount = (percentage / 100) * baseRent;
-                row.find('.abs-amount').val(amount.toFixed(2));
-            }
-        });
-
         // Re-calculate all percentage/amount fields if Base Rent changes
         $('#base_rent').on('input', function() {
             refreshIncrementAmountsFromPercentages();
-
-            let baseRent = parseFloat($(this).val()) || 0;
-            if (baseRent > 0) {
-                $('.abs-percent').each(function() {
-                    let row = $(this).closest('tr');
-                    let percentage = parseFloat($(this).val()) || 0;
-                    if (percentage > 0) {
-                        let amount = (percentage / 100) * baseRent;
-                        row.find('.abs-amount').val(amount.toFixed(2));
-                    }
-                });
-            }
-        });
-
-        // --- Dynamic Utilities Logic ---
-        const utilitySelector = $('#utility_type_selector');
-        const utilitiesTableBody = $('#utilitiesTable tbody');
-
-        // Add Row
-        $('#addUtilityRowBtn').click(function() {
-            const selectedOption = utilitySelector.find('option:selected');
-            const id = selectedOption.val();
-            const name = selectedOption.data('name');
-
-            if (!id) {
-                alert('Please select a utility type.');
-                return;
-            }
-
-            const row = `
-                <tr data-id="${id}">
-                    <td class="align-middle fw-semibold">
-                        ${name}
-                        <input type="hidden" name="utilities[${id}][id]" value="${id}">
-                    </td>
-                    <td>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text">৳</span>
-                            <input type="number" step="0.01" class="form-control form-control-sm" 
-                                   name="utilities[${id}][amount]" placeholder="0.00" required>
-                        </div>
-                    </td>
-                    <td class="align-middle">
-                        <div class="form-check form-switch mb-0">
-                            <input class="form-check-input" type="checkbox" 
-                                   name="utilities[${id}][disburse_with_rent]" value="1" checked>
-                            <label class="form-check-label fs-xs">Disburse with Rent</label>
-                        </div>
-                    </td>
-                    <td class="text-center align-middle">
-                        <button type="button" class="btn btn-sm btn-alt-danger remove-utility-row">
-                            <i class="fa fa-times"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-            utilitiesTableBody.append(row);
-
-            selectedOption.prop('disabled', true);
-            utilitySelector.val('');
-        });
-
-        // Remove Row
-        utilitiesTableBody.on('click', '.remove-utility-row', function() {
-            const row = $(this).closest('tr');
-            const id = row.data('id');
-
-            utilitySelector.find(`option[value="${id}"]`).prop('disabled', false);
-            row.remove();
         });
 
         refreshIncrementPercentages();

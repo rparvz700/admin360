@@ -116,33 +116,38 @@
                             </div>
                         </div>
 
-                        <!-- Utilities & Service Charges Section -->
-                        <h4 class="fw-light mt-4 mb-3">Utilities & Service Charges</h4>
-                        <div class="table-responsive mb-4">
+                        <h4 class="fw-light mt-4 mb-3">Rent Segregation</h4>
+                        <div class="table-responsive">
                             <table class="table table-bordered table-striped table-vcenter fs-sm">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Utility Type</th>
-                                        <th>Monthly Amount</th>
-                                        <th>Disburse with Rent</th>
+                                        <th>Space Type</th>
+                                        <th>Area (sft)</th>
+                                        <th>Rent</th>
+                                        <th>VAT Applied</th>
+                                        <th>VAT</th>
+                                        <th>Tax</th>
+                                        <th>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse ($base->agreement->utilities ?? [] as $util)
+                                    @forelse ($base->components as $component)
                                         <tr>
-                                            <td class="fw-semibold">{{ $util->utilityType->name ?? 'N/A' }}</td>
-                                            <td>৳ {{ number_format($util->amount ?? 0, 2) }}</td>
+                                            <td>{{ \App\Services\RentComponentCalculator::COMPONENTS[$component->component_type]['label'] ?? $component->component_type }}</td>
+                                            <td>{{ number_format($component->area_sft ?? 0, 2) }}</td>
+                                            <td>{{ number_format($component->rent_amount ?? 0, 2) }}</td>
                                             <td>
-                                                @if ($util->disburse_with_rent)
-                                                    <span class="badge bg-success">Yes</span>
-                                                @else
-                                                    <span class="badge bg-secondary">No</span>
-                                                @endif
+                                                <span class="badge bg-{{ $component->vat_applicable ? 'success' : 'secondary' }}">
+                                                    {{ $component->vat_applicable ? 'Yes' : 'No' }}
+                                                </span>
                                             </td>
+                                            <td>{{ number_format($component->vat_amount ?? 0, 2) }}</td>
+                                            <td>{{ number_format($component->tax_amount ?? 0, 2) }}</td>
+                                            <td>{{ number_format($component->total_amount ?? 0, 2) }}</td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="3" class="text-center text-muted py-3">No utilities or service charges configured.</td>
+                                            <td colspan="7" class="text-center text-muted py-3">No rent segregation defined.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -293,9 +298,10 @@
                         let html = '';
                         if (data && data.length > 0) {
                             data.forEach(log => {
-                                 const userName = log.user ? (log.user.name || log.user) :
+                                const userName = log.user ? (log.user.name || log.user) :
                                     'System';
-                                 const logDate = log.date ? log.date : 'N/A';
+                                const logDate = log.date ? new Date(log.date).toLocaleString() :
+                                    'N/A';
 
                                 if (log.changes && log.changes.length > 0) {
                                     log.changes.forEach(change => {
@@ -309,20 +315,20 @@
                                                 return value === 1 || value ===
                                                     '1' ? 'Yes' : 'No';
                                             }
-                                            // Format currency field                                             
+                                            // Format currency fields
                                             if (['Base Rent', 'Vat', 'Tax',
                                                     'Increment Amount',
                                                     'Security Deposit Total',
                                                     'Security Deposit Absorbable',
                                                     'Security Deposit Non Absorbable',
                                                     'Absorb Amount'
-                                                ].includes(field) || (field.endsWith('Amount') && value !== 'Removed')) {
-                                                return parseFloat(value.toString().replace(/,/g, ''))
+                                                ].includes(field)) {
+                                                return parseFloat(value)
                                                     .toLocaleString(undefined, {
                                                         minimumFractionDigits: 2,
                                                         maximumFractionDigits: 2
                                                     });
-                                            } 
+                                            }
                                             // Format percentage fields
                                             if (['Increment Percentage',
                                                     'Absorb Amount Percentage'
