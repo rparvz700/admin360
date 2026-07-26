@@ -8,6 +8,15 @@ use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:asset-management|create-project|edit-project|delete-project', ['only' => ['index', 'show']]);
+        $this->middleware('permission:create-project', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-project', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-project', ['only' => ['destroy']]);
+    }
+
     public function index(Request $request)
     {
         if ($request->ajax()) {

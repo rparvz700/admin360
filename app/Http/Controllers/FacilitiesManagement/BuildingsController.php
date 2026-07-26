@@ -12,6 +12,15 @@ use Illuminate\Support\Facades\Log;
 
 class BuildingsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:create-building|edit-building|delete-building', ['only' => ['index', 'show', 'list']]);
+        $this->middleware('permission:create-building', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-building', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-building', ['only' => ['destroy']]);
+    }
+
     public function list(Request $request)
     {
         $query = PropertiesBuilding::orderBy('id', 'desc');

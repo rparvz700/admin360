@@ -15,6 +15,12 @@ use Illuminate\Support\Str;
 
 class MaintenanceReportController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:vehicle-maintenance-management|view-maintenance-report');
+    }
+
     /**
      * Display maintenance dashboard
      */
@@ -235,7 +241,7 @@ class MaintenanceReportController extends Controller
         // Summary statistics (use cloned queries)
         $stats = [
             'total_replacements' => (clone $baseQuery)
-                ->where('action_type', 'replace')
+                ->whereIn('action_type', ['replace', 'replace_brand_new', 'replace_recondition'])
                 ->count(),
 
             'total_repairs' => (clone $baseQuery)

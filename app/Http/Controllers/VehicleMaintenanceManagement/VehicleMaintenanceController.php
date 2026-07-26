@@ -17,6 +17,15 @@ use Yajra\DataTables\DataTables;
 
 class VehicleMaintenanceController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:vehicle-maintenance-management|create-maintenance|edit-maintenance|delete-maintenance', ['only' => ['index', 'show', 'approve', 'generateInvoice']]);
+        $this->middleware('permission:create-maintenance', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-maintenance', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-maintenance', ['only' => ['destroy']]);
+    }
+
     /**
      * Display a listing of maintenance records
      */
@@ -122,9 +131,9 @@ class VehicleMaintenanceController extends Controller
             // Parts data
             'parts' => 'nullable|array',
             'parts.*.vehicle_part_id' => 'required|exists:vehicle_parts,id',
-            'parts.*.action_type' => 'required|in:replace,repair,service',
-            'parts.*.quantity' => 'required|integer|min:1',
-            'parts.*.part_cost' => 'required|numeric|min:0',
+            'parts.*.action_type' => 'nullable|in:replace,replace_brand_new,replace_recondition,repair,service',
+            'parts.*.quantity' => 'nullable|integer|min:1',
+            'parts.*.part_cost' => 'nullable|numeric|min:0',
             'parts.*.tyre_position' => 'nullable|string',
             'parts.*.warranty_period_months' => 'nullable|integer|min:0',
             'parts.*.next_replacement_due_date' => 'nullable|date',
@@ -138,13 +147,19 @@ class VehicleMaintenanceController extends Controller
             $parts_cost = 0;
             if ($request->has('parts')) {
                 foreach ($request->parts as $part) {
-                    $parts_cost += $part['part_cost'] * $part['quantity'];
+                    $parts_cost += ($part['part_cost'] ?? 0) * ($part['quantity'] ?? 1);
                 }
             }
 
             $validated['parts_cost'] = $parts_cost;
-            $validated['total_service_cost'] = ($validated['labor_cost'] ?? 0) + $parts_cost;
+            $validated['labor_cost'] = $validated['labor_cost'] ?? 0;
+            $validated['total_service_cost'] = $validated['labor_cost'] + $parts_cost;
             $validated['current_service_completed'] = $validated['status'] === 'completed';
+
+            // Calculate/default meter reading if not provided
+            if (!isset($validated['meter_reading_at_service']) || $validated['meter_reading_at_service'] === null) {
+                $validated['meter_reading_at_service'] = VehicleOperationalLog::getCurrentMeterReading($validated['vehicle_id']) ?? 0;
+            }
 
             $maintenance = VehicleMaintenance::create($validated);
 
@@ -155,8 +170,13 @@ class VehicleMaintenanceController extends Controller
                     $partData['vehicle_id'] = $validated['vehicle_id'];
                     $partData['vendor_id'] = $validated['vendor_id'];
                     
-                    if (isset($partData['warranty_period_months']) && $partData['warranty_period_months'] > 0) {
-                        $partData['warranty_expiry_date'] = now()->addMonths($partData['warranty_period_months']);
+                    // Apply default values for nullable part fields
+                    $partData['action_type'] = $partData['action_type'] ?? 'replace_brand_new';
+                    $partData['quantity'] = $partData['quantity'] ?? 1;
+                    $partData['part_cost'] = $partData['part_cost'] ?? 0;
+                    
+                    if (isset($partData['warranty_period_months']) && (int)$partData['warranty_period_months'] > 0) {
+                        $partData['warranty_expiry_date'] = now()->addMonths((int)$partData['warranty_period_months']);
                     }
 
                     VehicleMaintenancePart::create($partData);
@@ -233,9 +253,9 @@ class VehicleMaintenanceController extends Controller
             // Parts data
             'parts' => 'nullable|array',
             'parts.*.vehicle_part_id' => 'required|exists:vehicle_parts,id',
-            'parts.*.action_type' => 'required|in:replace,repair,service',
-            'parts.*.quantity' => 'required|integer|min:1',
-            'parts.*.part_cost' => 'required|numeric|min:0',
+            'parts.*.action_type' => 'nullable|in:replace,replace_brand_new,replace_recondition,repair,service',
+            'parts.*.quantity' => 'nullable|integer|min:1',
+            'parts.*.part_cost' => 'nullable|numeric|min:0',
             'parts.*.tyre_position' => 'nullable|string',
             'parts.*.warranty_period_months' => 'nullable|integer|min:0',
             'parts.*.next_replacement_due_date' => 'nullable|date',
@@ -249,16 +269,21 @@ class VehicleMaintenanceController extends Controller
             $parts_cost = 0;
             if ($request->has('parts')) {
                 foreach ($request->parts as $part) {
-                    $parts_cost += $part['part_cost'] * $part['quantity'];
+                    $parts_cost += ($part['part_cost'] ?? 0) * ($part['quantity'] ?? 1);
                 }
             }
 
             $validated['parts_cost'] = $parts_cost;
-            $validated['total_service_cost'] = ($validated['labor_cost'] ?? 0) + $parts_cost;
+            $validated['labor_cost'] = $validated['labor_cost'] ?? 0;
+            $validated['total_service_cost'] = $validated['labor_cost'] + $parts_cost;
             $validated['current_service_completed'] = $validated['status'] === 'completed';
 
-            $maintenance->update($validated);
+            // Calculate/default meter reading if not provided
+            if (!isset($validated['meter_reading_at_service']) || $validated['meter_reading_at_service'] === null) {
+                $validated['meter_reading_at_service'] = VehicleOperationalLog::getCurrentMeterReading($validated['vehicle_id']) ?? 0;
+            }
 
+            $dg = $maintenance->update($validated);
             // Update parts - delete old and create new
             $maintenance->maintenanceParts()->delete();
             
@@ -268,8 +293,13 @@ class VehicleMaintenanceController extends Controller
                     $partData['vehicle_id'] = $validated['vehicle_id'];
                     $partData['vendor_id'] = $validated['vendor_id'];
                     
-                    if (isset($partData['warranty_period_months']) && $partData['warranty_period_months'] > 0) {
-                        $partData['warranty_expiry_date'] = now()->addMonths($partData['warranty_period_months']);
+                    // Apply default values for nullable part fields
+                    $partData['action_type'] = $partData['action_type'] ?? 'replace_brand_new';
+                    $partData['quantity'] = $partData['quantity'] ?? 1;
+                    $partData['part_cost'] = $partData['part_cost'] ?? 0;
+                    
+                    if (isset($partData['warranty_period_months']) && (int)$partData['warranty_period_months'] > 0) {
+                        $partData['warranty_expiry_date'] = now()->addMonths((int)$partData['warranty_period_months']);
                     }
 
                     VehicleMaintenancePart::create($partData);

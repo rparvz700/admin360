@@ -8,6 +8,15 @@ use App\Models\Driver;
 
 class DriverController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:vehicle-management|create-driver|edit-driver|delete-driver', ['only' => ['index', 'show', 'list', 'importFromApi']]);
+        $this->middleware('permission:create-driver', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-driver', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-driver', ['only' => ['destroy']]);
+    }
+
     /**
      * Fetch drivers from external HR API and insert into drivers table.
      */

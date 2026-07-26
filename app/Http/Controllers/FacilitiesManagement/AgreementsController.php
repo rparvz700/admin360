@@ -13,6 +13,15 @@ use App\Models\Vendor;
 
 class AgreementsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:create-agreement|edit-agreement|delete-agreement', ['only' => ['index', 'show', 'getHistory']]);
+        $this->middleware('permission:create-agreement', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-agreement', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-agreement', ['only' => ['destroy']]);
+    }
+
     public function index(Request $request)
     {
         $globalSettings = TableSetting::where('table_identifier', 'agreements_table')->first();

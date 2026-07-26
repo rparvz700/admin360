@@ -270,6 +270,21 @@
                                     @if ($ticket->assignedDriver || $ticket->assignedVehicle)
                                         <hr>
                                         <h6 class="text-success">Current Assignment</h6>
+                                        @if ($ticket->latestVehicleAssignment)
+                                            <p><strong>Trip Status:</strong>
+                                                @if ($ticket->latestVehicleAssignment->status === 'scheduled')
+                                                    <span class="badge bg-info">Scheduled</span>
+                                                @elseif ($ticket->latestVehicleAssignment->status === 'active')
+                                                    <span class="badge bg-warning text-white">Active / On Trip</span>
+                                                @elseif ($ticket->latestVehicleAssignment->status === 'completed')
+                                                    <span class="badge bg-success">Completed</span>
+                                                @elseif ($ticket->latestVehicleAssignment->status === 'cancelled')
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                @else
+                                                    <span class="badge bg-secondary">{{ ucfirst($ticket->latestVehicleAssignment->status) }}</span>
+                                                @endif
+                                            </p>
+                                        @endif
                                         @if ($ticket->assignedDriver)
                                             <p><strong>Driver:</strong> {{ $ticket->assignedDriver->name }}
                                                 {{ $ticket->assignedDriver->sur_name }}</p>
@@ -452,6 +467,7 @@
                             </form>
                         </div>
                     </div>
+                @endif
 
                     <!-- Vehicle Assignment (for vehicle support tickets) -->
                     @if ($ticket->isVehicleSupport())
@@ -460,12 +476,33 @@
                                 <h6 class="mb-0">Assign Vehicle & Driver</h6>
                             </div>
                             <div class="card-body">
-                                @if ($ticket->latestVehicleAssignment && in_array($ticket->latestVehicleAssignment->status, ['completed', 'complete']))
+                                @if ($ticket->latestVehicleAssignment)
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="text-muted fw-semibold">Trip Status:</span>
+                                        @if ($ticket->latestVehicleAssignment->status === 'scheduled')
+                                            <span class="badge bg-info">Scheduled</span>
+                                        @elseif ($ticket->latestVehicleAssignment->status === 'active')
+                                            <span class="badge bg-warning text-white">Active / On Trip</span>
+                                        @elseif ($ticket->latestVehicleAssignment->status === 'completed')
+                                            <span class="badge bg-success">Completed</span>
+                                        @elseif ($ticket->latestVehicleAssignment->status === 'cancelled')
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        @else
+                                            <span class="badge bg-secondary">{{ ucfirst($ticket->latestVehicleAssignment->status) }}</span>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                @if ($ticket->latestVehicleAssignment && ($ticket->status === 'completed' || in_array($ticket->latestVehicleAssignment->status, ['completed', 'complete'])))
                                     <button type="button" class="btn btn-info w-100"
                                         data-bs-toggle="modal" data-bs-target="#tripDetailsModal"
                                         onclick="showTripDetails()">
                                         <i class="fas fa-route"></i> Trip Details
                                     </button>
+                                @elseif ($ticket->status === 'completed')
+                                    <div class="alert alert-secondary mb-0 py-2 small text-center">
+                                        <i class="fas fa-info-circle"></i> No vehicle assignment was recorded for this ticket.
+                                    </div>
                                 @else
                                     <button type="button" class="btn btn-success w-100"
                                         onclick="initAssignmentModal({{ $ticket->id }})" data-bs-toggle="modal"
@@ -478,7 +515,7 @@
                                 @endif
 
 
-                                @if ($ticket->latestVehicleAssignment && $ticket->latestVehicleAssignment->status === 'scheduled')
+                                @if ($ticket->status !== 'completed' && $ticket->latestVehicleAssignment && $ticket->latestVehicleAssignment->status === 'scheduled')
                                     <form
                                         action="{{ route('admin.tickets.trip.start', $ticket->scheduledVehicleAssignment->id) }}"
                                         method="POST">
@@ -491,7 +528,7 @@
                                     </form>
                                 @endif
 
-                                @if ($ticket->latestVehicleAssignment && $ticket->latestVehicleAssignment->status === 'active')
+                                @if ($ticket->status !== 'completed' && $ticket->latestVehicleAssignment && $ticket->latestVehicleAssignment->status === 'active')
                                     <!-- Animated Timeline -->
                                     <div class="trip-timeline-container my-3 p-4 border rounded bg-white shadow-sm">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -574,40 +611,41 @@
                     @endif
 
                     <!-- Status Update -->
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h6 class="mb-0">Update Status</h6>
+                    @if (!in_array($ticket->status, ['completed', 'cancelled']))
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0">Update Status</h6>
+                            </div>
+                            <div class="card-body">
+                                <form action="{{ route('admin.tickets.updateStatus', $ticket) }}" method="POST">
+                                    @csrf
+                                    <div class="mb-3">
+                                        <label class="form-label">New Status</label>
+                                        <select name="status" class="form-select" required>
+                                            <option value="pending" {{ $ticket->status == 'pending' ? 'selected' : '' }}>
+                                                Pending</option>
+                                            <option value="assigned" {{ $ticket->status == 'assigned' ? 'selected' : '' }}>
+                                                Assigned</option>
+                                            <option value="in_progress"
+                                                {{ $ticket->status == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                            <option value="completed" {{ $ticket->status == 'completed' ? 'selected' : '' }}>
+                                                Completed</option>
+                                            <option value="cancelled" {{ $ticket->status == 'cancelled' ? 'selected' : '' }}>
+                                                Cancelled</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Update Message (Optional)</label>
+                                        <textarea name="update_message" rows="2" class="form-control"
+                                            placeholder="Add a note about this status change..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-warning w-100">
+                                        <i class="fas fa-sync"></i> Update Status
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <form action="{{ route('admin.tickets.updateStatus', $ticket) }}" method="POST">
-                                @csrf
-                                <div class="mb-3">
-                                    <label class="form-label">New Status</label>
-                                    <select name="status" class="form-select" required>
-                                        <option value="pending" {{ $ticket->status == 'pending' ? 'selected' : '' }}>
-                                            Pending</option>
-                                        <option value="assigned" {{ $ticket->status == 'assigned' ? 'selected' : '' }}>
-                                            Assigned</option>
-                                        <option value="in_progress"
-                                            {{ $ticket->status == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                        <option value="completed" {{ $ticket->status == 'completed' ? 'selected' : '' }}>
-                                            Completed</option>
-                                        <option value="cancelled" {{ $ticket->status == 'cancelled' ? 'selected' : '' }}>
-                                            Cancelled</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Update Message (Optional)</label>
-                                    <textarea name="update_message" rows="2" class="form-control"
-                                        placeholder="Add a note about this status change..."></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-warning w-100">
-                                    <i class="fas fa-sync"></i> Update Status
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                @endif
+                    @endif
             </div>
         </div>
     </div>

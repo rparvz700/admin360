@@ -8,6 +8,15 @@ use Illuminate\Http\Request;
 
 class VendorController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:invoice-management|create-vendor|edit-vendor|delete-vendor', ['only' => ['index', 'show', 'history']]);
+        $this->middleware('permission:create-vendor', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-vendor', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-vendor', ['only' => ['destroy']]);
+    }
+
     /**
      * Display a listing of vendors
      */

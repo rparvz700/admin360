@@ -18,6 +18,15 @@ use Yajra\DataTables\DataTables;
 
 class AssetController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:asset-management|create-asset|edit-asset|delete-asset', ['only' => ['index', 'show', 'list', 'getHistory']]);
+        $this->middleware('permission:create-asset', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-asset', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-asset', ['only' => ['destroy']]);
+    }
+
     // List all assets
     public function index(Request $request)
     {

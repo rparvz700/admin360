@@ -7,11 +7,16 @@
             <h3 class="block-title">Add Vehicle</h3>
             <a href="{{ route('vehicles.index') }}" class="btn btn-secondary btn-sm float-end">Back to List</a>
         </div>
-        <div class="block-content">
+        <div class="block-content block-content-full">
             <form action="{{ route('vehicles.store') }}" method="POST" autocomplete="off">
                 @csrf
                 @include('VehicleManagement.Vehicles.form', ['vehicle' => null, 'vehicleTypes' => $vehicleTypes])
-                <button type="submit" class="btn btn-primary">Save</button>
+                <div class="d-flex justify-content-end gap-2 border-top pt-4 mt-3">
+                    <a href="{{ route('vehicles.index') }}" class="btn btn-alt-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-check me-1"></i> Save
+                    </button>
+                </div>
             </form>
         </div>
     </div>

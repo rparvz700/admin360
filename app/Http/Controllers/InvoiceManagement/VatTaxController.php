@@ -8,6 +8,15 @@ use Illuminate\Http\Request;
 
 class VatTaxController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:invoice-management|create-vat-tax|edit-vat-tax|delete-vat-tax', ['only' => ['index', 'show', 'list']]);
+        $this->middleware('permission:create-vat-tax', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-vat-tax', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-vat-tax', ['only' => ['destroy']]);
+    }
+
     public function index()
     {
         return view('InvoiceManagement.VatTaxes.index');

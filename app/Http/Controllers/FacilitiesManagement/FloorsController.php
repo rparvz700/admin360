@@ -14,6 +14,15 @@ use App\Models\TableSetting;
 
 class FloorsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:create-floor|edit-floor|delete-floor', ['only' => ['index', 'show', 'list']]);
+        $this->middleware('permission:create-floor', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-floor', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-floor', ['only' => ['destroy']]);
+    }
+
     /**
      * Display the specified floor.
      */

@@ -18,6 +18,11 @@ use Illuminate\Support\Facades\Log;
 
 class PropertyWizardController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:property-wizard');
+    }
 
     public function create()
     {

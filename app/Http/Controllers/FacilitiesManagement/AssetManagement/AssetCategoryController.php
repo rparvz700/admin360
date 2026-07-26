@@ -8,6 +8,15 @@ use App\Models\AssetCategory;
 
 class AssetCategoryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:asset-management|create-asset-category|edit-asset-category|delete-asset-category', ['only' => ['index', 'show']]);
+        $this->middleware('permission:create-asset-category', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-asset-category', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-asset-category', ['only' => ['destroy']]);
+    }
+
     public function index(Request $request)
     {
         if ($request->ajax()) {

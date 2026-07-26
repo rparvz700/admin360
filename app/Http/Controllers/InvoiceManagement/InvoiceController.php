@@ -10,37 +10,55 @@ use Illuminate\Support\Facades\Storage;
 
 class InvoiceController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:invoice-management|create-invoice|edit-invoice|delete-invoice', ['only' => ['index', 'show', 'recordPayment', 'download']]);
+        $this->middleware('permission:create-invoice', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-invoice', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-invoice', ['only' => ['destroy']]);
+    }
+
     /**
      * Display a listing of invoices
      */
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $invoices = Invoice::with('vendor')
-                ->orderByDesc('invoice_date')
-                ->get();
+            $invoices = Invoice::with('vendor')->orderByDesc('invoice_date');
 
-            $data = $invoices->map(function ($invoice) {
-                return [
-                    'id'             => $invoice->id,
-                    'invoice_number' => $invoice->invoice_number,
-                    'vendor'         => $invoice->vendor->name ?? 'N/A',
-                    'invoice_date'   => $invoice->invoice_date->format('d M Y'),
-                    'due_date'       => $invoice->due_date
-                                        ? $invoice->due_date->format('d M Y')
-                                        : '<span class="text-muted">N/A</span>',
-                    'total_amount'   => '৳ ' . number_format($invoice->total_amount, 2),
-                    'paid_amount'    => '৳ ' . number_format($invoice->paid_amount, 2),
-                    'outstanding'    => $invoice->getOutstandingAmount() > 0
-                                        ? '<span class="text-danger">৳ ' . number_format($invoice->getOutstandingAmount(), 2) . '</span>'
-                                        : '<span class="text-success">৳ 0.00</span>',
-                    'payment_status' => '<span class="badge bg-' . $invoice->getPaymentStatusBadge() . '">'
-                                        . $invoice->getPaymentStatusLabel() . '</span>',
-                    'actions'        => view('InvoiceManagement.partials.actions', compact('invoice'))->render(),
-                ];
-            });
-
-            return response()->json(['data' => $data]);
+            return datatables()->of($invoices)
+                ->editColumn('vendor', function ($invoice) {
+                    return $invoice->vendor->name ?? 'N/A';
+                })
+                ->editColumn('invoice_date', function ($invoice) {
+                    return $invoice->invoice_date->format('d M Y');
+                })
+                ->editColumn('due_date', function ($invoice) {
+                    return $invoice->due_date
+                        ? $invoice->due_date->format('d M Y')
+                        : '<span class="text-muted">N/A</span>';
+                })
+                ->editColumn('total_amount', function ($invoice) {
+                    return '৳ ' . number_format($invoice->total_amount, 2);
+                })
+                ->editColumn('paid_amount', function ($invoice) {
+                    return '৳ ' . number_format($invoice->paid_amount, 2);
+                })
+                ->addColumn('outstanding', function ($invoice) {
+                    return $invoice->getOutstandingAmount() > 0
+                        ? '<span class="text-danger">৳ ' . number_format($invoice->getOutstandingAmount(), 2) . '</span>'
+                        : '<span class="text-success">৳ 0.00</span>';
+                })
+                ->editColumn('payment_status', function ($invoice) {
+                    return '<span class="badge bg-' . $invoice->getPaymentStatusBadge() . '">'
+                        . $invoice->getPaymentStatusLabel() . '</span>';
+                })
+                ->addColumn('actions', function ($invoice) {
+                    return view('InvoiceManagement.partials.actions', compact('invoice'))->render();
+                })
+                ->rawColumns(['due_date', 'outstanding', 'payment_status', 'actions'])
+                ->make(true);
         }
 
         return view('InvoiceManagement.index');

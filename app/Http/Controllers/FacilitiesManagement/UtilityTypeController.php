@@ -9,6 +9,15 @@ use Yajra\DataTables\DataTables;
 
 class UtilityTypeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:create-utility-type|edit-utility-type|delete-utility-type', ['only' => ['index', 'show', 'list']]);
+        $this->middleware('permission:create-utility-type', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-utility-type', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete-utility-type', ['only' => ['destroy']]);
+    }
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -21,19 +30,23 @@ class UtilityTypeController extends Controller
                         : '<span class="badge bg-danger">Inactive</span>';
                 })
                 ->addColumn('actions', function ($row) {
-                    return '
-                        <div class="btn-group">
-                            <a href="' . route('utility-types.edit', $row->id) . '" class="btn btn-sm btn-alt-primary" title="Edit">
+                    $buttons = '<div class="btn-group">';
+                    if (auth()->user()->can('edit-utility-type')) {
+                        $buttons .= '<a href="' . route('utility-types.edit', $row->id) . '" class="btn btn-sm btn-alt-primary" title="Edit">
                                 <i class="fa fa-pencil-alt"></i>
-                            </a>
-                            <form action="' . route('utility-types.destroy', $row->id) . '" method="POST" style="display:inline-block;" onsubmit="return confirm(\'Are you sure you want to delete this utility type?\')">
+                            </a>';
+                    }
+                    if (auth()->user()->can('delete-utility-type')) {
+                        $buttons .= '<form action="' . route('utility-types.destroy', $row->id) . '" method="POST" style="display:inline-block;" onsubmit="return confirm(\'Are you sure you want to delete this utility type?\')">
                                 ' . csrf_field() . '
                                 ' . method_field('DELETE') . '
                                 <button type="submit" class="btn btn-sm btn-alt-danger" title="Delete">
                                     <i class="fa fa-trash"></i>
                                 </button>
-                            </form>
-                        </div>';
+                            </form>';
+                    }
+                    $buttons .= '</div>';
+                    return $buttons;
                 })
                 ->rawColumns(['is_active', 'actions'])
                 ->make(true);
