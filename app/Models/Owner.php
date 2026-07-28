@@ -13,6 +13,7 @@ class Owner extends Model
     protected $table = 'owners';
 
     protected $fillable = [
+        'owner_name',
         'name',
         'vendor_code',
         'account_title',
@@ -23,6 +24,11 @@ class Owner extends Model
         'created_at',
         'updated_at',
     ];
+
+    public function getNameAttribute()
+    {
+        return $this->attributes['owner_name'] ?? ($this->attributes['name'] ?? '');
+    }
 
     public function floors()
     {

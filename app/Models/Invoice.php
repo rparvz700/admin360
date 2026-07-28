@@ -49,6 +49,11 @@ class Invoice extends Model
         return $this->hasMany(VehicleMaintenance::class);
     }
 
+    public function rentBases()
+    {
+        return $this->hasMany(RentBase::class);
+    }
+
     // Scopes
     public function scopePending($query)
     {

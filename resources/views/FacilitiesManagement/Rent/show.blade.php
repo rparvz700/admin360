@@ -15,7 +15,15 @@
                 <h3 class="block-title">Rent for Agreement: <span
                         class="fw-bold">{{ $base->agreement->agreement_ref_no ?? 'N/A' }}</span></h3>
                 <div class="block-options">
-                    {{-- Assuming an 'edit' route for rent --}}
+                    @if($base->invoice_id)
+                        <a href="{{ route('invoices.show', $base->invoice_id) }}" class="btn btn-sm btn-success me-2">
+                            <i class="fa fa-file-invoice me-1"></i> View Invoice
+                        </a>
+                    @else
+                        <a href="{{ route('invoices.create', ['rent_id' => $base->id]) }}" class="btn btn-sm btn-warning me-2">
+                            <i class="fa fa-plus me-1"></i> Create Invoice
+                        </a>
+                    @endif
                     <a href="{{ route('rent.edit', $base) }}" class="btn btn-sm btn-primary me-2">
                         <i class="fa fa-pencil-alt me-1"></i> Edit Rent
                     </a>
@@ -113,6 +121,54 @@
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+
+                        <!-- Linked Invoice Section -->
+                        <h4 class="fw-light mt-4 mb-3">Invoice Information</h4>
+                        <div class="row">
+                            <div class="col-12">
+                                @if($base->invoice)
+                                    <table class="table table-striped table-bordered fs-sm">
+                                        <tbody>
+                                            <tr>
+                                                <th style="width: 20%;">Invoice Number</th>
+                                                <td>
+                                                    <a href="{{ route('invoices.show', $base->invoice->id) }}" class="fw-bold">
+                                                        <i class="fa fa-file-invoice me-1"></i> {{ $base->invoice->invoice_number }}
+                                                    </a>
+                                                </td>
+                                                <th style="width: 20%;">Vendor</th>
+                                                <td>{{ $base->invoice->vendor->name ?? 'N/A' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Invoice Date</th>
+                                                <td>{{ $base->invoice->invoice_date ? $base->invoice->invoice_date->format('Y-m-d') : 'N/A' }}</td>
+                                                <th>Due Date</th>
+                                                <td>{{ $base->invoice->due_date ? $base->invoice->due_date->format('Y-m-d') : 'N/A' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Total Amount</th>
+                                                <td class="fw-bold text-primary">৳ {{ number_format($base->invoice->total_amount, 2) }}</td>
+                                                <th>Payment Status</th>
+                                                <td>
+                                                    <span class="badge bg-{{ $base->invoice->getPaymentStatusBadge() }}">
+                                                        {{ $base->invoice->getPaymentStatusLabel() }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                @else
+                                    <div class="alert alert-secondary d-flex align-items-center justify-content-between mb-3 fs-sm py-2">
+                                        <div>
+                                            <i class="fa fa-info-circle me-1"></i> No invoice has been created for this rent record yet.
+                                        </div>
+                                        <a href="{{ route('invoices.create', ['rent_id' => $base->id]) }}" class="btn btn-sm btn-warning">
+                                            <i class="fa fa-plus me-1"></i> Create Invoice
+                                        </a>
+                                    </div>
+                                @endif
                             </div>
                         </div>
 

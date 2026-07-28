@@ -85,7 +85,20 @@ class InvoiceController extends Controller
             }
         }
 
-        return view('InvoiceManagement.create', compact('vendors', 'nextInvoiceNumber', 'maintenance'));
+        // Pre-fill from rent if rent_id passed
+        $rent = null;
+        if ($request->filled('rent_id')) {
+            $rent = \App\Models\RentBase::with(['agreement.vendor'])
+                ->findOrFail($request->rent_id);
+
+            // Guard: already has invoice
+            if ($rent->invoice_id) {
+                return redirect()->route('invoices.show', $rent->invoice_id)
+                    ->with('error', 'This rent record already has an invoice.');
+            }
+        }
+
+        return view('InvoiceManagement.create', compact('vendors', 'nextInvoiceNumber', 'maintenance', 'rent'));
     }
 
     /**
@@ -95,6 +108,7 @@ class InvoiceController extends Controller
     {   
         $validated = $request->validate([
             'maintenance_id'  => 'nullable|exists:vehicle_maintenances,id',
+            'rent_id'         => 'nullable|exists:rent_base,id',
             'vendor_id'       => 'required|exists:vendors,id',
             'invoice_date'    => 'required|date',
             'due_date'        => 'nullable|date|after_or_equal:invoice_date',
@@ -134,9 +148,10 @@ class InvoiceController extends Controller
             $validated['payment_status'] = 'partial';
         }
 
-        // Remove maintenance_id before creating invoice (not a column on invoices table)
+        // Extract context IDs before creating invoice
         $maintenanceId = $validated['maintenance_id'] ?? null;
-        unset($validated['maintenance_id']);
+        $rentId = $validated['rent_id'] ?? null;
+        unset($validated['maintenance_id'], $validated['rent_id']);
 
         $invoice = Invoice::create($validated);
 
@@ -149,6 +164,15 @@ class InvoiceController extends Controller
                 ->with('success', 'Invoice ' . $invoice->invoice_number . ' created and linked to maintenance successfully.');
         }
 
+        // Link invoice back to rent record
+        if ($rentId) {
+            \App\Models\RentBase::where('id', $rentId)
+                ->update(['invoice_id' => $invoice->id]);
+
+            return redirect()->route('rent.index')
+                ->with('success', 'Invoice ' . $invoice->invoice_number . ' created and linked to rent successfully.');
+        }
+
         return redirect()->route('invoices.index')
             ->with('success', 'Invoice created successfully.');
     }
@@ -158,7 +182,7 @@ class InvoiceController extends Controller
      */
     public function show(Invoice $invoice)
     {
-        $invoice->load(['vendor', 'maintenances.vehicle']);
+        $invoice->load(['vendor', 'maintenances.vehicle', 'rentBases.agreement']);
 
         return view('InvoiceManagement.show', compact('invoice'));
     }

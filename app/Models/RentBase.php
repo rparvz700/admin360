@@ -27,11 +27,17 @@ class RentBase extends Model
         'tax',
         'is_at_source',
         'rent_type',
+        'invoice_id',
     ];
 
     public function agreement()
     {
         return $this->belongsTo(Agreement::class);
+    }
+
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class);
     }
 
     // Accessors for agreement start and end date

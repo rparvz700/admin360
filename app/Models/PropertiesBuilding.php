@@ -14,6 +14,8 @@ class PropertiesBuilding extends Model
 
     protected $fillable = [
         'code',
+        'site_code',
+        'rio_id',
         'site_name',
         'country',
         'division',
@@ -25,13 +27,28 @@ class PropertiesBuilding extends Model
         'long',
     ];
 
+    public function rio()
+    {
+        return $this->belongsTo(Rio::class, 'rio_id');
+    }
+
+    public function meters()
+    {
+        return $this->hasMany(ElectricityMeter::class, 'building_id');
+    }
+
     public function floors()
     {
         return $this->hasMany(PropertiesFloor::class, 'building_id');
     }
 
+    public function getSiteCodeAttribute()
+    {
+        return $this->attributes['site_code'] ?? $this->code ?? null;
+    }
+
     public function location()
-{
-    return $this->belongsTo(Location::class, 'upazila', 'upazilla');
-}
+    {
+        return $this->belongsTo(Location::class, 'upazila', 'upazilla');
+    }
 }

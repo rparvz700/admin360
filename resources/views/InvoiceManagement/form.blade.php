@@ -34,6 +34,34 @@
             </div>
         </div>
     </div>
+    @elseif(isset($rent) && $rent)
+    <!-- Rent context card (only when creating from rent) -->
+    <div class="col-md-12 mb-4">
+        <div class="alert alert-secondary mb-0">
+            <div class="row">
+                <div class="col-md-3">
+                    <small class="text-muted d-block">Agreement Ref No.</small>
+                    <strong>{{ $rent->agreement->agreement_ref_no ?? 'N/A' }}</strong>
+                </div>
+                <div class="col-md-2">
+                    <small class="text-muted d-block">Vendor</small>
+                    <strong>{{ $rent->agreement->vendor->name ?? 'N/A' }}</strong>
+                </div>
+                <div class="col-md-2">
+                    <small class="text-muted d-block">Base Rent</small>
+                    <strong>৳ {{ number_format($rent->base_rent, 2) }}</strong>
+                </div>
+                <div class="col-md-2">
+                    <small class="text-muted d-block">VAT / Tax</small>
+                    <strong>৳ {{ number_format($rent->vat + $rent->tax, 2) }}</strong>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted d-block">Total Rent Amount (Base + VAT + Tax)</small>
+                    <strong class="text-primary">৳ {{ number_format($rent->base_rent + $rent->vat + $rent->tax, 2) }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
     @endif
 
     <!-- Invoice Number (auto-generated, read-only) -->
@@ -48,13 +76,13 @@
     <div class="col-md-4 mb-3">
         <label class="form-label" for="vendor_id">Vendor <span class="text-danger">*</span></label>
         <select class="form-select" id="vendor_id" name="vendor_id" required
-            {{ isset($maintenance) && $maintenance ? 'readonly' : '' }}>
+            {{ (isset($maintenance) && $maintenance) || (isset($rent) && $rent) ? 'readonly' : '' }}>
             <option value="">Select Vendor</option>
             @foreach($vendors as $vendor)
                 <option value="{{ $vendor->id }}"
                     {{ old('vendor_id',
                         $invoice->vendor_id
-                        ?? ($maintenance->vendor_id ?? ''))
+                        ?? ($maintenance->vendor_id ?? ($rent->agreement->vendor_id ?? '')))
                         == $vendor->id ? 'selected' : '' }}>
                     {{ $vendor->name }} ({{ $vendor->vendor_code }})
                 </option>
@@ -62,6 +90,8 @@
         </select>
         @if(isset($maintenance) && $maintenance)
             <small class="form-text text-muted">Pre-filled from maintenance vendor</small>
+        @elseif(isset($rent) && $rent)
+            <small class="form-text text-muted">Pre-filled from rent agreement vendor</small>
         @endif
     </div>
 
@@ -84,10 +114,12 @@
     <div class="col-md-4 mb-3">
         <label class="form-label" for="subtotal">Subtotal (৳) <span class="text-danger">*</span></label>
         <input type="number" step="0.01" class="form-control calc-input" id="subtotal" name="subtotal"
-               value="{{ old('subtotal', $invoice->subtotal ?? ($maintenance->total_service_cost ?? 0)) }}"
+               value="{{ old('subtotal', $invoice->subtotal ?? ($maintenance->total_service_cost ?? ($rent ? ($rent->base_rent + $rent->vat + $rent->tax) : 0))) }}"
                min="0" required>
         @if(isset($maintenance) && $maintenance)
             <small class="form-text text-muted">Pre-filled from maintenance total cost</small>
+        @elseif(isset($rent) && $rent)
+            <small class="form-text text-muted">Pre-filled from rent total amount (Base + VAT + Tax)</small>
         @endif
     </div>
 

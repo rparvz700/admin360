@@ -6,6 +6,15 @@
         <a href="{{ route('rent.edit', $row->id) }}" class="btn btn-alt-warning">
             <i class="fa fa-pencil-alt"></i>
         </a>
+        @if($row->invoice_id)
+            <a href="{{ route('invoices.show', $row->invoice_id) }}" class="btn btn-alt-success" title="View Invoice">
+                <i class="fa fa-file-invoice"></i>
+            </a>
+        @else
+            <a href="{{ route('invoices.create', ['rent_id' => $row->id]) }}" class="btn btn-alt-secondary" title="Create Invoice">
+                <i class="fa fa-file-invoice"></i>
+            </a>
+        @endif
     @endcan
 </div>
 @can('delete-rent')

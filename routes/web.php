@@ -31,6 +31,10 @@ use App\Http\Controllers\VehicleMaintenanceManagement\VehicleOperationalLogContr
 use App\Http\Controllers\InvoiceManagement\InvoiceController;
 use App\Http\Controllers\InvoiceManagement\VatTaxController;
 use App\Http\Controllers\VehicleMaintenanceManagement\MaintenanceReportController;
+use App\Http\Controllers\FacilitiesManagement\Electricity\RioController;
+use App\Http\Controllers\FacilitiesManagement\Electricity\ElectricityMeterController;
+use App\Http\Controllers\FacilitiesManagement\Electricity\ElectricityBillController;
+use App\Http\Controllers\FacilitiesManagement\Electricity\ElectricityReportController;
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PropertyWizardController;
@@ -90,6 +94,25 @@ Route::middleware(['auth'])->group(function(){
         'asset-attributes' => AssetAttributeController::class,
         'utility-types' => UtilityTypeController::class,
     ]);
+
+    // Electricity Module Routes
+    Route::prefix('facilities-management/electricity')->name('electricity.')->group(function () {
+        // RIO Management
+        Route::resource('rios', RioController::class)->except(['create', 'show', 'edit', 'destroy']);
+        Route::post('rios/{rio}/assign-users', [RioController::class, 'assignUsers'])->name('rios.assign-users');
+
+        // Meters Master
+        Route::resource('meters', ElectricityMeterController::class);
+
+        // Bills & Requisitions
+        Route::resource('bills', ElectricityBillController::class);
+        Route::get('bills/{bill}/print', [ElectricityBillController::class, 'printSheet'])->name('bills.print');
+        Route::post('bills/{bill}/pay', [ElectricityBillController::class, 'markAsPaid'])->name('bills.pay');
+        Route::get('previous-reading/{meterId}', [ElectricityBillController::class, 'getPreviousReading'])->name('bills.previous-reading');
+
+        // Reports
+        Route::get('reports', [ElectricityReportController::class, 'index'])->name('reports.index');
+    });
 
     // Asset
     Route::get('assets/{id}/history', [AssetController::class, 'getHistory'])->name('assets.history');

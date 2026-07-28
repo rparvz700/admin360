@@ -43,4 +43,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function rios()
+    {
+        return $this->belongsToMany(Rio::class, 'rio_user', 'user_id', 'rio_id');
+    }
 }

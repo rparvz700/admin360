@@ -25,7 +25,7 @@ class RentController extends Controller
 
     public function list(Request $request)
     {
-        $query = RentBase::with('agreement')->orderBy('id', 'desc');
+        $query = RentBase::with(['agreement', 'invoice'])->orderBy('id', 'desc');
         return datatables()->of($query)
             ->addIndexColumn()
             ->addColumn('agreement_start_date', function($row) {
@@ -241,7 +241,7 @@ class RentController extends Controller
 
     public function show($id)
     {
-        $base = RentBase::with(['components', 'increments', 'securityDeposits'])->findOrFail($id);
+        $base = RentBase::with(['components', 'increments', 'securityDeposits', 'invoice.vendor'])->findOrFail($id);
         return view('FacilitiesManagement.Rent.show', compact('base'));
     }
 
