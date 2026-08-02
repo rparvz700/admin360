@@ -116,6 +116,43 @@ class Invoice extends Model
         };
     }
 
+    public function getInvoiceTypeAttribute()
+    {
+        if ($this->relationLoaded('rentBases') && $this->rentBases->count() > 0) {
+            return 'rent';
+        }
+        if ($this->relationLoaded('maintenances') && $this->maintenances->count() > 0) {
+            return 'maintenance';
+        }
+
+        if ($this->rentBases()->exists()) {
+            return 'rent';
+        }
+        if ($this->maintenances()->exists()) {
+            return 'maintenance';
+        }
+
+        return 'general';
+    }
+
+    public function getInvoiceTypeLabelAttribute()
+    {
+        return match($this->invoice_type) {
+            'rent'        => 'Rent Requisition',
+            'maintenance' => 'Vehicle Maintenance',
+            default       => 'General Service',
+        };
+    }
+
+    public function getInvoiceTypeBadgeAttribute()
+    {
+        return match($this->invoice_type) {
+            'rent'        => 'info-light text-info',
+            'maintenance' => 'primary-light text-primary',
+            default       => 'secondary-light text-secondary',
+        };
+    }
+
     public static function generateInvoiceNumber()
     {
         $year   = date('Y');

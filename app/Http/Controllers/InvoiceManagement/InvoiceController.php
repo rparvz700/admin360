@@ -25,14 +25,33 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $invoices = Invoice::with('vendor')->orderByDesc('invoice_date');
+            $invoices = Invoice::with(['vendor', 'rentBases', 'maintenances'])->orderByDesc('invoice_date');
+
+            if ($request->filled('invoice_type')) {
+                $type = $request->invoice_type;
+                if ($type === 'rent') {
+                    $invoices->has('rentBases');
+                } elseif ($type === 'maintenance') {
+                    $invoices->has('maintenances');
+                } elseif ($type === 'general') {
+                    $invoices->doesntHave('rentBases')->doesntHave('maintenances');
+                }
+            }
+
+            if ($request->filled('payment_status')) {
+                $invoices->where('payment_status', $request->payment_status);
+            }
 
             return datatables()->of($invoices)
+                ->addColumn('invoice_type', function ($invoice) {
+                    return '<span class="badge bg-' . $invoice->invoice_type_badge . ' fw-semibold">'
+                        . $invoice->invoice_type_label . '</span>';
+                })
                 ->editColumn('vendor', function ($invoice) {
                     return $invoice->vendor->name ?? 'N/A';
                 })
                 ->editColumn('invoice_date', function ($invoice) {
-                    return $invoice->invoice_date->format('d M Y');
+                    return $invoice->invoice_date ? $invoice->invoice_date->format('d M Y') : 'N/A';
                 })
                 ->editColumn('due_date', function ($invoice) {
                     return $invoice->due_date
@@ -47,7 +66,7 @@ class InvoiceController extends Controller
                 })
                 ->addColumn('outstanding', function ($invoice) {
                     return $invoice->getOutstandingAmount() > 0
-                        ? '<span class="text-danger">৳ ' . number_format($invoice->getOutstandingAmount(), 2) . '</span>'
+                        ? '<span class="text-danger fw-bold">৳ ' . number_format($invoice->getOutstandingAmount(), 2) . '</span>'
                         : '<span class="text-success">৳ 0.00</span>';
                 })
                 ->editColumn('payment_status', function ($invoice) {
@@ -57,7 +76,7 @@ class InvoiceController extends Controller
                 ->addColumn('actions', function ($invoice) {
                     return view('InvoiceManagement.partials.actions', compact('invoice'))->render();
                 })
-                ->rawColumns(['due_date', 'outstanding', 'payment_status', 'actions'])
+                ->rawColumns(['invoice_type', 'due_date', 'outstanding', 'payment_status', 'actions'])
                 ->make(true);
         }
 
@@ -182,7 +201,15 @@ class InvoiceController extends Controller
      */
     public function show(Invoice $invoice)
     {
-        $invoice->load(['vendor', 'maintenances.vehicle', 'rentBases.agreement']);
+        $invoice->load([
+            'vendor',
+            'maintenances.vehicle',
+            'rentBases.agreement.vendor',
+            'rentBases.agreement.utilities.utilityType',
+            'rentBases.components',
+            'rentBases.increments',
+            'rentBases.securityDeposits'
+        ]);
 
         return view('InvoiceManagement.show', compact('invoice'));
     }
@@ -192,9 +219,18 @@ class InvoiceController extends Controller
      */
     public function edit(Invoice $invoice)
     {
+        $invoice->load([
+            'vendor',
+            'rentBases.agreement.vendor',
+            'rentBases.agreement.utilities.utilityType',
+            'rentBases.components',
+            'rentBases.increments',
+            'rentBases.securityDeposits'
+        ]);
         $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
+        $rent = $invoice->rentBases->first();
 
-        return view('InvoiceManagement.edit', compact('invoice', 'vendors'));
+        return view('InvoiceManagement.edit', compact('invoice', 'vendors', 'rent'));
     }
 
     /**
@@ -295,5 +331,41 @@ class InvoiceController extends Controller
 
         return redirect()->route('invoices.show', $invoice->id)
             ->with('success', 'Payment of ৳ ' . number_format($request->paid_amount, 2) . ' recorded successfully.');
+    }
+
+    /**
+     * Print or export industry-standard PDF layout
+     */
+    public function printInvoice(Invoice $invoice)
+    {
+        $invoice->load([
+            'vendor',
+            'maintenances.vehicle',
+            'rentBases.agreement.vendor',
+            'rentBases.agreement.utilities.utilityType',
+            'rentBases.components',
+            'rentBases.increments',
+            'rentBases.securityDeposits'
+        ]);
+
+        return view('InvoiceManagement.pdf', compact('invoice'));
+    }
+
+    /**
+     * Download / Save PDF invoice
+     */
+    public function download(Invoice $invoice)
+    {
+        $invoice->load([
+            'vendor',
+            'maintenances.vehicle',
+            'rentBases.agreement.vendor',
+            'rentBases.agreement.utilities.utilityType',
+            'rentBases.components',
+            'rentBases.increments',
+            'rentBases.securityDeposits'
+        ]);
+
+        return view('InvoiceManagement.pdf', compact('invoice'));
     }
 }

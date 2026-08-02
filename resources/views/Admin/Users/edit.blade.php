@@ -181,6 +181,33 @@
                 {{-- End Form --}}
             </div>
         </div>
+
+        <!-- Reset Password Block -->
+        <div class="block block-rounded mt-4">
+            <div class="block-header block-header-default">
+                <h3 class="block-title"><i class="fa fa-lock text-warning me-2"></i> Reset {{ $user->name }}'s Password</h3>
+            </div>
+            <div class="block-content fs-sm pb-4">
+                <form action="{{ route('users.reset-password', $user->id) }}" method="POST" autocomplete="off">
+                    @csrf
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" for="admin_password">New Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="admin_password" name="password" placeholder="Enter new password (min. 8 characters)" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" for="admin_password_confirmation">Confirm New Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="admin_password_confirmation" name="password_confirmation" placeholder="Confirm new password" required>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Are you sure you want to reset this user\'s password?')">
+                            <i class="fa fa-key me-1"></i> Reset Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     <!-- END Page Content -->
 @endsection

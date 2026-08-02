@@ -62,11 +62,17 @@
                         <p class="mb-0 text-muted fs-sm fw-medium">{{ auth()->user()->getRoleNames()[0] }}</p>
                     </div>
                     <div class="p-2">
+                        <a class="dropdown-item d-flex align-items-center justify-content-between text-body" href="{{ route('profile.change-password') }}">
+                            <span class="fs-sm fw-medium">Change Password</span>
+                            <i class="fa fa-key opacity-50 ms-2"></i>
+                        </a>
+                        <div class="dropdown-divider"></div>
                         <form action="{{ route('logout') }}" method="POST">
                             @csrf
                             <button type="submit"
-                                class="dropdown-item d-flex align-items-center justify-content-between">
+                                class="dropdown-item d-flex align-items-center justify-content-between text-body">
                                 <span class="fs-sm fw-medium">Log Out</span>
+                                <i class="fa fa-sign-out-alt opacity-50 ms-2"></i>
                             </button>
                         </form>
                     </div>

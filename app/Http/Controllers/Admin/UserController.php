@@ -46,13 +46,14 @@ class UserController extends Controller
             ->editColumn('actions', function ($row) {
                 $buttons = '';
                 if (auth()->user()->can('edit-user') && !$row->hasRole('Super Admin')) {
-                    $buttons .= '<a href="' . route('users.edit', $row->id) . '" style="margin-right: 3px;" class="btn btn-sm btn-primary p-1 py-0"><i class="fa fa-pen-to-square"></i></a>';
+                    $buttons .= '<a href="' . route('users.edit', $row->id) . '" style="margin-right: 3px;" class="btn btn-sm btn-primary p-1 py-0" title="Edit User"><i class="fa fa-pen-to-square"></i></a>';
+                    $buttons .= '<a href="' . route('users.edit', $row->id) . '" style="margin-right: 3px;" class="btn btn-sm btn-warning p-1 py-0" title="Reset Password"><i class="fa fa-key"></i></a>';
                 }
                 if (auth()->user()->can('delete-user') && Auth::id() != $row->id && !$row->hasRole('Super Admin')) {
                     $buttons .= '<form id="deleteForm' . $row->id . '" action="' . route('users.destroy', $row->id) . '" method="post" style="display:inline;">
                         ' . csrf_field() . '
                         <input type="hidden" name="_method" value="DELETE">
-                        <button type="button" class="btn btn-danger btn-sm p-1 py-0 delete-button" data-user-id="' . $row->id . '"><i class="fa fa-trash-can"></i></button>
+                        <button type="button" class="btn btn-danger btn-sm p-1 py-0 delete-button" data-user-id="' . $row->id . '" title="Delete User"><i class="fa fa-trash-can"></i></button>
                     </form>';
                 }
                 return '<div class="d-flex">' . $buttons . '</div>';
@@ -156,5 +157,20 @@ class UserController extends Controller
         }
     }
 
+    public function resetPassword(Request $request, User $user)
+    {
+        $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'password.required'  => 'Please enter a new password for the user.',
+            'password.min'       => 'The password must be at least 8 characters.',
+            'password.confirmed' => 'Password confirmation does not match.',
+        ]);
 
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        return redirect()->back()->withSuccess('Password for ' . $user->name . ' has been reset successfully.');
+    }
 }

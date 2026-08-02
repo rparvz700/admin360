@@ -18,6 +18,11 @@ class RentBase extends Model
         return $this->hasMany(\App\Models\SecurityDeposit::class, 'agreement_id', 'agreement_id');
     }
 
+    public function agreementUtilities()
+    {
+        return $this->hasMany(\App\Models\AgreementUtility::class, 'agreement_id', 'agreement_id');
+    }
+
     protected $table = 'rent_base';
 
     protected $fillable = [

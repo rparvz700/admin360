@@ -61,6 +61,9 @@
                 </div>
             </div>
         </div>
+
+        {{-- Complete Rent Breakdown --}}
+        @include('FacilitiesManagement.Rent.partials.breakdown_tables', ['rent' => $rent])
     </div>
     @endif
 

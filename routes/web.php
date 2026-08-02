@@ -215,9 +215,17 @@ Route::middleware(['auth'])->group(function () {
 // Invoices
     Route::resource('invoices', InvoiceController::class);
     Route::post('invoices/{invoice}/pay', [InvoiceController::class, 'recordPayment'])->name('invoices.pay');
+    Route::get('invoices/{invoice}/print', [InvoiceController::class, 'printInvoice'])->name('invoices.print');
     Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
     Route::get('vat-taxes-list', [VatTaxController::class, 'list'])->name('vat-taxes.list');
     Route::resource('vat-taxes', VatTaxController::class);
+
+    // Profile & Password Routes
+    Route::get('/profile/change-password', [App\Http\Controllers\ProfileController::class, 'showChangePasswordForm'])->name('profile.change-password');
+    Route::post('/profile/change-password', [App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.update-password');
+
+    // Admin Reset User Password
+    Route::post('/admin/users/{user}/reset-password', [App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset-password');
 });
 
 Route::prefix('maintenance')->name('maintenance.')->middleware(['auth'])->group(function () {

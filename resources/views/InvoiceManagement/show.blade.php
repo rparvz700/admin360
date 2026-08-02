@@ -7,12 +7,15 @@
             <h3 class="block-title">Invoice - {{ $invoice->invoice_number }}</h3>
             <div>
                 <a href="{{ route('invoices.index') }}" class="btn btn-secondary btn-sm">Back to List</a>
+                <a href="{{ route('invoices.print', $invoice->id) }}" target="_blank" class="btn btn-danger btn-sm ms-1" title="Save / Download PDF">
+                    <i class="fa fa-file-pdf me-1"></i> Save PDF
+                </a>
                 @if($invoice->payment_status !== 'paid')
                     <a href="{{ route('invoices.edit', $invoice->id) }}" class="btn btn-primary btn-sm ms-1">Edit</a>
                 @endif
                 @if($invoice->invoice_file_path)
                     <a href="{{ asset('storage/' . $invoice->invoice_file_path) }}" target="_blank" class="btn btn-info btn-sm ms-1">
-                        <i class="fa fa-download"></i> Download File
+                        <i class="fa fa-paperclip"></i> Uploaded Voucher
                     </a>
                 @endif
             </div>
@@ -170,6 +173,28 @@
             </div>
         </div>
     </div>
+    @endif
+
+    <!-- Linked Rent Records -->
+    @if($invoice->rentBases && $invoice->rentBases->count() > 0)
+    @foreach($invoice->rentBases as $rent)
+    <div class="block block-rounded mt-3">
+        <div class="block-header block-header-default">
+            <h3 class="block-title">
+                <i class="fa fa-building text-primary me-1"></i> Linked Rent Record Breakdown
+                <small class="text-muted fs-sm ms-2">(Agreement Ref: {{ $rent->agreement->agreement_ref_no ?? 'N/A' }})</small>
+            </h3>
+            <div class="block-options">
+                <a href="{{ route('rent.show', $rent->id) }}" class="btn btn-sm btn-alt-secondary">
+                    <i class="fa fa-eye me-1"></i> View Full Rent Record
+                </a>
+            </div>
+        </div>
+        <div class="block-content pb-4">
+            @include('FacilitiesManagement.Rent.partials.breakdown_tables', ['rent' => $rent])
+        </div>
+    </div>
+    @endforeach
     @endif
 </div>
 

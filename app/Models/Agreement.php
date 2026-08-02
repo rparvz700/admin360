@@ -56,6 +56,11 @@ class Agreement extends Model
         return $this->hasMany(SecurityDeposit::class, 'agreement_id');
     }
 
+    public function utilities()
+    {
+        return $this->hasMany(AgreementUtility::class, 'agreement_id');
+    }
+
     public function maintenance()
     {
         return $this->hasMany(Maintenance::class, 'agreement_id');
