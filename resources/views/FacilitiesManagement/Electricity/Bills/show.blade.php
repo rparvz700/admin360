@@ -1,17 +1,17 @@
 @extends('Partials.app', ['activeMenu' => 'electricity-bills'])
 
-@section('title') Requisition Details: {{ $bill->requisition_no }} @endsection
+@section('title') Electricity Bill Details: {{ $bill->requisition_no }} @endsection
 
 @section('content')
 <div class="content">
     <div class="block block-rounded">
         <div class="block-header block-header-default">
             <h3 class="block-title">
-                <i class="fa fa-file-invoice text-primary me-2"></i> Requisition Details: <span class="fw-bold">{{ $bill->requisition_no }}</span>
+                <i class="fa fa-file-invoice text-primary me-2"></i> Electricity Bill Details: <span class="fw-bold">{{ $bill->requisition_no }}</span>
             </h3>
             <div class="block-options">
                 <a href="{{ route('electricity.bills.print', $bill->id) }}" target="_blank" class="btn btn-sm btn-alt-secondary me-2">
-                    <i class="fa fa-print me-1"></i> Print Requisition Sheet
+                    <i class="fa fa-print me-1"></i> Print Electricity Bill
                 </a>
                 @if($bill->status === 'generated')
                     <button type="button" class="btn btn-sm btn-success me-2" data-bs-toggle="modal" data-bs-target="#modal-mark-paid">
@@ -27,11 +27,11 @@
             <div class="row">
                 <!-- Main Details Card -->
                 <div class="col-md-6 mb-4">
-                    <h4 class="fw-light mb-3">Requisition & Site Info</h4>
+                    <h4 class="fw-light mb-3">Bill & Site Info</h4>
                     <table class="table table-striped table-bordered fs-sm">
                         <tbody>
                             <tr>
-                                <th style="width: 35%;">Requisition Ref No</th>
+                                <th style="width: 35%;">Bill Ref No</th>
                                 <td class="fw-bold text-primary">{{ $bill->requisition_no }}</td>
                             </tr>
                             <tr>
@@ -43,9 +43,13 @@
                                 <td>{{ $bill->building->site_name ?? 'N/A' }} {{ ($bill->building->code ?? $bill->building->site_code) ? "(" . ($bill->building->code ?? $bill->building->site_code) . ")" : '' }}</td>
                             </tr>
                             <tr>
+                                <th>Land Owner Name</th>
+                                <td class="fw-semibold text-dark">{{ $landOwnerName }}</td>
+                            </tr>
+                            {{-- <tr>
                                 <th>RIO Zone</th>
                                 <td>{{ $bill->rio->name ?? ($bill->building->rio->name ?? 'N/A') }}</td>
-                            </tr>
+                            </tr> --}}
                             <tr>
                                 <th>Bill Month</th>
                                 <td><span class="badge bg-info">{{ $bill->billing_month }}</span></td>
@@ -59,7 +63,7 @@
                                 <td>{{ $bill->last_payment_date ? $bill->last_payment_date->format('d M Y') : 'N/A' }}</td>
                             </tr>
                             <tr>
-                                <th>Requisition By</th>
+                                <th>Created By</th>
                                 <td>{{ $bill->creator->name ?? 'System' }}</td>
                             </tr>
                         </tbody>
@@ -96,6 +100,22 @@
                                 <td>{{ $bill->payment_account_details ?? 'N/A' }}</td>
                             </tr>
                             <tr>
+                                <th>Base Bill Amount</th>
+                                <td class="fw-semibold">৳ {{ number_format($bill->net_amount, 2) }}</td>
+                            </tr>
+                            <tr>
+                                <th>VAT / Late Fee / Surcharge</th>
+                                <td class="fw-semibold text-warning">৳ {{ number_format($bill->vat_amount, 2) }}</td>
+                            </tr>
+                            <tr>
+                                <th>Total Payable Amount</th>
+                                <td class="fw-bold text-primary">৳ {{ number_format($bill->total_amount, 2) }}</td>
+                            </tr>
+                            <tr>
+                                <th>Last Month Bill</th>
+                                <td class="fw-semibold">{{ $previousBill ? '৳ ' . number_format($previousBill->total_amount, 2) . ' (' . $previousBill->billing_month . ')' : 'N/A' }}</td>
+                            </tr>
+                            <tr>
                                 <th>Status</th>
                                 <td><span class="badge bg-{{ $bill->status_badge }}">{{ $bill->status_label }}</span></td>
                             </tr>
@@ -110,7 +130,7 @@
                 </div>
             </div>
 
-            <!-- Postpaid Calculation Breakdown (if postpaid) -->
+            <!-- Postpaid / Prepaid Calculation Breakdown -->
             @if($bill->bill_type === 'postpaid')
             <h4 class="fw-light mt-2 mb-3">Consumption & Cost Breakdown</h4>
             <div class="table-responsive mb-4">
@@ -121,8 +141,8 @@
                             <th>Current Reading</th>
                             <th>Units Consumed (kWh)</th>
                             <th>Rate per Unit (৳)</th>
-                            <th>Base Charge (৳)</th>
-                            <th>VAT / Surcharge (৳)</th>
+                            <th>Base Bill Amount (৳)</th>
+                            <th>VAT / Late Fee (৳)</th>
                             <th>Total Payable Amount (৳)</th>
                         </tr>
                     </thead>
@@ -133,7 +153,27 @@
                             <td class="fw-bold text-info">{{ number_format($bill->units_consumed, 2) }}</td>
                             <td>৳ {{ number_format($bill->rate_per_unit, 2) }}</td>
                             <td>৳ {{ number_format($bill->net_amount, 2) }}</td>
-                            <td>৳ {{ number_format($bill->vat_amount, 2) }}</td>
+                            <td class="text-warning fw-semibold">৳ {{ number_format($bill->vat_amount, 2) }}</td>
+                            <td class="fw-bold text-primary fs-6">৳ {{ number_format($bill->total_amount, 2) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            @else
+            <h4 class="fw-light mt-2 mb-3">Billing Cost Breakdown</h4>
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered table-striped fs-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Base Recharge / Bill Amount (৳)</th>
+                            <th>VAT / Service Charge / Late Fee (৳)</th>
+                            <th>Total Payable Amount (৳)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>৳ {{ number_format($bill->net_amount, 2) }}</td>
+                            <td class="text-warning fw-semibold">৳ {{ number_format($bill->vat_amount, 2) }}</td>
                             <td class="fw-bold text-primary fs-6">৳ {{ number_format($bill->total_amount, 2) }}</td>
                         </tr>
                     </tbody>

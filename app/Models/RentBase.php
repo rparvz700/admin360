@@ -45,6 +45,71 @@ class RentBase extends Model
         return $this->belongsTo(Invoice::class);
     }
 
+    public function invoices()
+    {
+        return $this->belongsToMany(Invoice::class, 'rent_invoices')
+                    ->withPivot('billing_month')
+                    ->withTimestamps();
+    }
+
+    public function hasInvoiceForMonth(string $billingMonth): bool
+    {
+        return $this->invoices()
+                    ->wherePivot('billing_month', $billingMonth)
+                    ->exists();
+    }
+
+    /**
+     * Get the effective rent for a billing month, considering active increments.
+     *
+     * @param string $billingMonth Format: "YYYY-MM" (e.g. "2026-08")
+     * @return array
+     */
+    public function getEffectiveRentForMonth(string $billingMonth): array
+    {
+        $monthStart = \Carbon\Carbon::parse($billingMonth . '-01');
+        $monthEnd   = $monthStart->copy()->endOfMonth();
+        $baseRent   = (float) $this->base_rent;
+
+        $activeIncrement = $this->increments()
+            ->where('increment_start_date', '<=', $monthEnd)
+            ->where(function ($q) use ($monthStart) {
+                $q->whereNull('increment_end_date')
+                  ->orWhere('increment_end_date', '>=', $monthStart);
+            })
+            ->orderByDesc('increment_start_date')
+            ->first();
+
+        if ($activeIncrement && $activeIncrement->incremented_amount) {
+            $effectiveRent   = (float) $activeIncrement->incremented_amount;
+            $incrementAmount = $effectiveRent - $baseRent;
+        } else {
+            $lastIncrement = $this->increments()
+                ->orderByDesc('increment_start_date')
+                ->first();
+
+            if ($lastIncrement && $lastIncrement->increment_end_date && $monthStart->gt(\Carbon\Carbon::parse($lastIncrement->increment_end_date))) {
+                $effectiveRent   = (float) ($lastIncrement->incremented_amount ?? ($baseRent + ($lastIncrement->increment_amount ?? 0)));
+                $incrementAmount = $effectiveRent - $baseRent;
+            } else {
+                $effectiveRent   = $baseRent;
+                $incrementAmount = 0.0;
+            }
+        }
+
+        $vat = (float) $this->vat;
+        $tax = (float) $this->tax;
+
+        return [
+            'base_rent'        => $baseRent,
+            'increment_amount' => max(0, $incrementAmount),
+            'effective_rent'   => $effectiveRent,
+            'vat'              => $vat,
+            'tax'              => $tax,
+            'subtotal'         => $effectiveRent + $vat + $tax,
+        ];
+    }
+
     // Accessors for agreement start and end date
     public function getAgreementStartDateAttribute()
     {

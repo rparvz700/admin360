@@ -14,7 +14,7 @@ class InvoiceController extends Controller
     {
         $this->middleware('auth');
         $this->middleware('permission:invoice-management|create-invoice|edit-invoice|delete-invoice', ['only' => ['index', 'show', 'recordPayment', 'download']]);
-        $this->middleware('permission:create-invoice', ['only' => ['create', 'store']]);
+        $this->middleware('permission:create-invoice', ['only' => ['create', 'store', 'bulkGenerateForm', 'previewBulkGenerate', 'bulkGenerate']]);
         $this->middleware('permission:edit-invoice', ['only' => ['edit', 'update']]);
         $this->middleware('permission:delete-invoice', ['only' => ['destroy']]);
     }
@@ -25,16 +25,18 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $invoices = Invoice::with(['vendor', 'rentBases', 'maintenances'])->orderByDesc('invoice_date');
+            $invoices = Invoice::with(['vendor', 'rentBases', 'rentBasePivot', 'maintenances'])->orderByDesc('invoice_date');
 
             if ($request->filled('invoice_type')) {
                 $type = $request->invoice_type;
                 if ($type === 'rent') {
-                    $invoices->has('rentBases');
+                    $invoices->where(function ($q) {
+                        $q->has('rentBases')->orWhereHas('rentBasePivot');
+                    });
                 } elseif ($type === 'maintenance') {
                     $invoices->has('maintenances');
                 } elseif ($type === 'general') {
-                    $invoices->doesntHave('rentBases')->doesntHave('maintenances');
+                    $invoices->doesntHave('rentBases')->doesntHave('rentBasePivot')->doesntHave('maintenances');
                 }
             }
 
@@ -172,6 +174,10 @@ class InvoiceController extends Controller
         $rentId = $validated['rent_id'] ?? null;
         unset($validated['maintenance_id'], $validated['rent_id']);
 
+        if ($rentId && empty($validated['billing_month'])) {
+            $validated['billing_month'] = \Carbon\Carbon::parse($validated['invoice_date'])->format('Y-m');
+        }
+
         $invoice = Invoice::create($validated);
 
         // Link invoice back to maintenance record
@@ -188,12 +194,287 @@ class InvoiceController extends Controller
             \App\Models\RentBase::where('id', $rentId)
                 ->update(['invoice_id' => $invoice->id]);
 
+            $invoice->rentBasePivot()->syncWithoutDetaching([
+                $rentId => ['billing_month' => $validated['billing_month']]
+            ]);
+
             return redirect()->route('rent.index')
                 ->with('success', 'Invoice ' . $invoice->invoice_number . ' created and linked to rent successfully.');
         }
 
         return redirect()->route('invoices.index')
             ->with('success', 'Invoice created successfully.');
+    }
+
+    /**
+     * Show form for bulk generating monthly rent invoices
+     */
+    public function bulkGenerateForm()
+    {
+        $this->ensureSpreadsheetAssetsExist();
+        return view('InvoiceManagement.bulk_generate');
+    }
+
+    /**
+     * Preview bulk rent invoice generation data for a selected month (AJAX)
+     */
+    public function previewBulkGenerate(Request $request)
+    {
+        $request->validate([
+            'billing_month' => ['required', 'regex:/^\d{4}-\d{2}$/'],
+        ]);
+
+        $billingMonth = $request->billing_month;
+        $defaultInvoiceDate = $billingMonth . '-01';
+
+        $rentBases = \App\Models\RentBase::whereHas('agreement', function ($q) {
+            $q->where('status', 1);
+        })
+        ->with(['agreement.vendor', 'agreement.floors.building', 'increments', 'invoices'])
+        ->get();
+
+        $data = [];
+        $meta = [];
+        $totalCount = $rentBases->count();
+        $pendingCount = 0;
+        $alreadyCount = 0;
+        $missingVendorCount = 0;
+
+        foreach ($rentBases as $index => $rent) {
+            $sl = $index + 1;
+            $agreementRef = $rent->agreement->agreement_ref_no ?? 'N/A';
+            $vendorId     = $rent->agreement->vendor_id ?? null;
+            $vendorName   = $rent->agreement->vendor->name ?? 'Vendor Not Assigned';
+            $rentType     = ucfirst($rent->rent_type ?? 'N/A');
+
+            // Extract Site Code, Building Name, and Floor Information from agreement's floors
+            $floors = $rent->agreement->floors ?? collect();
+
+            $siteCodes = $floors->map(fn($f) => $f->building->site_code ?? $f->building->code ?? null)->filter()->unique()->implode(', ');
+            $siteCode  = $siteCodes ?: 'N/A';
+
+            $buildingNames = $floors->map(fn($f) => $f->building->site_name ?? null)->filter()->unique()->implode(', ');
+            $buildingName  = $buildingNames ?: 'N/A';
+
+            $floorLabels = $floors->pluck('floor_label')->filter()->unique()->implode(', ');
+            $floorInfo   = $floorLabels ?: 'N/A';
+
+            $detailsBtn = '<button type="button" class="btn btn-sm btn-alt-info btn-rent-details px-1 py-0" data-rent-id="' . $rent->id . '" title="View Rent Segregation, Utilities, Increments & Deposits"><i class="fa fa-eye"></i></button>';
+
+            $calc = $rent->getEffectiveRentForMonth($billingMonth);
+
+            // Check if already invoiced for this billing month
+            $existingInvoice = $rent->invoices->first(function ($inv) use ($billingMonth) {
+                return $inv->pivot->billing_month === $billingMonth || $inv->billing_month === $billingMonth;
+            });
+
+            $isAlreadyInvoiced = (bool) $existingInvoice;
+
+            if (!$vendorId) {
+                $missingVendorCount++;
+                $status = 'missing_vendor';
+                $remarks = '⚠️ Vendor not assigned on Agreement';
+                $isChecked = false;
+            } elseif ($isAlreadyInvoiced) {
+                $alreadyCount++;
+                $status = 'already_invoiced';
+                $remarks = 'Already Invoiced: ' . $existingInvoice->invoice_number;
+                $isChecked = false;
+            } else {
+                $pendingCount++;
+                $status = 'pending';
+                $remarks = '';
+                $isChecked = true;
+            }
+
+            $data[] = [
+                $isChecked,                                 // 0: Checkbox
+                $agreementRef,                              // 1: Agreement Ref
+                $siteCode,                                  // 2: Site Code
+                $buildingName,                              // 3: Building Name
+                $floorInfo,                                 // 4: Floor Info
+                $vendorName,                                // 5: Vendor
+                $detailsBtn,                                // 6: Breakdown Button
+                $rentType,                                  // 7: Rent Type
+                number_format($calc['base_rent'], 2, '.', ''),        // 8: Base Rent
+                number_format($calc['increment_amount'], 2, '.', ''), // 9: Increment Amount
+                number_format($calc['effective_rent'], 2, '.', ''),   // 10: Effective Rent
+                number_format($calc['vat'], 2, '.', ''),              // 11: VAT
+                number_format($calc['tax'], 2, '.', ''),              // 12: Tax
+                number_format($calc['subtotal'], 2, '.', ''),         // 13: Subtotal
+                '0.00',                                     // 14: Discount (editable)
+                number_format($calc['subtotal'], 2, '.', ''),         // 15: Total (subtotal - discount)
+                $defaultInvoiceDate,                        // 16: Invoice Date (editable)
+                '',                                         // 17: Due Date (editable)
+                $remarks,                                   // 18: Remarks (editable)
+            ];
+
+            $meta[] = [
+                'rent_base_id'            => $rent->id,
+                'vendor_id'               => $vendorId,
+                'status'                  => $status,
+                'existing_invoice_number' => $existingInvoice->invoice_number ?? null,
+            ];
+        }
+
+        return response()->json([
+            'data'    => $data,
+            'meta'    => $meta,
+            'summary' => [
+                'total'            => $totalCount,
+                'pending'          => $pendingCount,
+                'already_invoiced' => $alreadyCount,
+                'missing_vendor'   => $missingVendorCount,
+            ]
+        ]);
+    }
+
+    /**
+     * Fetch rent breakdown modal content via AJAX
+     */
+    public function rentBreakdownModal(\App\Models\RentBase $rent)
+    {
+        $rent->load([
+            'agreement.vendor',
+            'agreement.floors.building',
+            'increments',
+            'components',
+            'securityDeposits',
+            'agreementUtilities.utilityType'
+        ]);
+
+        $floors = $rent->agreement->floors ?? collect();
+
+        $siteCodes = $floors->map(fn($f) => $f->building->site_code ?? $f->building->code ?? null)->filter()->unique()->implode(', ');
+        $siteCode  = $siteCodes ?: 'N/A';
+
+        $buildingNames = $floors->map(fn($f) => $f->building->site_name ?? null)->filter()->unique()->implode(', ');
+        $buildingName  = $buildingNames ?: 'N/A';
+
+        $floorLabels = $floors->pluck('floor_label')->filter()->unique()->implode(', ');
+        $floorInfo   = $floorLabels ?: 'N/A';
+
+        return view('InvoiceManagement.partials.rent_breakdown_modal', compact('rent', 'siteCode', 'buildingName', 'floorInfo'));
+    }
+
+    /**
+     * Store bulk generated rent invoices
+     */
+    public function bulkGenerate(Request $request)
+    {
+        $request->validate([
+            'billing_month'       => ['required', 'regex:/^\d{4}-\d{2}$/'],
+            'invoices'            => ['required', 'array', 'min:1'],
+            'invoices.*.rent_base_id' => ['required', 'exists:rent_base,id'],
+            'invoices.*.discount'     => ['nullable', 'numeric', 'min:0'],
+            'invoices.*.invoice_date' => ['required', 'date'],
+            'invoices.*.due_date'     => ['nullable', 'date', 'after_or_equal:invoices.*.invoice_date'],
+            'invoices.*.remarks'      => ['nullable', 'string'],
+        ]);
+
+        $billingMonth = $request->billing_month;
+        $rows = $request->invoices;
+        $createdInvoices = [];
+        $skippedNoVendor = 0;
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($billingMonth, $rows, &$createdInvoices, &$skippedNoVendor) {
+            foreach ($rows as $row) {
+                $rentBase = \App\Models\RentBase::with('agreement.vendor')->findOrFail($row['rent_base_id']);
+
+                $vendorId = $rentBase->agreement->vendor_id ?? null;
+                if (!$vendorId) {
+                    $skippedNoVendor++;
+                    continue;
+                }
+
+                // Guard: Skip if already invoiced for this month
+                if ($rentBase->hasInvoiceForMonth($billingMonth)) {
+                    continue;
+                }
+
+                $calc = $rentBase->getEffectiveRentForMonth($billingMonth);
+                $discount = is_numeric($row['discount'] ?? null) ? (float) $row['discount'] : 0.0;
+                $subtotal = $calc['subtotal'];
+                $total = max(0, $subtotal - $discount);
+
+                $invoice = Invoice::create([
+                    'invoice_number'  => Invoice::generateInvoiceNumber(),
+                    'vendor_id'       => $vendorId,
+                    'invoice_date'    => $row['invoice_date'],
+                    'due_date'        => !empty($row['due_date']) ? $row['due_date'] : null,
+                    'subtotal'        => $subtotal,
+                    'tax_amount'      => 0,
+                    'discount_amount' => $discount,
+                    'total_amount'    => $total,
+                    'payment_status'  => 'pending',
+                    'paid_amount'     => 0,
+                    'billing_month'   => $billingMonth,
+                    'remarks'         => !empty($row['remarks']) ? $row['remarks'] : ('Rent Requisition for ' . $billingMonth),
+                ]);
+
+                // Attach to pivot
+                $invoice->rentBasePivot()->attach($rentBase->id, [
+                    'billing_month' => $billingMonth,
+                ]);
+
+                // Update single FK for backward compatibility
+                $rentBase->update(['invoice_id' => $invoice->id]);
+
+                $createdInvoices[] = $invoice->invoice_number;
+            }
+        });
+
+        $count = count($createdInvoices);
+
+        if ($count === 0) {
+            $msg = 'No new invoices were generated.';
+            if ($skippedNoVendor > 0) {
+                $msg .= " {$skippedNoVendor} item(s) skipped because no vendor is assigned to their agreement.";
+            }
+            return response()->json([
+                'success' => false,
+                'message' => $msg,
+            ], 422);
+        }
+
+        $msg = "{$count} rent requisition invoice(s) generated successfully: " . implode(', ', $createdInvoices);
+        if ($skippedNoVendor > 0) {
+            $msg .= " ({$skippedNoVendor} skipped due to missing vendor)";
+        }
+
+        return response()->json([
+            'success'  => true,
+            'message'  => $msg,
+            'redirect' => route('invoices.index'),
+        ]);
+    }
+
+    /**
+     * Ensure jspreadsheet local assets exist in public/js/plugins/jspreadsheet
+     */
+    private function ensureSpreadsheetAssetsExist()
+    {
+        $dir = public_path('js/plugins/jspreadsheet');
+        if (!file_exists($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+
+        $files = [
+            'jexcel.js'   => 'https://bossanova.uk/jspreadsheet/v4/jexcel.js',
+            'jexcel.css'  => 'https://bossanova.uk/jspreadsheet/v4/jexcel.css',
+            'jsuites.js'  => 'https://jsuites.net/v5/jsuites.js',
+            'jsuites.css' => 'https://jsuites.net/v5/jsuites.css',
+        ];
+
+        foreach ($files as $filename => $url) {
+            $path = $dir . '/' . $filename;
+            if (!file_exists($path) || filesize($path) === 0) {
+                $content = @file_get_contents($url);
+                if ($content) {
+                    @file_put_contents($path, $content);
+                }
+            }
+        }
     }
 
     /**
@@ -329,7 +610,7 @@ class InvoiceController extends Controller
             'payment_method' => $request->payment_method,
         ]);
 
-        return redirect()->route('invoices.show', $invoice->id)
+        return redirect()->back()
             ->with('success', 'Payment of ৳ ' . number_format($request->paid_amount, 2) . ' recorded successfully.');
     }
 

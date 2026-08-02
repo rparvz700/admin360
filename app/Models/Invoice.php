@@ -25,6 +25,7 @@ class Invoice extends Model
         'payment_method',
         'invoice_file_path',
         'remarks',
+        'billing_month',
     ];
 
     protected $casts = [
@@ -36,6 +37,7 @@ class Invoice extends Model
         'discount_amount' => 'decimal:2',
         'total_amount'    => 'decimal:2',
         'paid_amount'     => 'decimal:2',
+        'billing_month'   => 'string',
     ];
 
     // Relationships
@@ -52,6 +54,13 @@ class Invoice extends Model
     public function rentBases()
     {
         return $this->hasMany(RentBase::class);
+    }
+
+    public function rentBasePivot()
+    {
+        return $this->belongsToMany(RentBase::class, 'rent_invoices')
+                    ->withPivot('billing_month')
+                    ->withTimestamps();
     }
 
     // Scopes
@@ -121,11 +130,14 @@ class Invoice extends Model
         if ($this->relationLoaded('rentBases') && $this->rentBases->count() > 0) {
             return 'rent';
         }
+        if ($this->relationLoaded('rentBasePivot') && $this->rentBasePivot->count() > 0) {
+            return 'rent';
+        }
         if ($this->relationLoaded('maintenances') && $this->maintenances->count() > 0) {
             return 'maintenance';
         }
 
-        if ($this->rentBases()->exists()) {
+        if ($this->rentBases()->exists() || $this->rentBasePivot()->exists()) {
             return 'rent';
         }
         if ($this->maintenances()->exists()) {

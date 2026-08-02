@@ -85,7 +85,7 @@ class ElectricityBill extends Model
     public function getStatusLabelAttribute()
     {
         return match($this->status) {
-            'generated' => 'Generated / Pending Payment',
+            'generated' => 'Pending Payment',
             'paid'      => 'Paid',
             'cancelled' => 'Cancelled',
             default     => ucfirst($this->status),

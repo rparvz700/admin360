@@ -24,9 +24,16 @@
 
         <div class="block-header block-header-default">
             <h3 class="block-title"><i class="fa fa-file-invoice me-2 text-primary"></i> Invoices Directory</h3>
-            <a href="{{ route('invoices.create') }}" class="btn btn-primary btn-sm float-end">
-                <i class="fa fa-plus me-1"></i> Add Invoice
-            </a>
+            <div>
+                @can('create-invoice')
+                    <a href="{{ route('invoices.bulk-generate') }}" class="btn btn-success btn-sm me-2">
+                        <i class="fa fa-calendar-plus me-1"></i> Generate Monthly Rent Invoices
+                    </a>
+                @endcan
+                <a href="{{ route('invoices.create') }}" class="btn btn-primary btn-sm">
+                    <i class="fa fa-plus me-1"></i> Add Invoice
+                </a>
+            </div>
         </div>
 
         <div class="block-content fs-sm data-content">
@@ -80,6 +87,59 @@
         </div>
     </div>
 </div>
+
+<!-- Record Payment Modal (Index Page) -->
+<div class="modal fade" id="modal-index-record-payment" tabindex="-1" aria-labelledby="modalIndexPaymentLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="form-record-payment" action="" method="POST">
+                @csrf
+                <div class="modal-header bg-success text-white py-2">
+                    <h5 class="modal-title fs-sm text-white mb-0" id="modalIndexPaymentLabel">
+                        <i class="fa fa-credit-card me-1"></i> Record Payment: <span id="payment-invoice-number"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3 fs-sm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Outstanding Amount</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">৳</span>
+                            <input type="text" class="form-control bg-light fw-bold text-danger" id="payment-outstanding-display" readonly>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" for="payment_paid_amount">Amount Paid <span class="text-danger">*</span></label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">৳</span>
+                            <input type="number" step="0.01" class="form-control" id="payment_paid_amount" name="paid_amount" min="0.01" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" for="payment_date_input">Payment Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control form-control-sm" id="payment_date_input" name="payment_date" value="{{ date('Y-m-d') }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" for="payment_method_select">Payment Method <span class="text-danger">*</span></label>
+                        <select class="form-select form-select-sm" id="payment_method_select" name="payment_method" required>
+                            <option value="">-- Select Payment Method --</option>
+                            <option value="cash">Cash</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                            <option value="check">Check</option>
+                            <option value="card">Card</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer bg-body-light py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-sm">
+                        <i class="fa fa-check me-1"></i> Record Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
@@ -126,6 +186,25 @@
                 $('#filter_invoice_type').val('');
                 $('#filter_payment_status').val('');
                 table.draw();
+            });
+
+            // Open Record Payment Modal directly from Actions dropdown
+            $(document).on('click', '.btn-record-payment', function(e) {
+                e.preventDefault();
+                const invoiceId     = $(this).data('invoice-id');
+                const invoiceNumber = $(this).data('invoice-number');
+                const outstanding   = parseFloat($(this).data('outstanding')) || 0;
+
+                $('#payment-invoice-number').text(invoiceNumber);
+                $('#payment-outstanding-display').val(outstanding.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                $('#payment_paid_amount').val(outstanding.toFixed(2)).attr('max', outstanding);
+
+                const actionUrl = '{{ url("invoices") }}/' + invoiceId + '/pay';
+                $('#form-record-payment').attr('action', actionUrl);
+
+                const modalEl = document.getElementById('modal-index-record-payment');
+                const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                bsModal.show();
             });
         });
     </script>

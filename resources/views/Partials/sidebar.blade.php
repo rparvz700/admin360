@@ -141,29 +141,35 @@
                                                 </li>
 
                                                 <!-- Electricity Management Submenu -->
-                                                <li class="nav-main-item {{ isset($activeMenu) && (strpos($activeMenu, 'electricity-') === 0) ? 'open' : '' }}">
-                                                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
+                                                <li
+                                                    class="nav-main-item {{ isset($activeMenu) && strpos($activeMenu, 'electricity-') === 0 ? 'open' : '' }}">
+                                                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
+                                                        aria-haspopup="true" aria-expanded="false" href="#">
                                                         <i class="nav-main-link-icon fa fa-bolt text-warning"></i>
                                                         <span class="nav-main-link-name">Electricity Management</span>
                                                     </a>
                                                     <ul class="nav-main-submenu">
                                                         <li class="nav-main-item">
-                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'electricity-bills' ? 'active' : '' }}" href="{{ route('electricity.bills.index') }}">
-                                                                <span class="nav-main-link-name">Requisitions & Bills</span>
+                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'electricity-bills' ? 'active' : '' }}"
+                                                                href="{{ route('electricity.bills.index') }}">
+                                                                <span class="nav-main-link-name">Electricity Bills</span>
                                                             </a>
                                                         </li>
                                                         <li class="nav-main-item">
-                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'electricity-meters' ? 'active' : '' }}" href="{{ route('electricity.meters.index') }}">
+                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'electricity-meters' ? 'active' : '' }}"
+                                                                href="{{ route('electricity.meters.index') }}">
                                                                 <span class="nav-main-link-name">Meters Master</span>
                                                             </a>
                                                         </li>
-                                                        <li class="nav-main-item">
-                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'electricity-rios' ? 'active' : '' }}" href="{{ route('electricity.rios.index') }}">
+                                                        {{-- <li class="nav-main-item">
+                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'electricity-rios' ? 'active' : '' }}"
+                                                                href="{{ route('electricity.rios.index') }}">
                                                                 <span class="nav-main-link-name">RIOs Setup</span>
                                                             </a>
-                                                        </li>
+                                                        </li> --}}
                                                         <li class="nav-main-item">
-                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'electricity-reports' ? 'active' : '' }}" href="{{ route('electricity.reports.index') }}">
+                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'electricity-reports' ? 'active' : '' }}"
+                                                                href="{{ route('electricity.reports.index') }}">
                                                                 <span class="nav-main-link-name">Reports & Analytics</span>
                                                             </a>
                                                         </li>

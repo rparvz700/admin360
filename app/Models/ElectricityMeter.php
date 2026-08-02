@@ -16,10 +16,14 @@ class ElectricityMeter extends Model
         'meter_number',
         'meter_type',
         'provider_name',
+        'authority_name',
+        'payment_process',
+        'meter_owner',
         'building_id',
         'floor_id',
         'vendor_id',
         'consumer_no',
+        'due_date_day',
         'sanctioned_load_kw',
         'meter_location_notes',
         'is_active',
@@ -28,6 +32,7 @@ class ElectricityMeter extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'sanctioned_load_kw' => 'decimal:2',
+        'due_date_day' => 'integer',
     ];
 
     public function building()
@@ -38,6 +43,11 @@ class ElectricityMeter extends Model
     public function floor()
     {
         return $this->belongsTo(PropertiesFloor::class, 'floor_id');
+    }
+
+    public function floors()
+    {
+        return $this->belongsToMany(PropertiesFloor::class, 'electricity_meter_floors', 'meter_id', 'floor_id')->withTimestamps();
     }
 
     public function vendor()

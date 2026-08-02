@@ -212,7 +212,12 @@ Route::get('/api/reverse-geocode', function (Request $request) {
 })->name('api.reverse-geocode');
 
 Route::middleware(['auth'])->group(function () {
-// Invoices
+    // Invoices
+    Route::get('invoices/bulk-generate', [InvoiceController::class, 'bulkGenerateForm'])->name('invoices.bulk-generate');
+    Route::post('invoices/bulk-generate/preview', [InvoiceController::class, 'previewBulkGenerate'])->name('invoices.bulk-generate.preview');
+    Route::post('invoices/bulk-generate', [InvoiceController::class, 'bulkGenerate'])->name('invoices.bulk-generate.store');
+    Route::get('invoices/rent-breakdown-modal/{rent}', [InvoiceController::class, 'rentBreakdownModal'])->name('invoices.rent-breakdown-modal');
+
     Route::resource('invoices', InvoiceController::class);
     Route::post('invoices/{invoice}/pay', [InvoiceController::class, 'recordPayment'])->name('invoices.pay');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'printInvoice'])->name('invoices.print');

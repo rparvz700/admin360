@@ -8,6 +8,19 @@
             <i class="fa fa-eye text-info me-2"></i> View Details
         </a>
 
+        <!-- Record Payment -->
+        @if($invoice->payment_status !== 'paid')
+            @can('edit-invoice')
+                <a class="dropdown-item py-1 btn-record-payment" href="javascript:void(0)"
+                   data-invoice-id="{{ $invoice->id }}"
+                   data-invoice-number="{{ $invoice->invoice_number }}"
+                   data-outstanding="{{ number_format($invoice->getOutstandingAmount(), 2, '.', '') }}"
+                   data-total="{{ number_format($invoice->total_amount, 2, '.', '') }}">
+                    <i class="fa fa-credit-card text-success me-2"></i> Record Payment
+                </a>
+            @endcan
+        @endif
+
         <!-- PDF Export -->
         <a class="dropdown-item py-1" href="{{ route('invoices.print', $invoice->id) }}" target="_blank">
             <i class="fa fa-file-pdf text-danger me-2"></i> Save / Print PDF

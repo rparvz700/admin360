@@ -32,16 +32,19 @@ class RioController extends Controller
                         : '<span class="badge bg-secondary-light text-secondary">Inactive</span>';
                 })
                 ->addColumn('actions', function ($rio) {
-                    return '
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-sm btn-alt-secondary edit-rio-btn" data-rio=\'' . json_encode($rio) . '\' title="Edit RIO">
-                                <i class="fa fa-pencil-alt text-warning me-1"></i> Edit
-                            </button>
-                            <button type="button" class="btn btn-sm btn-alt-secondary tag-user-btn" data-id="' . $rio->id . '" data-users=\'' . json_encode($rio->users->pluck('id')) . '\' title="Assign Users">
-                                <i class="fa fa-user-plus text-info me-1"></i> Users
-                            </button>
-                        </div>
-                    ';
+                    $id = $rio->id;
+                    $rioJson = htmlspecialchars(json_encode($rio), ENT_QUOTES, 'UTF-8');
+                    $usersJson = htmlspecialchars(json_encode($rio->users->pluck('id')), ENT_QUOTES, 'UTF-8');
+
+                    $html = '<div class="dropdown d-inline-block">';
+                    $html .= '<button type="button" class="btn btn-sm btn-alt-secondary dropdown-toggle" id="rioActions' . $id . '" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>';
+                    $html .= '<div class="dropdown-menu dropdown-menu-end fs-sm py-1" aria-labelledby="rioActions' . $id . '">';
+                    
+                    $html .= '<a class="dropdown-item py-1 edit-rio-btn" href="javascript:void(0)" data-rio=\'' . $rioJson . '\'><i class="fa fa-pencil-alt text-warning me-2"></i> Edit RIO</a>';
+                    $html .= '<a class="dropdown-item py-1 tag-user-btn" href="javascript:void(0)" data-id="' . $id . '" data-users=\'' . $usersJson . '\'><i class="fa fa-user-plus text-info me-2"></i> Assign Users</a>';
+                    
+                    $html .= '</div></div>';
+                    return $html;
                 })
                 ->rawColumns(['user_count', 'building_count', 'is_active', 'actions'])
                 ->make(true);

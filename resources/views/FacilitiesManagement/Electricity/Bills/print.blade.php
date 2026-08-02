@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Requisition Sheet - {{ $bill->requisition_no }}</title>
+    <title>Electricity Bill Sheet - {{ $bill->requisition_no }}</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -112,14 +112,24 @@
 
 <div class="no-print" style="margin-bottom: 15px; text-align: right;">
     <button onclick="window.print();" style="padding: 8px 16px; background: #0284c7; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
-        🖨️ Print Requisition Sheet
+        🖨️ Print Electricity Bill
     </button>
 </div>
 
 <div class="container">
     <div class="header">
-        <h2>Requisition for Electricity Bill - {{ $bill->payment_mode }}</h2>
-        <h4>Facilities & Infrastructure Operations</h4>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px;">
+            <tr>
+                <td style="width: 25%; text-align: left; vertical-align: middle;">
+                    <img src="{{ asset('media/photos/scomm_logo.png') }}" alt="Summit Communications Limited" style="max-height: 55px; width: auto;">
+                </td>
+                <td style="width: 50%; text-align: center; vertical-align: middle;">
+                    <h2 style="margin: 0; font-size: 18px; text-transform: uppercase;">Electricity Bill - {{ $bill->payment_mode }}</h2>
+                    <h4 style="margin: 5px 0 0 0; font-size: 13px; font-weight: normal;">Facilities & Infrastructure Operations</h4>
+                </td>
+                <td style="width: 25%;"></td>
+            </tr>
+        </table>
     </div>
 
     <table class="meta-table">
@@ -132,45 +142,58 @@
         <tr>
             <td class="label">Ref. No:</td>
             <td class="fw-bold">{{ $bill->requisition_no }}</td>
-            <td class="label">HR ID:</td>
-            <td>{{ $bill->creator->id ?? 'N/A' }}</td>
+            <td class="label">Prepared By:</td>
+            <td>{{ $bill->creator->name ?? 'System Admin' }}</td>
         </tr>
         <tr>
+            <td class="label">Land Owner Name:</td>
+            <td class="fw-bold">{{ $landOwnerName }}</td>
+            <td class="label">Last Payment Date:</td>
+            <td>{{ $bill->last_payment_date ? $bill->last_payment_date->format('d-M-Y') : 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Last Month Bill:</td>
+            <td class="fw-bold">{{ $previousBill ? '৳ ' . number_format($previousBill->total_amount, 2) . ' (' . $previousBill->billing_month . ')' : 'N/A' }}</td>
             <td class="label">Purposes:</td>
             <td>Electricity Bill Payment ({{ ucfirst($bill->bill_type) }})</td>
-            <td class="label">Requisitioner:</td>
-            <td>{{ $bill->creator->name ?? 'System Admin' }}</td>
         </tr>
     </table>
 
     <table class="bill-table">
         <thead>
             <tr>
-                <th class="text-center" style="width: 5%;">SL No</th>
-                <th style="width: 15%;">Site Code</th>
+                <th class="text-center" style="width: 4%;">SL</th>
                 <th>Site / Office / POP Name</th>
-                <th style="width: 10%;">Project</th>
-                <th style="width: 10%;">Bill Month</th>
-                <th style="width: 15%;">Last Payment Date</th>
-                <th class="text-right" style="width: 15%;">Bill Amount (BDT)</th>
-                <th style="width: 15%;">Payment Mode</th>
+                <th style="width: 10%;">Meter No</th>
+                <th style="width: 9%;">Bill Month</th>
+                <th class="text-right" style="width: 9%;">Prev Reading</th>
+                <th class="text-right" style="width: 9%;">Pres Reading</th>
+                <th class="text-right" style="width: 9%;">Consumed Unit</th>
+                <th class="text-right" style="width: 8%;">Unit Price</th>
+                <th class="text-right" style="width: 10%;">Base Bill</th>
+                <th class="text-right" style="width: 10%;">Late Fee/VAT</th>
+                <th class="text-right" style="width: 12%;">Total Amount</th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td class="text-center">1</td>
-                <td>{{ $bill->building->code ?? $bill->building->site_code ?? 'N/A' }}</td>
-                <td>{{ $bill->building->site_name ?? 'N/A' }}</td>
-                <td>{{ $bill->project_name }}</td>
+                <td>{{ $bill->building->site_name ?? 'N/A' }} {{ ($bill->building->code ?? $bill->building->site_code) ? "(" . ($bill->building->code ?? $bill->building->site_code) . ")" : '' }}</td>
+                <td>{{ $bill->meter->meter_number ?? 'N/A' }}</td>
                 <td>{{ $bill->billing_month }}</td>
-                <td>{{ $bill->last_payment_date ? $bill->last_payment_date->format('d-M-Y') : 'N/A' }}</td>
+                <td class="text-right">{{ $bill->bill_type === 'postpaid' ? number_format($bill->previous_reading, 2) : 'N/A' }}</td>
+                <td class="text-right">{{ $bill->bill_type === 'postpaid' ? number_format($bill->current_reading, 2) : 'N/A' }}</td>
+                <td class="text-right fw-bold">{{ $bill->bill_type === 'postpaid' ? number_format($bill->units_consumed, 2) : 'N/A' }}</td>
+                <td class="text-right">{{ $bill->bill_type === 'postpaid' ? number_format($bill->rate_per_unit, 2) : 'N/A' }}</td>
+                <td class="text-right">{{ number_format($bill->net_amount, 2) }}</td>
+                <td class="text-right">{{ number_format($bill->vat_amount, 2) }}</td>
                 <td class="text-right fw-bold">{{ number_format($bill->total_amount, 2) }}</td>
-                <td>{{ $bill->payment_mode }}</td>
             </tr>
             <tr>
-                <td colspan="6" class="text-right fw-bold">Total (BDT):</td>
-                <td class="text-right fw-bold">{{ number_format($bill->total_amount, 2) }}</td>
-                <td></td>
+                <td colspan="8" class="text-right fw-bold">Total (BDT):</td>
+                <td class="text-right fw-bold">{{ number_format($bill->net_amount, 2) }}</td>
+                <td class="text-right fw-bold">{{ number_format($bill->vat_amount, 2) }}</td>
+                <td class="text-right fw-bold" style="background-color: #f2f2f2;">{{ number_format($bill->total_amount, 2) }}</td>
             </tr>
         </tbody>
     </table>
@@ -191,7 +214,7 @@
         <table class="signature-table">
             <tr>
                 <td>
-                    <div class="signature-line">Requisition By</div>
+                    <div class="signature-line">Prepared By</div>
                     <div class="signature-sub">{{ $bill->creator->name ?? 'Executive' }}</div>
                     <div class="signature-sub">Administration</div>
                 </td>

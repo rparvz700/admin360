@@ -66,15 +66,19 @@ class ElectricityBillController extends Controller
                     return '<span class="badge bg-' . $bill->status_badge . '">' . $bill->status_label . '</span>';
                 })
                 ->addColumn('actions', function ($bill) {
-                    $html = '<div class="btn-group btn-group-sm text-nowrap" role="group">';
-                    $html .= '<a href="' . route('electricity.bills.show', $bill->id) . '" class="btn btn-alt-info" title="View"><i class="fa fa-eye"></i></a>';
-                    $html .= '<a href="' . route('electricity.bills.print', $bill->id) . '" target="_blank" class="btn btn-alt-secondary" title="Print Requisition Sheet"><i class="fa fa-print"></i></a>';
+                    $id = $bill->id;
+                    $html = '<div class="dropdown d-inline-block">';
+                    $html .= '<button type="button" class="btn btn-sm btn-alt-secondary dropdown-toggle" id="billActions' . $id . '" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>';
+                    $html .= '<div class="dropdown-menu dropdown-menu-end fs-sm py-1" aria-labelledby="billActions' . $id . '">';
+                    
+                    $html .= '<a class="dropdown-item py-1" href="' . route('electricity.bills.show', $id) . '"><i class="fa fa-eye text-info me-2"></i> View Details</a>';
+                    $html .= '<a class="dropdown-item py-1" href="' . route('electricity.bills.print', $id) . '" target="_blank"><i class="fa fa-print text-secondary me-2"></i> Print Requisition Sheet</a>';
                     
                     if ($bill->status === 'generated') {
-                        $html .= '<button type="button" class="btn btn-alt-success mark-paid-btn" data-id="' . $bill->id . '" data-req="' . $bill->requisition_no . '" data-amount="' . number_format($bill->total_amount, 2) . '" title="Mark as Paid"><i class="fa fa-check-circle me-1"></i> Pay</button>';
+                        $html .= '<a class="dropdown-item py-1 mark-paid-btn text-success" href="javascript:void(0)" data-id="' . $id . '" data-req="' . e($bill->requisition_no) . '" data-amount="' . number_format($bill->total_amount, 2) . '"><i class="fa fa-check-circle me-2"></i> Record Payment</a>';
                     }
 
-                    $html .= '</div>';
+                    $html .= '</div></div>';
                     return $html;
                 })
                 ->rawColumns(['requisition_no', 'status', 'actions'])
@@ -126,7 +130,7 @@ class ElectricityBillController extends Controller
             'total_amount'            => 'required|numeric|min:0',
             'received_subcenter_date' => 'nullable|date',
             'last_payment_date'       => 'nullable|date',
-            'cheque_name'             => 'required|string|max:255',
+            'cheque_name'             => 'nullable|string|max:255',
             'payment_mode'            => 'required|in:BEFTN,Cheque,bKash,Cash',
             'payment_account_details' => 'nullable|string',
             'bill_file'               => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
@@ -170,13 +174,53 @@ class ElectricityBillController extends Controller
     public function show(ElectricityBill $bill)
     {
         $bill->load(['meter.building.rio', 'meter.vendor', 'creator', 'payer']);
-        return view('FacilitiesManagement.Electricity.Bills.show', compact('bill'));
+
+        $landOwnerName = null;
+        if ($bill->building_id) {
+            $agreement = \App\Models\Agreement::whereHas('floors', function ($q) use ($bill) {
+                $q->where('building_id', $bill->building_id);
+            })->with('vendor')->latest()->first();
+
+            if ($agreement && $agreement->vendor) {
+                $landOwnerName = $agreement->vendor->name;
+            }
+        }
+        if (!$landOwnerName) {
+            $landOwnerName = $bill->meter->vendor->name ?? $bill->meter->meter_owner ?? 'N/A';
+        }
+
+        $previousBill = ElectricityBill::where('meter_id', $bill->meter_id)
+            ->where('id', '<', $bill->id)
+            ->latest('id')
+            ->first();
+
+        return view('FacilitiesManagement.Electricity.Bills.show', compact('bill', 'landOwnerName', 'previousBill'));
     }
 
     public function printSheet(ElectricityBill $bill)
     {
         $bill->load(['meter.building.rio', 'meter.vendor', 'creator']);
-        return view('FacilitiesManagement.Electricity.Bills.print', compact('bill'));
+
+        $landOwnerName = null;
+        if ($bill->building_id) {
+            $agreement = \App\Models\Agreement::whereHas('floors', function ($q) use ($bill) {
+                $q->where('building_id', $bill->building_id);
+            })->with('vendor')->latest()->first();
+
+            if ($agreement && $agreement->vendor) {
+                $landOwnerName = $agreement->vendor->name;
+            }
+        }
+        if (!$landOwnerName) {
+            $landOwnerName = $bill->meter->vendor->name ?? $bill->meter->meter_owner ?? 'N/A';
+        }
+
+        $previousBill = ElectricityBill::where('meter_id', $bill->meter_id)
+            ->where('id', '<', $bill->id)
+            ->latest('id')
+            ->first();
+
+        return view('FacilitiesManagement.Electricity.Bills.print', compact('bill', 'landOwnerName', 'previousBill'));
     }
 
     public function markAsPaid(Request $request, ElectricityBill $bill)
