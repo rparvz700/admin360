@@ -167,7 +167,7 @@
             </div>
             <div class="modal-footer border-0 bg-body-light justify-content-center py-2" id="dialog-footer">
                 <button type="button" class="btn btn-sm btn-secondary me-2 d-none" id="dialog-btn-cancel" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-sm btn-primary" id="dialog-btn-confirm" data-bs-dismiss="modal">OK</button>
+                <button type="button" class="btn btn-sm btn-primary" id="dialog-btn-confirm">OK</button>
             </div>
         </div>
     </div>
@@ -210,6 +210,7 @@
         };
 
         function showAlert(title, message, type = 'info', onOk = null) {
+            const dialogEl = document.getElementById('modal-custom-dialog');
             const iconClass = type === 'success' ? 'fa-check-circle' :
                               type === 'danger'  ? 'fa-exclamation-triangle' :
                               type === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle';
@@ -222,21 +223,36 @@
                               type === 'warning' ? 'btn-warning' :
                               type === 'success' ? 'btn-success' : 'btn-primary';
 
-            $('#dialog-header-bg').attr('class', 'modal-header border-0 py-3 text-white ' + bgClass);
-            $('#dialog-icon').attr('class', 'fa me-2 ' + iconClass);
-            $('#dialog-title-text').text(title);
-            $('#dialog-body-text').html(message);
+            const triggerShow = function() {
+                $('#dialog-header-bg').attr('class', 'modal-header border-0 py-3 text-white ' + bgClass);
+                $('#dialog-icon').attr('class', 'fa me-2 ' + iconClass);
+                $('#dialog-title-text').text(title);
+                $('#dialog-body-text').html(message);
 
-            $('#dialog-btn-cancel').addClass('d-none');
-            $('#dialog-btn-confirm').attr('class', 'btn btn-sm ' + btnClass).text('OK').off('click').on('click', function() {
-                if (typeof onOk === 'function') onOk();
-            });
+                $('#dialog-btn-cancel').addClass('d-none');
+                $('#dialog-btn-confirm').attr('class', 'btn btn-sm ' + btnClass).text('OK').off('click').on('click', function() {
+                    const inst = bootstrap.Modal.getInstance(dialogEl);
+                    if (inst) inst.hide();
+                    if (typeof onOk === 'function') onOk();
+                });
 
-            const bsModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modal-custom-dialog'));
-            bsModal.show();
+                const bsModal = bootstrap.Modal.getOrCreateInstance(dialogEl);
+                bsModal.show();
+            };
+
+            const existingModal = bootstrap.Modal.getInstance(dialogEl);
+            if (existingModal && $(dialogEl).hasClass('show')) {
+                $(dialogEl).one('hidden.bs.modal', function() {
+                    setTimeout(triggerShow, 50);
+                });
+                existingModal.hide();
+            } else {
+                triggerShow();
+            }
         }
 
         function showConfirm(title, message, onConfirm, type = 'primary') {
+            const dialogEl = document.getElementById('modal-custom-dialog');
             $('#dialog-header-bg').attr('class', 'modal-header border-0 py-3 text-white bg-primary');
             $('#dialog-icon').attr('class', 'fa me-2 fa-question-circle');
             $('#dialog-title-text').text(title);
@@ -244,10 +260,18 @@
 
             $('#dialog-btn-cancel').removeClass('d-none');
             $('#dialog-btn-confirm').attr('class', 'btn btn-sm btn-primary').text('Yes, Generate').off('click').on('click', function() {
-                if (typeof onConfirm === 'function') onConfirm();
+                const inst = bootstrap.Modal.getInstance(dialogEl);
+                if (inst) {
+                    $(dialogEl).one('hidden.bs.modal', function() {
+                        if (typeof onConfirm === 'function') onConfirm();
+                    });
+                    inst.hide();
+                } else {
+                    if (typeof onConfirm === 'function') onConfirm();
+                }
             });
 
-            const bsModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modal-custom-dialog'));
+            const bsModal = bootstrap.Modal.getOrCreateInstance(dialogEl);
             bsModal.show();
         }
 
