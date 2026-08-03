@@ -1,4 +1,4 @@
-@extends('Partials.app', ['activeMenu' => 'vehicles'])
+@extends('Partials.app', ['activeMenu' => 'vendors'])
 @section('title') Add Vendor @endsection
 @section('content')
 <div class="content">

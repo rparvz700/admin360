@@ -97,10 +97,23 @@ class PermissionSeeder extends Seeder
             // 'admin-ticket-management',
 
             // Invoice Management
-            // 'invoice-management',
+            'invoice-management',
             'create-invoice',
             'edit-invoice',
             'delete-invoice',
+
+            // Rent Invoices
+            'rent-invoice-management',
+            'create-rent-invoice',
+            'edit-rent-invoice',
+            'delete-rent-invoice',
+
+            // Vehicle Invoices
+            'vehicle-invoice-management',
+            'create-vehicle-invoice',
+            'edit-vehicle-invoice',
+            'delete-vehicle-invoice',
+
             'create-vendor',
             'edit-vendor',
             'delete-vendor',

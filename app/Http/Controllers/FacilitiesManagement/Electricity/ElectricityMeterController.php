@@ -35,8 +35,18 @@ class ElectricityMeterController extends Controller
                     return '<span class="fw-bold text-primary">' . e($meter->meter_number) . '</span>';
                 })
                 ->addColumn('site', function ($meter) {
-                    $code = $meter->building->code ?? $meter->building->site_code;
-                    return ($meter->building->site_name ?? 'N/A') . ($code ? ' (' . $code . ')' : '');
+                    $siteName = $meter->building->site_name ?? 'N/A';
+                    $code     = $meter->building->code ?? $meter->building->site_code;
+                    return '<div class="fw-semibold text-dark">' . e($siteName) . '</div>'
+                         . ($code ? '<div class="fs-xs text-muted">' . e($code) . '</div>' : '');
+                })
+                ->filterColumn('site', function ($query, $keyword) {
+                    $lower = strtolower($keyword);
+                    $query->whereHas('building', function ($q) use ($lower) {
+                        $q->whereRaw("LOWER(site_name) LIKE ?", ["%{$lower}%"])
+                          ->orWhereRaw("LOWER(site_code) LIKE ?", ["%{$lower}%"])
+                          ->orWhereRaw("LOWER(code) LIKE ?", ["%{$lower}%"]);
+                    });
                 })
                 ->addColumn('floors_list', function ($meter) {
                     if ($meter->floors && $meter->floors->count() > 0) {
@@ -44,8 +54,25 @@ class ElectricityMeterController extends Controller
                     }
                     return $meter->floor->floor_label ?? 'N/A';
                 })
+                ->filterColumn('floors_list', function ($query, $keyword) {
+                    $lower = strtolower($keyword);
+                    $query->where(function ($q) use ($lower) {
+                        $q->whereHas('floor', function ($q2) use ($lower) {
+                            $q2->whereRaw("LOWER(floor_label) LIKE ?", ["%{$lower}%"]);
+                        })
+                        ->orWhereHas('floors', function ($q2) use ($lower) {
+                            $q2->whereRaw("LOWER(floor_label) LIKE ?", ["%{$lower}%"]);
+                        });
+                    });
+                })
                 ->addColumn('rio', function ($meter) {
                     return $meter->building->rio->name ?? 'N/A';
+                })
+                ->filterColumn('rio', function ($query, $keyword) {
+                    $lower = strtolower($keyword);
+                    $query->whereHas('building.rio', function ($q) use ($lower) {
+                        $q->whereRaw("LOWER(name) LIKE ?", ["%{$lower}%"]);
+                    });
                 })
                 ->addColumn('meter_type_badge', function ($meter) {
                     return '<span class="badge bg-' . $meter->meter_type_badge . '">' . $meter->meter_type_label . '</span>';
@@ -67,6 +94,12 @@ class ElectricityMeterController extends Controller
                     if ($meter->vendor) return 'Vendor/Owner: ' . $meter->vendor->name;
                     return 'Direct Utility Provider';
                 })
+                ->filterColumn('assigned_to', function ($query, $keyword) {
+                    $lower = strtolower($keyword);
+                    $query->whereHas('vendor', function ($q) use ($lower) {
+                        $q->whereRaw("LOWER(name) LIKE ?", ["%{$lower}%"]);
+                    });
+                })
                 ->editColumn('is_active', function ($meter) {
                     return $meter->is_active
                         ? '<span class="badge bg-success-light text-success"><i class="fa fa-check me-1"></i>Active</span>'
@@ -83,7 +116,7 @@ class ElectricityMeterController extends Controller
                     $html .= '</div></div>';
                     return $html;
                 })
-                ->rawColumns(['meter_number', 'meter_type_badge', 'is_active', 'actions'])
+                ->rawColumns(['meter_number', 'site', 'meter_type_badge', 'is_active', 'actions'])
                 ->make(true);
         }
 

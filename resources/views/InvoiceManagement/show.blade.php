@@ -41,6 +41,18 @@
                                 <td><strong>{{ $invoice->invoice_number }}</strong></td>
                             </tr>
                             <tr>
+                                <th>Invoice Type</th>
+                                <td>
+                                    <span class="badge bg-{{ $invoice->invoice_type_badge }} fw-semibold">
+                                        {{ $invoice->invoice_type_label }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Invoice For (Item)</th>
+                                <td>{!! $invoice->invoice_item_html !!}</td>
+                            </tr>
+                            <tr>
                                 <th>Vendor</th>
                                 <td>
                                     {{ $invoice->vendor->name ?? 'N/A' }}

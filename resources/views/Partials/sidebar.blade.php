@@ -282,7 +282,7 @@
                                     {{-- -------------------------Vehicle Maintenance Management------------------------- --}}
 
                                     @canany(['vehicle-maintenance-management'])
-                                        <li class="nav-main-item {{ request()->routeIs('maintenance.*') ? 'open' : '' }}">
+                                        <li class="nav-main-item {{ request()->routeIs('maintenance.dashboard', 'maintenance.maintenances.*', 'maintenance.operational-logs.*', 'maintenance.reports.*', 'maintenance.parts*') ? 'open' : '' }}">
                                             <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                 aria-haspopup="true" aria-expanded="false" href="#">
                                                 <i class="nav-main-link-icon si si-wrench"></i>
@@ -417,7 +417,7 @@
                                     {{-- -------------------------Invoice Management------------------------- --}}
                                     @canany(['invoice-management'])
                                         <li
-                                            class="nav-main-item {{ request()->routeIs('invoices.*', 'maintenance.vendors.*', 'vat-taxes.*') ? 'open' : '' }}">
+                                            class="nav-main-item {{ request()->routeIs('invoices.*', 'vat-taxes.*') ? 'open' : '' }}">
                                             <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                 aria-haspopup="true" aria-expanded="false" href="#">
                                                 <i class="nav-main-link-icon fa fa-file-invoice-dollar"></i>
@@ -425,27 +425,36 @@
                                             </a>
                                             <ul class="nav-main-submenu">
                                                 <li class="nav-main-item">
-                                                    <a class="nav-main-link {{ request()->routeIs('invoices.index') ? 'active' : '' }}"
-                                                        href="{{ route('invoices.index') }}">
+                                                    <a class="nav-main-link {{ request()->routeIs('invoices.dashboard') ? 'active' : '' }}"
+                                                        href="{{ route('invoices.dashboard') }}">
                                                         <span class="nav-main-link-name">Dashboard</span>
                                                     </a>
                                                 </li>
-                                                <li class="nav-main-item">
-                                                    <a class="nav-main-link {{ request()->routeIs('invoices.index') ? 'active' : '' }}"
-                                                        href="{{ route('invoices.index') }}">
+                                                <li class="nav-main-item {{ request()->routeIs('invoices.rent.*', 'invoices.vehicle.*', 'invoices.index') ? 'open' : '' }}">
+                                                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
                                                         <span class="nav-main-link-name">Invoices</span>
                                                     </a>
-                                                </li>
-
-                                                <li class="nav-main-item">
-                                                    <a class="nav-main-link {{ request()->routeIs('invoices.index') ? 'active' : '' }}"
-                                                        href="{{ route('invoices.index') }}">
-                                                        <span class="nav-main-link-name">Reports</span>
-                                                    </a>
+                                                    <ul class="nav-main-submenu">
+                                                        <li class="nav-main-item">
+                                                            <a class="nav-main-link {{ request()->routeIs('invoices.rent.*') ? 'active' : '' }}" href="{{ route('invoices.rent.index') }}">
+                                                                <span class="nav-main-link-name">Rent Invoices</span>
+                                                            </a>
+                                                        </li>
+                                                        <li class="nav-main-item">
+                                                            <a class="nav-main-link {{ request()->routeIs('invoices.vehicle.*') ? 'active' : '' }}" href="{{ route('invoices.vehicle.index') }}">
+                                                                <span class="nav-main-link-name">Vehicle Invoices</span>
+                                                            </a>
+                                                        </li>
+                                                        <li class="nav-main-item">
+                                                            <a class="nav-main-link {{ request()->routeIs('invoices.index') || (request()->routeIs('invoices.show', 'invoices.create', 'invoices.edit') && !request()->routeIs('invoices.rent.*', 'invoices.vehicle.*')) ? 'active' : '' }}" href="{{ route('invoices.index') }}">
+                                                                <span class="nav-main-link-name">All Invoices</span>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
                                                 </li>
 
                                                 <li
-                                                    class="nav-main-item {{ request()->routeIs('maintenance.vendors.*', 'vat-taxes.*') ? 'open' : '' }}">
+                                                    class="nav-main-item {{ request()->routeIs('vat-taxes.*') ? 'open' : '' }}">
                                                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                         aria-haspopup="true" aria-expanded="false" href="#">
                                                         <i class="nav-main-link-icon fa fa-cog"></i>
@@ -453,28 +462,31 @@
                                                     </a>
                                                     <ul class="nav-main-submenu">
                                                         <li class="nav-main-item">
-                                                            <a class="nav-main-link {{ request()->routeIs('maintenance.vendors.*') ? 'active' : '' }}"
-                                                                href="{{ route('maintenance.vendors.index') }}">
-                                                                <span class="nav-main-link-name">Vendors</span>
-                                                            </a>
-                                                        </li>
-                                                        <li class="nav-main-item">
                                                             <a class="nav-main-link {{ request()->routeIs('vat-taxes.*') ? 'active' : '' }}"
                                                                 href="{{ route('vat-taxes.index') }}">
                                                                 <span class="nav-main-link-name">VAT/TAX</span>
                                                             </a>
                                                         </li>
-
                                                     </ul>
                                                 </li>
                                             </ul>
                                         </li>
                                     @endcanany
+
+                                    {{-- ----------------------Vendors------------------- --}}
+                                    <li class="nav-main-item">
+                                        <a class="nav-main-link {{ (isset($activeMenu) && $activeMenu == 'vendors') || request()->routeIs('maintenance.vendors.*') ? 'active' : '' }}"
+                                            href="{{ route('maintenance.vendors.index') }}">
+                                            <i class="nav-main-link-icon fa fa-store"></i>
+                                            <span class="nav-main-link-name">Vendors</span>
+                                        </a>
+                                    </li>
+
                                     {{-- ----------------------Settings------------------- --}}
                                     @canany(['create-role', 'edit-role', 'delete-role', 'create-user', 'edit-user',
                                         'delete-user'])
                                         <li
-                                            class="nav-main-item {{ isset($activeMenu) && $activeMenu == 'roles' ? 'open' : '' }}">
+                                            class="nav-main-item {{ (isset($activeMenu) && in_array($activeMenu, ['roles', 'users'])) || request()->routeIs('roles.*', 'users.*') ? 'open' : '' }}">
                                             <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                 aria-haspopup="true" aria-expanded="false" href="#">
                                                 <i class="nav-main-link-icon fa fa-cog"></i>
@@ -483,7 +495,7 @@
                                             <ul class="nav-main-submenu">
                                                 @canany(['create-role', 'edit-role', 'delete-role'])
                                                     <li class="nav-main-item">
-                                                        <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'roles' ? 'active' : '' }}"
+                                                        <a class="nav-main-link {{ (isset($activeMenu) && $activeMenu == 'roles') || request()->routeIs('roles.*') ? 'active' : '' }}"
                                                             href="{{ route('roles.index') }}">
                                                             <span class="nav-main-link-name">Roles</span>
                                                         </a>
@@ -492,7 +504,7 @@
 
                                                 @canany(['create-user', 'edit-user', 'delete-user'])
                                                     <li class="nav-main-item">
-                                                        <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'users' ? 'active' : '' }}"
+                                                        <a class="nav-main-link {{ (isset($activeMenu) && $activeMenu == 'users') || request()->routeIs('users.*') ? 'active' : '' }}"
                                                             href="{{ route('users.index') }}">
                                                             <span class="nav-main-link-name">Users</span>
                                                         </a>

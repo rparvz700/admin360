@@ -1,4 +1,4 @@
-@extends('Partials.app', ['activeMenu' => 'vehicles'])
+@extends('Partials.app', ['activeMenu' => 'vendors'])
 @section('title') Vendors @endsection
 @section('styles')
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-bs5/css/dataTables.bootstrap5.min.css') }}">

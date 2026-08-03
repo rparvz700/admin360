@@ -25,7 +25,12 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $invoices = Invoice::with(['vendor', 'rentBases', 'rentBasePivot', 'maintenances'])->orderByDesc('invoice_date');
+            $invoices = Invoice::with([
+                'vendor',
+                'maintenances.vehicle',
+                'rentBases.agreement.floors.building',
+                'rentBasePivot.agreement.floors.building'
+            ])->orderByDesc('invoice_date');
 
             if ($request->filled('invoice_type')) {
                 $type = $request->invoice_type;
@@ -44,21 +49,76 @@ class InvoiceController extends Controller
                 $invoices->where('payment_status', $request->payment_status);
             }
 
+            if ($request->filled('billing_month')) {
+                $month = $request->billing_month;
+                $parts = explode('-', $month);
+                $year  = $parts[0] ?? null;
+                $m     = $parts[1] ?? null;
+
+                $invoices->where(function ($q) use ($month, $year, $m) {
+                    $q->where('billing_month', $month)
+                      ->orWhereHas('rentBasePivot', function ($q2) use ($month) {
+                          $q2->where('rent_invoices.billing_month', $month);
+                      });
+
+                    if ($year && $m) {
+                        $q->orWhere(function ($q3) use ($year, $m) {
+                            $q3->whereYear('invoice_date', $year)
+                               ->whereMonth('invoice_date', $m);
+                        });
+                    }
+                });
+            }
+
             return datatables()->of($invoices)
                 ->addColumn('invoice_type', function ($invoice) {
                     return '<span class="badge bg-' . $invoice->invoice_type_badge . ' fw-semibold">'
                         . $invoice->invoice_type_label . '</span>';
                 })
+                ->filterColumn('invoice_number', function ($query, $keyword) {
+                    $lower = strtolower($keyword);
+                    $query->whereRaw("LOWER(invoice_number) LIKE ?", ["%{$lower}%"]);
+                })
+                ->addColumn('item_details', function ($invoice) {
+                    return $invoice->invoice_item_html;
+                })
+                ->filterColumn('item_details', function ($query, $keyword) {
+                    $lower = strtolower($keyword);
+                    $query->where(function ($q) use ($lower) {
+                        $q->whereHas('rentBases.agreement', function ($q2) use ($lower) {
+                            $q2->whereRaw("LOWER(agreement_ref_no) LIKE ?", ["%{$lower}%"])
+                               ->orWhereHas('floors.building', function ($q3) use ($lower) {
+                                   $q3->whereRaw("LOWER(site_code) LIKE ?", ["%{$lower}%"])
+                                      ->orWhereRaw("LOWER(code) LIKE ?", ["%{$lower}%"])
+                                      ->orWhereRaw("LOWER(site_name) LIKE ?", ["%{$lower}%"]);
+                               });
+                        })
+                        ->orWhereHas('rentBasePivot.agreement', function ($q2) use ($lower) {
+                            $q2->whereRaw("LOWER(agreement_ref_no) LIKE ?", ["%{$lower}%"])
+                               ->orWhereHas('floors.building', function ($q3) use ($lower) {
+                                   $q3->whereRaw("LOWER(site_code) LIKE ?", ["%{$lower}%"])
+                                      ->orWhereRaw("LOWER(code) LIKE ?", ["%{$lower}%"])
+                                      ->orWhereRaw("LOWER(site_name) LIKE ?", ["%{$lower}%"]);
+                               });
+                        })
+                        ->orWhereHas('maintenances', function ($q2) use ($lower) {
+                            $q2->whereRaw("LOWER(service_description) LIKE ?", ["%{$lower}%"])
+                               ->orWhereHas('vehicle', function ($q3) use ($lower) {
+                                   $q3->whereRaw("LOWER(registration_number) LIKE ?", ["%{$lower}%"]);
+                               });
+                        })
+                        ->orWhereRaw("LOWER(remarks) LIKE ?", ["%{$lower}%"]);
+                    });
+                })
                 ->editColumn('vendor', function ($invoice) {
                     return $invoice->vendor->name ?? 'N/A';
                 })
-                ->editColumn('invoice_date', function ($invoice) {
-                    return $invoice->invoice_date ? $invoice->invoice_date->format('d M Y') : 'N/A';
-                })
-                ->editColumn('due_date', function ($invoice) {
-                    return $invoice->due_date
-                        ? $invoice->due_date->format('d M Y')
-                        : '<span class="text-muted">N/A</span>';
+                ->filterColumn('vendor', function ($query, $keyword) {
+                    $lower = strtolower($keyword);
+                    $query->whereHas('vendor', function ($q) use ($lower) {
+                        $q->whereRaw("LOWER(name) LIKE ?", ["%{$lower}%"])
+                          ->orWhereRaw("LOWER(vendor_code) LIKE ?", ["%{$lower}%"]);
+                    });
                 })
                 ->editColumn('total_amount', function ($invoice) {
                     return '৳ ' . number_format($invoice->total_amount, 2);
@@ -78,7 +138,7 @@ class InvoiceController extends Controller
                 ->addColumn('actions', function ($invoice) {
                     return view('InvoiceManagement.partials.actions', compact('invoice'))->render();
                 })
-                ->rawColumns(['invoice_type', 'due_date', 'outstanding', 'payment_status', 'actions'])
+                ->rawColumns(['invoice_type', 'item_details', 'outstanding', 'payment_status', 'actions'])
                 ->make(true);
         }
 
@@ -437,7 +497,7 @@ class InvoiceController extends Controller
             ], 422);
         }
 
-        $msg = "{$count} rent requisition invoice(s) generated successfully: " . implode(', ', $createdInvoices);
+        $msg = "{$count} rent requisition invoice(s) generated successfully.";
         if ($skippedNoVendor > 0) {
             $msg .= " ({$skippedNoVendor} skipped due to missing vendor)";
         }
@@ -486,10 +546,12 @@ class InvoiceController extends Controller
             'vendor',
             'maintenances.vehicle',
             'rentBases.agreement.vendor',
+            'rentBases.agreement.floors.building',
             'rentBases.agreement.utilities.utilityType',
             'rentBases.components',
             'rentBases.increments',
-            'rentBases.securityDeposits'
+            'rentBases.securityDeposits',
+            'rentBasePivot.agreement.floors.building',
         ]);
 
         return view('InvoiceManagement.show', compact('invoice'));

@@ -44,23 +44,68 @@ class ElectricityBillController extends Controller
                 $query->where('bill_type', $request->bill_type);
             }
 
+            // Filter by Month
+            if ($request->filled('billing_month')) {
+                $query->where('billing_month', $request->billing_month);
+            }
+
             return DataTables::of($query)
                 ->addColumn('requisition_no', function ($bill) {
                     return '<a href="' . route('electricity.bills.show', $bill->id) . '" class="fw-bold text-primary">'
                          . $bill->requisition_no . '</a>';
                 })
+                ->filterColumn('requisition_no', function ($query, $keyword) {
+                    $lower = strtolower($keyword);
+                    $query->whereRaw("LOWER(requisition_no) LIKE ?", ["%{$lower}%"]);
+                })
                 ->addColumn('site', function ($bill) {
-                    $code = $bill->building->code ?? $bill->building->site_code;
-                    return ($bill->building->site_name ?? 'N/A') . ($code ? ' (' . $code . ')' : '');
+                    $siteName = $bill->building->site_name ?? 'N/A';
+                    $code     = $bill->building->code ?? $bill->building->site_code;
+                    return '<div class="fw-semibold text-dark">' . e($siteName) . '</div>' 
+                         . ($code ? '<div class="fs-xs text-muted">' . e($code) . '</div>' : '');
+                })
+                ->filterColumn('site', function ($query, $keyword) {
+                    $lower = strtolower($keyword);
+                    $query->whereHas('building', function ($q) use ($lower) {
+                        $q->whereRaw("LOWER(site_name) LIKE ?", ["%{$lower}%"])
+                          ->orWhereRaw("LOWER(site_code) LIKE ?", ["%{$lower}%"])
+                          ->orWhereRaw("LOWER(code) LIKE ?", ["%{$lower}%"]);
+                    });
                 })
                 ->addColumn('rio', function ($bill) {
                     return $bill->rio->name ?? ($bill->building->rio->name ?? 'N/A');
                 })
+                ->filterColumn('rio', function ($query, $keyword) {
+                    $lower = strtolower($keyword);
+                    $query->where(function ($q) use ($lower) {
+                        $q->whereHas('rio', function ($q2) use ($lower) {
+                            $q2->whereRaw("LOWER(name) LIKE ?", ["%{$lower}%"]);
+                        })
+                        ->orWhereHas('building.rio', function ($q2) use ($lower) {
+                            $q2->whereRaw("LOWER(name) LIKE ?", ["%{$lower}%"]);
+                        });
+                    });
+                })
                 ->addColumn('meter', function ($bill) {
-                    return ($bill->meter->meter_number ?? 'N/A') . ' (' . ucfirst($bill->bill_type) . ')';
+                    $meterNo  = $bill->meter->meter_number ?? 'N/A';
+                    $billType = ucfirst($bill->bill_type ?? '');
+                    return '<div class="fw-semibold text-dark">' . e($meterNo) . '</div>'
+                         . ($billType ? '<div class="fs-xs text-muted">' . e($billType) . '</div>' : '');
+                })
+                ->filterColumn('meter', function ($query, $keyword) {
+                    $lower = strtolower($keyword);
+                    $query->where(function ($q) use ($lower) {
+                        $q->whereHas('meter', function ($q2) use ($lower) {
+                            $q2->whereRaw("LOWER(meter_number) LIKE ?", ["%{$lower}%"]);
+                        })
+                        ->orWhereRaw("LOWER(bill_type) LIKE ?", ["%{$lower}%"]);
+                    });
                 })
                 ->addColumn('total_amount_formatted', function ($bill) {
                     return '৳ ' . number_format($bill->total_amount, 2);
+                })
+                ->filterColumn('total_amount_formatted', function ($query, $keyword) {
+                    $query->where('total_amount', 'like', "%{$keyword}%");
                 })
                 ->editColumn('status', function ($bill) {
                     return '<span class="badge bg-' . $bill->status_badge . '">' . $bill->status_label . '</span>';
@@ -81,7 +126,7 @@ class ElectricityBillController extends Controller
                     $html .= '</div></div>';
                     return $html;
                 })
-                ->rawColumns(['requisition_no', 'status', 'actions'])
+                ->rawColumns(['requisition_no', 'site', 'meter', 'status', 'actions'])
                 ->make(true);
         }
 

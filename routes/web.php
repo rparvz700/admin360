@@ -29,6 +29,9 @@ use App\Http\Controllers\VehicleMaintenanceManagement\VehicleMaintenanceControll
 use App\Http\Controllers\VehicleMaintenanceManagement\VehiclePartController;
 use App\Http\Controllers\VehicleMaintenanceManagement\VehicleOperationalLogController;
 use App\Http\Controllers\InvoiceManagement\InvoiceController;
+use App\Http\Controllers\InvoiceManagement\RentInvoiceController;
+use App\Http\Controllers\InvoiceManagement\VehicleInvoiceController;
+use App\Http\Controllers\InvoiceManagement\InvoiceDashboardController;
 use App\Http\Controllers\InvoiceManagement\VatTaxController;
 use App\Http\Controllers\VehicleMaintenanceManagement\MaintenanceReportController;
 use App\Http\Controllers\FacilitiesManagement\Electricity\RioController;
@@ -213,6 +216,42 @@ Route::get('/api/reverse-geocode', function (Request $request) {
 
 Route::middleware(['auth'])->group(function () {
     // Invoices
+    Route::get('invoices/dashboard', [InvoiceDashboardController::class, 'index'])->name('invoices.dashboard');
+
+    // 1. Rent Invoices
+    Route::prefix('invoices/rent')->name('invoices.rent.')->group(function () {
+        Route::get('bulk-generate', [RentInvoiceController::class, 'bulkGenerateForm'])->name('bulk-generate');
+        Route::post('bulk-generate/preview', [RentInvoiceController::class, 'previewBulkGenerate'])->name('bulk-generate.preview');
+        Route::post('bulk-generate', [RentInvoiceController::class, 'bulkGenerate'])->name('bulk-generate.store');
+        Route::get('rent-breakdown-modal/{rent}', [RentInvoiceController::class, 'rentBreakdownModal'])->name('rent-breakdown-modal');
+
+        Route::get('/', [RentInvoiceController::class, 'index'])->name('index');
+        Route::get('create', [RentInvoiceController::class, 'create'])->name('create');
+        Route::post('/', [RentInvoiceController::class, 'store'])->name('store');
+        Route::get('{invoice}', [RentInvoiceController::class, 'show'])->name('show');
+        Route::get('{invoice}/edit', [RentInvoiceController::class, 'edit'])->name('edit');
+        Route::put('{invoice}', [RentInvoiceController::class, 'update'])->name('update');
+        Route::delete('{invoice}', [RentInvoiceController::class, 'destroy'])->name('destroy');
+        Route::post('{invoice}/pay', [RentInvoiceController::class, 'recordPayment'])->name('pay');
+        Route::get('{invoice}/print', [RentInvoiceController::class, 'printInvoice'])->name('print');
+        Route::get('{invoice}/download', [RentInvoiceController::class, 'download'])->name('download');
+    });
+
+    // 2. Vehicle Invoices
+    Route::prefix('invoices/vehicle')->name('invoices.vehicle.')->group(function () {
+        Route::get('/', [VehicleInvoiceController::class, 'index'])->name('index');
+        Route::get('create', [VehicleInvoiceController::class, 'create'])->name('create');
+        Route::post('/', [VehicleInvoiceController::class, 'store'])->name('store');
+        Route::get('{invoice}', [VehicleInvoiceController::class, 'show'])->name('show');
+        Route::get('{invoice}/edit', [VehicleInvoiceController::class, 'edit'])->name('edit');
+        Route::put('{invoice}', [VehicleInvoiceController::class, 'update'])->name('update');
+        Route::delete('{invoice}', [VehicleInvoiceController::class, 'destroy'])->name('destroy');
+        Route::post('{invoice}/pay', [VehicleInvoiceController::class, 'recordPayment'])->name('pay');
+        Route::get('{invoice}/print', [VehicleInvoiceController::class, 'printInvoice'])->name('print');
+        Route::get('{invoice}/download', [VehicleInvoiceController::class, 'download'])->name('download');
+    });
+
+    // 3. Global Invoices
     Route::get('invoices/bulk-generate', [InvoiceController::class, 'bulkGenerateForm'])->name('invoices.bulk-generate');
     Route::post('invoices/bulk-generate/preview', [InvoiceController::class, 'previewBulkGenerate'])->name('invoices.bulk-generate.preview');
     Route::post('invoices/bulk-generate', [InvoiceController::class, 'bulkGenerate'])->name('invoices.bulk-generate.store');
