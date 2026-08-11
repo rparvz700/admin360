@@ -46,7 +46,7 @@ class ElectricityReportController extends Controller
         $totalExpenditure = (clone $query)->sum('total_amount');
         $totalUnits       = (clone $query)->sum('units_consumed');
         $totalBaseAmount  = (clone $query)->sum('net_amount');
-        $totalVatAmount   = (clone $query)->sum('vat_amount');
+        $totalVatAmount   = (clone $query)->sum(DB::raw('vat_amount + late_fee + meter_charge + others_amount'));
         $totalBillsCount  = (clone $query)->count();
 
         // Payment status counts
@@ -80,7 +80,7 @@ class ElectricityReportController extends Controller
                 DB::raw('COUNT(id) as total_bills'),
                 DB::raw('SUM(units_consumed) as total_units'),
                 DB::raw('SUM(net_amount) as total_net'),
-                DB::raw('SUM(vat_amount) as total_vat'),
+                DB::raw('SUM(vat_amount + late_fee + meter_charge + others_amount) as total_vat'),
                 DB::raw('SUM(total_amount) as total_cost')
             )
             ->where('status', '!=', 'cancelled')
@@ -99,7 +99,7 @@ class ElectricityReportController extends Controller
                 DB::raw('COUNT(id) as total_bills'),
                 DB::raw('SUM(units_consumed) as total_units'),
                 DB::raw('SUM(net_amount) as total_net'),
-                DB::raw('SUM(vat_amount) as total_vat'),
+                DB::raw('SUM(vat_amount + late_fee + meter_charge + others_amount) as total_vat'),
                 DB::raw('SUM(total_amount) as total_cost')
             )
             ->where('status', '!=', 'cancelled')
@@ -117,7 +117,7 @@ class ElectricityReportController extends Controller
                 DB::raw('COUNT(id) as total_bills'),
                 DB::raw('SUM(units_consumed) as total_units'),
                 DB::raw('SUM(net_amount) as total_net'),
-                DB::raw('SUM(vat_amount) as total_vat'),
+                DB::raw('SUM(vat_amount + late_fee + meter_charge + others_amount) as total_vat'),
                 DB::raw('SUM(total_amount) as total_cost'),
                 DB::raw("SUM(CASE WHEN bill_type = 'postpaid' THEN total_amount ELSE 0 END) as postpaid_cost"),
                 DB::raw("SUM(CASE WHEN bill_type = 'prepaid' THEN total_amount ELSE 0 END) as prepaid_cost")

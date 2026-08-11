@@ -105,9 +105,11 @@ Route::middleware(['auth'])->group(function(){
         Route::post('rios/{rio}/assign-users', [RioController::class, 'assignUsers'])->name('rios.assign-users');
 
         // Meters Master
+        Route::get('meters/building/{building_id}/agreement-vendor', [ElectricityMeterController::class, 'getAgreementVendor'])->name('meters.building.agreement-vendor');
         Route::resource('meters', ElectricityMeterController::class);
 
         // Bills & Requisitions
+        Route::get('bills/bulk/print', [ElectricityBillController::class, 'bulkPrint'])->name('bills.bulk-print');
         Route::resource('bills', ElectricityBillController::class);
         Route::get('bills/{bill}/print', [ElectricityBillController::class, 'printSheet'])->name('bills.print');
         Route::post('bills/{bill}/pay', [ElectricityBillController::class, 'markAsPaid'])->name('bills.pay');

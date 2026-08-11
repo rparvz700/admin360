@@ -207,4 +207,15 @@ class ElectricityMeterController extends Controller
 
         return redirect()->route('electricity.meters.index')->with('success', 'Electricity meter updated successfully.');
     }
+
+    public function getAgreementVendor($building_id)
+    {
+        $agreement = \App\Models\Agreement::whereHas('floors', function ($q) use ($building_id) {
+            $q->where('building_id', $building_id);
+        })->with('vendor')->latest()->first();
+
+        return response()->json([
+            'vendor_id' => $agreement && $agreement->vendor ? $agreement->vendor->id : null
+        ]);
+    }
 }

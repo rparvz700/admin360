@@ -122,7 +122,7 @@
                                     <th class="text-center text-nowrap">Total Bills</th>
                                     <th class="text-end text-nowrap">Units Consumed (kWh)</th>
                                     <th class="text-end text-nowrap">Base Amount (BDT)</th>
-                                    <th class="text-end text-nowrap">Late Fee / VAT (BDT)</th>
+                                    <th class="text-end text-nowrap">VAT & Fees (BDT)</th>
                                     <th class="text-end text-nowrap">Total Expenditure (BDT)</th>
                                 </tr>
                             </thead>

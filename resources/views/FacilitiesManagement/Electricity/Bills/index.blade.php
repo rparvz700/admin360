@@ -36,11 +36,20 @@
         <div class="block-content fs-sm data-content">
             <!-- Filter Toolbar -->
             <div class="row mb-4 bg-body-light p-3 border rounded">
-                <div class="col-md-3 mb-2 mb-md-0">
+                <div class="col-md-2 mb-2 mb-md-0">
                     <label class="form-label fw-bold text-muted fs-xs text-uppercase mb-1" for="filter_billing_month">Filter by Month</label>
                     <input type="month" class="form-control form-control-sm" id="filter_billing_month">
                 </div>
                 <div class="col-md-3 mb-2 mb-md-0">
+                    <label class="form-label fw-bold text-muted fs-xs text-uppercase mb-1" for="filter_project_name">Filter by Project</label>
+                    <select class="form-select form-select-sm" id="filter_project_name">
+                        <option value="all">-- All Projects --</option>
+                        @foreach($projects as $p)
+                            <option value="{{ $p->name }}">{{ $p->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2 mb-md-0">
                     <label class="form-label fw-bold text-muted fs-xs text-uppercase mb-1" for="filter_bill_type">Filter by Bill Type</label>
                     <select class="form-select form-select-sm" id="filter_bill_type">
                         <option value="all">-- All Bill Types --</option>
@@ -57,9 +66,21 @@
                         <option value="cancelled">Cancelled</option>
                     </select>
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
+                <div class="col-md-2 d-flex align-items-end">
                     <button type="button" class="btn btn-sm btn-secondary w-100" id="btn-reset-filters">
                         <i class="fa fa-sync-alt me-1"></i> Reset Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bulk Print Actions -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex gap-2">
+                    <button type="button" id="btn-print-selected" class="btn btn-sm btn-alt-primary" disabled>
+                        <i class="fa fa-print me-1"></i> Print Selected (<span id="selected-count">0</span>)
+                    </button>
+                    <button type="button" id="btn-print-filtered" class="btn btn-sm btn-alt-secondary">
+                        <i class="fa fa-print-all me-1"></i> Print All Filtered
                     </button>
                 </div>
             </div>
@@ -69,6 +90,9 @@
                 <table class="table table-sm table-vcenter table-hover js-dataTable-full js-dataTable-responsive w-100" id="bills-table">
                     <thead>
                         <tr>
+                            <th class="text-center" style="width: 40px; pointer-events: auto;">
+                                <input type="checkbox" id="check-all" class="form-check-input">
+                            </th>
                             <th class="text-nowrap">Bill Ref No</th>
                             <th class="text-nowrap">Site / POP</th>
                             <th class="text-nowrap">Meter</th>
@@ -142,11 +166,21 @@
                     url: "{{ route('electricity.bills.index') }}",
                     data: function(d) {
                         d.billing_month = $('#filter_billing_month').val();
+                        d.project_name = $('#filter_project_name').val();
                         d.status = $('#filter_status').val();
                         d.bill_type = $('#filter_bill_type').val();
                     }
                 },
                 columns: [
+                    {
+                        data: 'id',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            return '<input type="checkbox" class="bill-checkbox form-check-input" value="' + data + '" data-project="' + (row.project_name || '') + '" data-type="' + (row.bill_type || '') + '">';
+                        }
+                    },
                     { data: 'requisition_no', name: 'requisition_no', searchable: true },
                     { data: 'site', name: 'site', searchable: true },
                     { data: 'meter', name: 'meter', searchable: true },
@@ -156,20 +190,145 @@
                     { data: 'status', name: 'status', className: 'text-center', searchable: true },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-center' }
                 ],
-                order: [[0, 'desc']]
+                order: [[1, 'desc']]
             });
 
             // Trigger table reload when filter inputs change
-            $('#filter_billing_month, #filter_status, #filter_bill_type').on('change input', function() {
+            $('#filter_billing_month, #filter_project_name, #filter_status, #filter_bill_type').on('change input', function() {
                 table.draw();
             });
 
             // Reset filters
             $('#btn-reset-filters').on('click', function() {
                 $('#filter_billing_month').val('');
+                $('#filter_project_name').val('all');
                 $('#filter_status').val('all');
                 $('#filter_bill_type').val('all');
                 table.draw();
+            });
+
+            // State variables for validation
+            var selectedProject = null;
+            var selectedType = null;
+
+            // Reset constraints when table draws
+            table.on('draw', function() {
+                $('#check-all').prop('checked', false);
+                selectedProject = null;
+                selectedType = null;
+                updatePrintSelectedState();
+            });
+
+            // Check/Uncheck all checkboxes
+            $('#check-all').on('change', function() {
+                var checked = $(this).is(':checked');
+                if (checked) {
+                    var firstCheckbox = $('.bill-checkbox').first();
+                    if (firstCheckbox.length > 0) {
+                        var firstProject = firstCheckbox.attr('data-project');
+                        var firstType = firstCheckbox.attr('data-type');
+                        var valid = true;
+                        
+                        $('.bill-checkbox').each(function() {
+                            if ($(this).attr('data-project') !== firstProject || $(this).attr('data-type') !== firstType) {
+                                valid = false;
+                                return false;
+                            }
+                        });
+                        
+                        if (!valid) {
+                            $(this).prop('checked', false);
+                            alert('Validation Error: The bills on the current page belong to different Projects or Meter Types. Please filter by Project and Meter Type first before checking all.');
+                            return;
+                        }
+                        
+                        selectedProject = firstProject;
+                        selectedType = firstType;
+                        $('.bill-checkbox').prop('checked', true);
+                    }
+                } else {
+                    $('.bill-checkbox').prop('checked', false);
+                    selectedProject = null;
+                    selectedType = null;
+                }
+                updatePrintSelectedState();
+            });
+
+            // Individual checkbox change listener
+            $(document).on('change', '.bill-checkbox', function() {
+                var $checkbox = $(this);
+                var checked = $checkbox.is(':checked');
+
+                if (checked) {
+                    var project = $checkbox.attr('data-project');
+                    var type = $checkbox.attr('data-type');
+
+                    if (selectedProject === null && selectedType === null) {
+                        selectedProject = project;
+                        selectedType = type;
+                    } else {
+                        if (selectedProject !== project || selectedType !== type) {
+                            $checkbox.prop('checked', false);
+                            alert('Validation Error: You can only select bills belonging to the same Project and same Meter Type (Prepaid vs Postpaid) for printing.');
+                            return;
+                        }
+                    }
+                } else {
+                    if ($('.bill-checkbox:checked').length === 0) {
+                        selectedProject = null;
+                        selectedType = null;
+                    }
+                }
+
+                if (!checked) {
+                    $('#check-all').prop('checked', false);
+                } else {
+                    if ($('.bill-checkbox:checked').length === $('.bill-checkbox').length) {
+                        $('#check-all').prop('checked', true);
+                    }
+                }
+                updatePrintSelectedState();
+            });
+
+
+
+            function getSelectedIds() {
+                var ids = [];
+                $('.bill-checkbox:checked').each(function() {
+                    ids.push($(this).val());
+                });
+                return ids;
+            }
+
+            function updatePrintSelectedState() {
+                var count = getSelectedIds().length;
+                $('#selected-count').text(count);
+                $('#btn-print-selected').prop('disabled', count === 0);
+            }
+
+            // Print Selected handler
+            $('#btn-print-selected').on('click', function() {
+                var ids = getSelectedIds();
+                if (ids.length > 0) {
+                    var url = "{{ route('electricity.bills.bulk-print') }}?ids=" + ids.join(',');
+                    window.open(url, '_blank');
+                }
+            });
+
+            // Print All Filtered handler
+            $('#btn-print-filtered').on('click', function() {
+                var billingMonth = $('#filter_billing_month').val();
+                var projectName = $('#filter_project_name').val();
+                var billType = $('#filter_bill_type').val();
+                var status = $('#filter_status').val();
+                
+                var url = "{{ route('electricity.bills.bulk-print') }}?" + $.param({
+                    billing_month: billingMonth,
+                    project_name: projectName,
+                    bill_type: billType,
+                    status: status
+                });
+                window.open(url, '_blank');
             });
 
             // Open Mark as Paid Modal

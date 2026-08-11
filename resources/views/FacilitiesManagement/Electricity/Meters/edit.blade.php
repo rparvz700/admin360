@@ -173,8 +173,30 @@
                 $floorSelect.trigger('change.select2');
             }
 
+            function fetchAgreementVendor() {
+                var buildingId = $('#building_id').val();
+                var meterOwner = $('#meter_owner').val();
+                
+                if (meterOwner === 'House Owner' && buildingId) {
+                    $.ajax({
+                        url: "{{ url('facilities-management/electricity/meters/building') }}/" + buildingId + "/agreement-vendor",
+                        method: 'GET',
+                        success: function(res) {
+                            if (res.vendor_id) {
+                                $('#vendor_id').val(res.vendor_id).trigger('change.select2');
+                            }
+                        }
+                    });
+                }
+            }
+
             $('#building_id').on('change', function() {
                 updateFloorOptions($(this).val(), $('#floor_ids').val());
+                fetchAgreementVendor();
+            });
+
+            $('#meter_owner').on('change', function() {
+                fetchAgreementVendor();
             });
 
             @php

@@ -166,33 +166,82 @@
                 <th>Site / Office / POP Name</th>
                 <th style="width: 10%;">Meter No</th>
                 <th style="width: 9%;">Bill Month</th>
-                <th class="text-right" style="width: 9%;">Prev Reading</th>
-                <th class="text-right" style="width: 9%;">Pres Reading</th>
-                <th class="text-right" style="width: 9%;">Consumed Unit</th>
-                <th class="text-right" style="width: 8%;">Unit Price</th>
+                @if($bill->bill_type === 'postpaid')
+                    <th style="width: 10%;">Category</th>
+                    <th class="text-right" style="width: 8%;">Prev Reading</th>
+                    <th class="text-right" style="width: 8%;">Pres Reading</th>
+                    <th class="text-right" style="width: 8%;">Consumed Unit</th>
+                    <th class="text-right" style="width: 8%;">Unit Price</th>
+                @else
+                    <th class="text-right" style="width: 12%;">Last Balance</th>
+                    <th class="text-right" style="width: 12%;">Recharge Amt</th>
+                    <th class="text-right" style="width: 12%;">Per Day Cons.</th>
+                @endif
                 <th class="text-right" style="width: 10%;">Base Bill</th>
-                <th class="text-right" style="width: 10%;">Late Fee/VAT</th>
+                <th class="text-right" style="width: 7%;">VAT</th>
+                <th class="text-right" style="width: 7%;">Late Fee</th>
+                <th class="text-right" style="width: 7%;">Meter Chg</th>
+                <th class="text-right" style="width: 7%;">Others</th>
                 <th class="text-right" style="width: 12%;">Total Amount</th>
             </tr>
         </thead>
         <tbody>
+            @if($bill->bill_type === 'postpaid')
+            <tr>
+                <td class="text-center" rowspan="2">1</td>
+                <td rowspan="2">{{ $bill->building->site_name ?? 'N/A' }} {{ ($bill->building->code ?? $bill->building->site_code) ? "(" . ($bill->building->code ?? $bill->building->site_code) . ")" : '' }}</td>
+                <td rowspan="2">{{ $bill->meter->meter_number ?? 'N/A' }}</td>
+                <td rowspan="2">{{ $bill->billing_month }}</td>
+                
+                <!-- Off-Peak Category Label -->
+                <td class="fw-semibold">Off-Peak (Flat)</td>
+                
+                <!-- Off-Peak Row -->
+                <td class="text-right">{{ number_format($bill->previous_reading, 2) }}</td>
+                <td class="text-right">{{ number_format($bill->current_reading, 2) }}</td>
+                <td class="text-right fw-bold">{{ number_format($bill->units_consumed, 2) }}</td>
+                <td class="text-right" rowspan="2">{{ number_format($bill->rate_per_unit, 2) }}</td>
+                
+                <td class="text-right" rowspan="2">{{ number_format($bill->net_amount, 2) }}</td>
+                <td class="text-right" rowspan="2">{{ number_format($bill->vat_amount, 2) }}</td>
+                <td class="text-right" rowspan="2">{{ number_format($bill->late_fee, 2) }}</td>
+                <td class="text-right" rowspan="2">{{ number_format($bill->meter_charge, 2) }}</td>
+                <td class="text-right" rowspan="2">{{ number_format($bill->others_amount, 2) }}</td>
+                <td class="text-right fw-bold" rowspan="2">{{ number_format($bill->total_amount, 2) }}</td>
+            </tr>
+            <tr>
+                <!-- Peak Category Label -->
+                <td class="fw-semibold">Peak</td>
+                
+                <!-- Peak Row -->
+                <td class="text-right">{{ number_format($bill->previous_peak_reading ?? 0, 2) }}</td>
+                <td class="text-right">{{ number_format($bill->current_peak_reading ?? 0, 2) }}</td>
+                <td class="text-right fw-bold">{{ number_format($bill->units_peak_consumed ?? 0, 2) }}</td>
+            </tr>
+            @else
             <tr>
                 <td class="text-center">1</td>
                 <td>{{ $bill->building->site_name ?? 'N/A' }} {{ ($bill->building->code ?? $bill->building->site_code) ? "(" . ($bill->building->code ?? $bill->building->site_code) . ")" : '' }}</td>
                 <td>{{ $bill->meter->meter_number ?? 'N/A' }}</td>
                 <td>{{ $bill->billing_month }}</td>
-                <td class="text-right">{{ $bill->bill_type === 'postpaid' ? number_format($bill->previous_reading, 2) : 'N/A' }}</td>
-                <td class="text-right">{{ $bill->bill_type === 'postpaid' ? number_format($bill->current_reading, 2) : 'N/A' }}</td>
-                <td class="text-right fw-bold">{{ $bill->bill_type === 'postpaid' ? number_format($bill->units_consumed, 2) : 'N/A' }}</td>
-                <td class="text-right">{{ $bill->bill_type === 'postpaid' ? number_format($bill->rate_per_unit, 2) : 'N/A' }}</td>
+                <td class="text-right">{{ number_format($bill->last_balance, 2) }}</td>
+                <td class="text-right">{{ number_format($bill->recharge_amount, 2) }}</td>
+                <td class="text-right fw-bold">{{ number_format($bill->per_day_consumption, 2) }}/day</td>
                 <td class="text-right">{{ number_format($bill->net_amount, 2) }}</td>
                 <td class="text-right">{{ number_format($bill->vat_amount, 2) }}</td>
+                <td class="text-right">{{ number_format($bill->late_fee, 2) }}</td>
+                <td class="text-right">{{ number_format($bill->meter_charge, 2) }}</td>
+                <td class="text-right">{{ number_format($bill->others_amount, 2) }}</td>
                 <td class="text-right fw-bold">{{ number_format($bill->total_amount, 2) }}</td>
             </tr>
+            @endif
             <tr>
-                <td colspan="8" class="text-right fw-bold">Total (BDT):</td>
+                <td colspan="{{ $bill->bill_type === 'postpaid' ? 9 : 7 }}" class="text-right fw-bold">Total (BDT):</td>
                 <td class="text-right fw-bold">{{ number_format($bill->net_amount, 2) }}</td>
                 <td class="text-right fw-bold">{{ number_format($bill->vat_amount, 2) }}</td>
+                <td class="text-right fw-bold">{{ number_format($bill->late_fee, 2) }}</td>
+                <td class="text-right fw-bold">{{ number_format($bill->meter_charge, 2) }}</td>
+                <td class="text-right fw-bold">{{ number_format($bill->others_amount, 2) }}</td>
                 <td class="text-right fw-bold" style="background-color: #f2f2f2;">{{ number_format($bill->total_amount, 2) }}</td>
             </tr>
         </tbody>
@@ -200,12 +249,16 @@
 
     <div class="words-box">
         Amount in Words: {{ $bill->amount_in_words }}
+        @if($bill->is_consumption_edited && $bill->consumption_edit_remarks)
+            <div style="margin-top: 5px; font-weight: normal; font-size: 11px; color: #b45309;">
+                <strong>* Manual Consumption Override Note:</strong> {{ $bill->consumption_edit_remarks }}
+            </div>
+        @endif
     </div>
 
-    @if($bill->payment_account_details || $bill->cheque_name)
+    @if($bill->payment_account_details)
     <div style="margin-bottom: 20px; font-size: 11px;">
-        <strong>Cheque / Favour Name:</strong> {{ $bill->cheque_name }} | 
-        <strong>Payment Account Info:</strong> {{ $bill->payment_account_details ?? 'N/A' }}
+        <strong>Payment Account Info:</strong> {{ $bill->payment_account_details }}
     </div>
     @endif
 
