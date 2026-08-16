@@ -25,11 +25,8 @@ class StoreUserRequest extends FormRequest
             'name' => 'required|string',
             'email' => 'required|string|email:rfc,dns|max:250|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            // 'phone' => 'required|string',
-            // 'hr_id' => 'required',
-            // 'designation' => 'required|string',
-            // 'department' => 'required',
-            // 'subcenter' => 'required',
+            'hr_id' => 'nullable|string|max:50',
+            'company' => 'nullable|string|in:SComm,STL,SCOMM_EZONE,STL_EZONE,RSL',
             'role' => 'required',
             'status' => 'required|in:0,1',
         ];

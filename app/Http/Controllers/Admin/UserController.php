@@ -43,6 +43,12 @@ class UserController extends Controller
         $model = User::query();
         return DataTables::of($model)
             ->addIndexColumn() // This creates the 'DT_RowIndex' column
+            ->editColumn('hr_id', function ($row) {
+                return $row->hr_id ?? '-';
+            })
+            ->editColumn('company', function ($row) {
+                return $row->company ?? '-';
+            })
             ->editColumn('actions', function ($row) {
                 $buttons = '';
                 if (auth()->user()->can('edit-user') && !$row->hasRole('Super Admin')) {
@@ -72,8 +78,6 @@ class UserController extends Controller
     public function create()
     {
         $activeMenu = "users";
-        // $departments = Department::where('status', 1)->get();
-        // $subcenters = Subcenter::where('status', 1)->get();
         $roles = Role::get();
         return view('Admin.Users.create', compact('activeMenu', 'roles'));
     }
@@ -85,13 +89,9 @@ class UserController extends Controller
             "name" => $request->name,
             "email" => $request->email,
             "password" => Hash::make($request->password),
-            // "phone" => $request->phone,
-            // "hr_id" => $request->hr_id,
-            // "designation" => $request->designation,
-            // "department_id" => $request->department,
-            // "subcenter_id" => $request->subcenter,
+            "hr_id" => $request->hr_id,
+            "company" => $request->company,
             "status" => $request->status,
-            // "created_by" => Auth::user()->id
         ];
 
         $save = User::create($data);
@@ -111,8 +111,6 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $activeMenu = "users";
-        // $departments = Department::where('status', 1)->get();
-        // $subcenters = Subcenter::where('status', 1)->get();
         $roles = Role::get();
         return view('Admin.Users.edit', compact('user', 'roles', 'activeMenu'));
     }
@@ -122,13 +120,9 @@ class UserController extends Controller
     {
         $data = [
             "name" => $request->name,
-            // "phone" => $request->phone,
-            // "hr_id" => $request->hr_id,
-            // "designation" => $request->designation,
-            // "department_id" => $request->department,
-            // "subcenter_id" => $request->subcenter,
+            "hr_id" => $request->hr_id,
+            "company" => $request->company,
             "status" => $request->status,
-            // "last_modified_by" => Auth::user()->id
         ];
 
         $update = $user->update($data);

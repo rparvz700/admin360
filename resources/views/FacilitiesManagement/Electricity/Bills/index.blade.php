@@ -6,6 +6,24 @@
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-bs5/css/dataTables.bootstrap5.min.css') }}">
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-buttons-bs5/css/buttons.bootstrap5.min.css') }}">
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-responsive-bs5/css/responsive.bootstrap5.min.css') }}">
+    <style>
+        .meter-type-nav .nav-link {
+            font-weight: 600;
+            color: #4b5563;
+            border-bottom: 2px solid transparent;
+            border-radius: 0;
+            padding: 0.75rem 1.25rem;
+        }
+        .meter-type-nav .nav-link.active {
+            color: #2563eb;
+            background-color: transparent;
+            border-bottom-color: #2563eb;
+        }
+        .meter-type-nav .nav-link:hover:not(.active) {
+            color: #111827;
+            border-bottom-color: #d1d5db;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -33,28 +51,36 @@
             </div>
         </div>
 
+        <!-- Meter Type Nav Tabs -->
+        <div class="bg-body-extra-light border-bottom">
+            <ul class="nav meter-type-nav px-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button type="button" class="nav-link active meter-tab-btn" data-type="postpaid">
+                        <i class="fa fa-file-invoice text-primary me-1"></i> Postpaid Bills
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button type="button" class="nav-link meter-tab-btn" data-type="prepaid">
+                        <i class="fa fa-bolt text-warning me-1"></i> Prepaid Bills
+                    </button>
+                </li>
+            </ul>
+        </div>
+
         <div class="block-content fs-sm data-content">
             <!-- Filter Toolbar -->
             <div class="row mb-4 bg-body-light p-3 border rounded">
-                <div class="col-md-2 mb-2 mb-md-0">
+                <div class="col-md-3 mb-2 mb-md-0">
                     <label class="form-label fw-bold text-muted fs-xs text-uppercase mb-1" for="filter_billing_month">Filter by Month</label>
                     <input type="month" class="form-control form-control-sm" id="filter_billing_month">
                 </div>
-                <div class="col-md-3 mb-2 mb-md-0">
+                <div class="col-md-4 mb-2 mb-md-0">
                     <label class="form-label fw-bold text-muted fs-xs text-uppercase mb-1" for="filter_project_name">Filter by Project</label>
                     <select class="form-select form-select-sm" id="filter_project_name">
                         <option value="all">-- All Projects --</option>
                         @foreach($projects as $p)
                             <option value="{{ $p->name }}">{{ $p->name }}</option>
                         @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2 mb-2 mb-md-0">
-                    <label class="form-label fw-bold text-muted fs-xs text-uppercase mb-1" for="filter_bill_type">Filter by Bill Type</label>
-                    <select class="form-select form-select-sm" id="filter_bill_type">
-                        <option value="all">-- All Bill Types --</option>
-                        <option value="postpaid">Postpaid</option>
-                        <option value="prepaid">Prepaid</option>
                     </select>
                 </div>
                 <div class="col-md-3 mb-2 mb-md-0">
@@ -80,7 +106,7 @@
                         <i class="fa fa-print me-1"></i> Print Selected (<span id="selected-count">0</span>)
                     </button>
                     <button type="button" id="btn-print-filtered" class="btn btn-sm btn-alt-secondary">
-                        <i class="fa fa-print-all me-1"></i> Print All Filtered
+                        <i class="fa fa-print-all me-1"></i> Print All Filtered (<span id="active-tab-label">Postpaid</span>)
                     </button>
                 </div>
             </div>
@@ -159,6 +185,8 @@
     <script src="{{ asset('js/plugins/datatables-buttons/dataTables.buttons.min.js') }}"></script>
     <script>
         $(function() {
+            var activeBillType = 'postpaid';
+
             var table = $('#bills-table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -168,7 +196,7 @@
                         d.billing_month = $('#filter_billing_month').val();
                         d.project_name = $('#filter_project_name').val();
                         d.status = $('#filter_status').val();
-                        d.bill_type = $('#filter_bill_type').val();
+                        d.bill_type = activeBillType;
                     }
                 },
                 columns: [
@@ -193,8 +221,27 @@
                 order: [[1, 'desc']]
             });
 
+            // Tab switching handler
+            $('.meter-tab-btn').on('click', function(e) {
+                e.preventDefault();
+                $('.meter-tab-btn').removeClass('active');
+                $(this).addClass('active');
+
+                activeBillType = $(this).data('type');
+                $('#active-tab-label').text(activeBillType.charAt(0).toUpperCase() + activeBillType.slice(1));
+
+                // Clear selection state
+                $('#check-all').prop('checked', false);
+                $('.bill-checkbox').prop('checked', false);
+                selectedProject = null;
+                selectedType = null;
+                updatePrintSelectedState();
+
+                table.draw();
+            });
+
             // Trigger table reload when filter inputs change
-            $('#filter_billing_month, #filter_project_name, #filter_status, #filter_bill_type').on('change input', function() {
+            $('#filter_billing_month, #filter_project_name, #filter_status').on('change input', function() {
                 table.draw();
             });
 
@@ -203,7 +250,6 @@
                 $('#filter_billing_month').val('');
                 $('#filter_project_name').val('all');
                 $('#filter_status').val('all');
-                $('#filter_bill_type').val('all');
                 table.draw();
             });
 
@@ -238,7 +284,7 @@
                         
                         if (!valid) {
                             $(this).prop('checked', false);
-                            alert('Validation Error: The bills on the current page belong to different Projects or Meter Types. Please filter by Project and Meter Type first before checking all.');
+                            alert('Validation Error: The bills on the current page belong to different Projects. Please filter by Project first before checking all.');
                             return;
                         }
                         
@@ -269,7 +315,7 @@
                     } else {
                         if (selectedProject !== project || selectedType !== type) {
                             $checkbox.prop('checked', false);
-                            alert('Validation Error: You can only select bills belonging to the same Project and same Meter Type (Prepaid vs Postpaid) for printing.');
+                            alert('Validation Error: You can only select bills belonging to the same Project for printing.');
                             return;
                         }
                     }
@@ -289,8 +335,6 @@
                 }
                 updatePrintSelectedState();
             });
-
-
 
             function getSelectedIds() {
                 var ids = [];
@@ -319,13 +363,12 @@
             $('#btn-print-filtered').on('click', function() {
                 var billingMonth = $('#filter_billing_month').val();
                 var projectName = $('#filter_project_name').val();
-                var billType = $('#filter_bill_type').val();
                 var status = $('#filter_status').val();
                 
                 var url = "{{ route('electricity.bills.bulk-print') }}?" + $.param({
                     billing_month: billingMonth,
                     project_name: projectName,
-                    bill_type: billType,
+                    bill_type: activeBillType,
                     status: status
                 });
                 window.open(url, '_blank');

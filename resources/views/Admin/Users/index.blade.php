@@ -49,6 +49,8 @@
                                 <th class="text-center all">SI</th>
                                 <th class="all">Name</th>
                                 <th class="all">Email</th>
+                                <th class="">HR ID</th>
+                                <th class="">Company</th>
                                 <th class="">Role</th>
                                 <th class="all">Status</th>
                                 <th class="all">Actions</th>
@@ -146,6 +148,14 @@
                             {
                                 data: 'email',
                                 name: 'Email'
+                            },
+                            {
+                                data: 'hr_id',
+                                name: 'HR ID'
+                            },
+                            {
+                                data: 'company',
+                                name: 'Company'
                             },
                             {
                                 data: 'roles',

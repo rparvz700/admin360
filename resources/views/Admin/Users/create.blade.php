@@ -65,18 +65,9 @@
                                 </div>
                             @endif
                         </div>
-                        {{-- <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="phone">Phone<span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="phone" name="phone" placeholder="Phone">
-                            @if ($errors->has('phone'))
-                                <div class="text-danger">
-                                    <small>{{ $errors->first('phone') }}</small>
-                                </div>
-                            @endif
-                        </div>
                         <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="hr_id">HR ID<span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="hr_id" name="hr_id" placeholder="HR ID">
+                            <label class="form-label" for="hr_id">HR ID</label>
+                            <input type="text" class="form-control" id="hr_id" name="hr_id" value="{{ old('hr_id') }}" placeholder="HR ID">
                             @if ($errors->has('hr_id'))
                                 <div class="text-danger">
                                     <small>{{ $errors->first('hr_id') }}</small>
@@ -84,53 +75,21 @@
                             @endif
                         </div>
                         <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="designation">Designation<span
-                                    class="text-danger">*</span></label>
-                            <select class="js-select2 form-select" id="designation" name="designation" style="width: 100%;"
-                                data-placeholder="Choose Designation...">
-                                <option></option>
-                                <option value="hod">HOD</option>
-                                <option value="executive">Executive</option>
-                                <option value="senior executive">Senior Executive</option>
-                                <option value="manager">Manager</option>
-                                <option value="senior manager">Senior Manager</option>
+                            <label class="form-label" for="company">Company</label>
+                            <select class="form-select" id="company" name="company">
+                                <option value="">-- Select Company --</option>
+                                <option value="SComm" {{ old('company') === 'SComm' ? 'selected' : '' }}>SComm</option>
+                                <option value="STL" {{ old('company') === 'STL' ? 'selected' : '' }}>STL</option>
+                                <option value="SCOMM_EZONE" {{ old('company') === 'SCOMM_EZONE' ? 'selected' : '' }}>SCOMM_EZONE</option>
+                                <option value="STL_EZONE" {{ old('company') === 'STL_EZONE' ? 'selected' : '' }}>STL_EZONE</option>
+                                <option value="RSL" {{ old('company') === 'RSL' ? 'selected' : '' }}>RSL</option>
                             </select>
-                            @if ($errors->has('designation'))
+                            @if ($errors->has('company'))
                                 <div class="text-danger">
-                                    <small>{{ $errors->first('designation') }}</small>
+                                    <small>{{ $errors->first('company') }}</small>
                                 </div>
                             @endif
                         </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="department">Department<span class="text-danger">*</span></label>
-                            <select class="js-select2 form-select" id="department" name="department" style="width: 100%;"
-                                data-placeholder="Choose Department...">
-                                <option></option>
-                                @foreach ($departments as $department)
-                                    <option value="{{ $department->id }}">{{ $department->name }}</option>
-                                @endforeach
-                            </select>
-                            @if ($errors->has('department'))
-                                <div class="text-danger">
-                                    <small>{{ $errors->first('department') }}</small>
-                                </div>
-                            @endif
-                        </div>
-                        <div class="col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="subcenter">Subcenter</label>
-                            <select class="js-select2 form-select" id="subcenter" name="subcenter" style="width: 100%;"
-                                data-placeholder="Choose Subcenter...">
-                                <option></option>
-                                @foreach ($subcenters as $subcenter)
-                                    <option value="{{ $subcenter->id }}">{{ $subcenter->name }}</option>
-                                @endforeach
-                            </select>
-                            @if ($errors->has('subcenter'))
-                                <div class="text-danger">
-                                    <small>{{ $errors->first('subcenter') }}</small>
-                                </div>
-                            @endif
-                        </div> --}}
                         <div class="col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="role">Role<span class="text-danger">*</span></label>
                             <select class="js-select2 form-select" id="role" name="role" style="width: 100%;"
