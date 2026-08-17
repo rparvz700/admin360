@@ -59,7 +59,10 @@
                                                 $activeMenu == 'electricity-meters' ||
                                                 $activeMenu == 'electricity-rios' ||
                                                 $activeMenu == 'electricity-reports' ||
-                                                $activeMenu == 'asset-attributes')
+                                                $activeMenu == 'asset-attributes' ||
+                                                $activeMenu == 'wizard.property' ||
+                                                $activeMenu == 'facilities.npv' ||
+                                                $activeMenu == 'admin.finance-settings')
                                                 ? 'open'
                                                 : '' }}">
                                             <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"

@@ -32,10 +32,13 @@ class VendorController extends Controller
                         'vendor_code' => $vendor->vendor_code,
                         'name' => $vendor->name,
                         'vendor_type' => $vendor->getVendorTypeLabel(),
+                        // Raw values are consumed by the index page filters (type / rating)
+                        'vendor_type_raw' => $vendor->vendor_type,
                         'contact_person' => $vendor->contact_person,
                         'phone' => $vendor->phone,
                         'email' => $vendor->email,
                         'rating' => $vendor->rating ? number_format($vendor->rating, 1) : 'N/A',
+                        'rating_raw' => $vendor->rating ? (float) $vendor->rating : null,
                         'maintenances_count' => $vendor->maintenances_count,
                         'total_cost' => number_format($vendor->getTotalMaintenanceCost(), 2),
                         'is_active' => $vendor->is_active,
@@ -130,7 +133,7 @@ class VendorController extends Controller
 
         $vendor->update($validated);
 
-        return redirect()->route('VehicleManagement.VehicleMaintenance.Vendor.index')
+        return redirect()->route('maintenance.vendors.index')
             ->with('success', 'Vendor updated successfully.');
     }
 
@@ -140,13 +143,13 @@ class VendorController extends Controller
     public function destroy(Vendor $vendor)
     {
         if ($vendor->maintenances()->count() > 0) {
-            return redirect()->route('VehicleManagement.VehicleMaintenance.Vendor.index')
+            return redirect()->route('maintenance.vendors.index')
                 ->with('error', 'Cannot delete vendor with existing maintenance records.');
         }
 
         $vendor->delete();
 
-        return redirect()->route('VehicleManagement.VehicleMaintenance.Vendor.index')
+        return redirect()->route('maintenance.vendors.index')
             ->with('success', 'Vendor deleted successfully.');
     }
 

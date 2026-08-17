@@ -19,6 +19,11 @@ class MonthlyCashFlow
         public float $discountFactor,     // 1 / (1 + monthlyRate)^t
         public float $presentValue,       // netOutflow * discountFactor
         public float $cumulativePV,       // Running cumulative PV
-        public array $activeIncrements = [] // Description of active increments
+        public array $activeIncrements = [], // Description of active increments
+        public int $incrementCycle = 0,     // Which increment cycle is in force this month (0 = base rent, no increment yet)
+        public int $totalIncrementCycles = 0, // Total increment cycles defined on the agreement
+        public bool $incrementStartsThisMonth = false, // True only on the month the cycle first takes effect
+        public ?string $incrementEffectiveFrom = null, // Start date (Y-m-d) of the cycle in force
+        public float $incrementUpliftPct = 0.0 // Compounded uplift over base rent, in %
     ) {}
 }

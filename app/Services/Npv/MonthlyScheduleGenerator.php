@@ -115,6 +115,13 @@ class MonthlyScheduleGenerator
         $increments = $agreement->rentIncrements;
         $securityDeposits = $agreement->securityDeposits;
 
+        // Reference base used solely to derive increment-cycle metadata (cycle no.,
+        // effective date, compounded uplift %). Office gross is preferred; fall back
+        // to the other components so the cycle is still reported when office is 0.
+        $incrementReferenceBase = $baseOfficeGross > 0
+            ? $baseOfficeGross
+            : max($baseDgGross + $baseParkingGross + $baseStoreGross, 1.0);
+
         // 5. Setup Discounting
         $monthlyRate = $this->discountingService->annualToMonthlyRate($annualDiscountRate);
 
@@ -175,6 +182,9 @@ class MonthlyScheduleGenerator
             $parkingIncResult = $this->incrementProjector->calculateEffectiveGross($baseParkingGross, $increments, $billingMonth);
             $storeIncResult = $this->incrementProjector->calculateEffectiveGross($baseStoreGross, $increments, $billingMonth);
 
+            // Increment cycle metadata for this month (independent of which component is populated)
+            $incMeta = $this->incrementProjector->calculateEffectiveGross($incrementReferenceBase, $increments, $billingMonth);
+
             // Month 1 adjustment multiplier if calculation base date is after lease start date
             $month1Multiplier = ($periodIndex === 1 && $elapsedMonthsPriorToBase > 0) ? (1 + $elapsedMonthsPriorToBase) : 1;
 
@@ -218,7 +228,12 @@ class MonthlyScheduleGenerator
                 discountFactor: $discountFactor,
                 presentValue: $presentValue,
                 cumulativePV: $cumulativePV,
-                activeIncrements: $officeIncResult['active_increments']
+                activeIncrements: $incMeta['active_increments'],
+                incrementCycle: $incMeta['cycle_no'],
+                totalIncrementCycles: $incMeta['total_cycles'],
+                incrementStartsThisMonth: $incMeta['starts_this_month'],
+                incrementEffectiveFrom: $incMeta['effective_from'],
+                incrementUpliftPct: $incMeta['uplift_pct']
             );
 
             $periodIndex++;
