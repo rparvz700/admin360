@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('vendor_code')->unique();
             $table->string('name');
-            $table->enum('vendor_type', ['workshop', 'parts_supplier', 'both'])->default('workshop');
+            $table->enum('vendor_type', ['workshop', 'parts_supplier', 'both'])->nullable()->default(null);
             $table->string('contact_person')->nullable();
             $table->string('phone');
             $table->string('email')->nullable();

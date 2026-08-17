@@ -84,7 +84,7 @@ class Vendor extends Model
             'workshop'       => 'Workshop',
             'parts_supplier' => 'Parts Supplier',
             'both'           => 'Workshop & Parts',
-            default          => 'Unknown',
+            default          => 'N/A',
         };
     }
 

@@ -66,7 +66,10 @@ class RentController extends Controller
 
     public function create()
     {
-        $agreements = Agreement::with('floors')->where('status', 1)->get();
+        $agreements = Agreement::with(['floors.building', 'vendor'])
+            ->where('status', 1)
+            ->whereDoesntHave('rentBases')
+            ->get();
         $utilityTypes = \App\Models\UtilityType::where('is_active', true)->get();
         $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
         $componentTypes = RentComponentCalculator::COMPONENTS;
@@ -77,6 +80,10 @@ class RentController extends Controller
 
     public function store(Request $request, RentComponentCalculator $calculator)
     {
+        $request->validate([
+            'is_at_source' => 'required|in:0,1',
+        ]);
+
         $securityDepositError = $this->validateSecurityDepositRequirement($request);
         if ($securityDepositError) {
             return back()->withInput()->withErrors(['deposits' => $securityDepositError]);
@@ -145,8 +152,14 @@ class RentController extends Controller
 
     public function edit($id)
     {
-        $base = RentBase::with(['increments', 'components', 'agreement.floors'])->findOrFail($id);
-        $agreements = Agreement::with('floors')->where('status', 1)->get();
+        $base = RentBase::with(['increments', 'components', 'agreement.floors.building', 'agreement.vendor'])->findOrFail($id);
+        $agreements = Agreement::with(['floors.building', 'vendor'])
+            ->where('status', 1)
+            ->where(function ($query) use ($base) {
+                $query->whereDoesntHave('rentBases')
+                    ->orWhere('id', $base->agreement_id);
+            })
+            ->get();
         $utilityTypes = \App\Models\UtilityType::where('is_active', true)->get();
         $agreementUtilities = \App\Models\AgreementUtility::where('agreement_id', $base->agreement_id)
             ->get()
@@ -160,6 +173,10 @@ class RentController extends Controller
 
     public function update(Request $request, $id, RentComponentCalculator $calculator)
     {
+        $request->validate([
+            'is_at_source' => 'required|in:0,1',
+        ]);
+
         $securityDepositError = $this->validateSecurityDepositRequirement($request);
         if ($securityDepositError) {
             return back()->withInput()->withErrors(['deposits' => $securityDepositError]);

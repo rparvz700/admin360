@@ -324,6 +324,27 @@
                 </div>
             </div>
 
+            <!-- NPV Calculation Quick Access -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="block block-rounded h-100 border-start border-4 border-primary">
+                    <div class="block-content block-content-full">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <i class="fa fa-calculator fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <div class="fs-5 fw-bold text-dark">NPV Calculation</div>
+                                <div class="fs-xs text-muted">Lease Present Value</div>
+                            </div>
+                        </div>
+                        <p class="fs-xs text-muted mb-3">Calculate net present value, monthly cash outflows, and compound escalations.</p>
+                        <a href="{{ route('facilities.npv.index') }}" class="btn btn-sm btn-primary w-100">
+                            <i class="fa fa-calculator me-1"></i> Launch NPV Tool
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             <!-- Utility Bills -->
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="block block-rounded h-100">

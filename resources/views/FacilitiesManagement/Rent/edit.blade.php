@@ -66,8 +66,8 @@
                                 </select>
                             </div>
                             <div class="col-md-6 col-sm-12 mb-4">
-                                <label class="form-label" for="is_at_source">Is At Source</label>
-                                <select class="form-select" id="is_at_source" name="is_at_source">
+                                <label class="form-label" for="is_at_source">Is At Source <span class="text-danger">*</span></label>
+                                <select class="form-select @error('is_at_source') is-invalid @enderror" id="is_at_source" name="is_at_source" required>
                                     <option value="">Select</option>
                                     <option value="1"
                                         {{ old('is_at_source', $base->is_at_source) == '1' ? 'selected' : '' }}>
@@ -78,6 +78,9 @@
                                         No
                                     </option>
                                 </select>
+                                @error('is_at_source')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="col-md-6 col-sm-12 mb-4">
                                 <label class="form-label" for="rent_type">Rent Type</label>
@@ -96,6 +99,76 @@
                                         {{ old('rent_type', $base->rent_type) == 'Yearly' ? 'selected' : '' }}>Yearly
                                     </option>
                                 </select>
+                            </div>
+                            <!-- Agreement FYI Panel -->
+                            <div id="agreementFyiPanel" class="col-12 mb-4 d-none">
+                                <div class="card border shadow-sm bg-body-light">
+                                    <div class="card-header bg-light py-2 d-flex align-items-center justify-content-between">
+                                        <h6 class="mb-0 text-primary fw-semibold fs-sm">
+                                            <i class="fa fa-info-circle me-1"></i> Agreement General Information (FYI)
+                                        </h6>
+                                        <span class="badge bg-primary fs-xs" id="fyiRefNo"></span>
+                                    </div>
+                                    <div class="card-body p-3 fs-sm">
+                                        <div class="row g-3">
+                                            <!-- Agreement Dates & Vendor -->
+                                            <div class="col-md-4 border-end">
+                                                <div class="fw-bold text-dark mb-2 border-bottom pb-1">
+                                                    <i class="fa fa-calendar-alt text-muted me-1"></i> Agreement Details
+                                                </div>
+                                                <div class="mb-1"><span class="text-muted">Vendor / Tenant:</span> <strong id="fyiVendor">--</strong></div>
+                                                <div class="mb-1"><span class="text-muted">Agreement Date:</span> <span id="fyiAgreementDate">--</span></div>
+                                                <div class="mb-1"><span class="text-muted">Start Date:</span> <span id="fyiStartDate" class="badge bg-success-light text-success">--</span></div>
+                                                <div class="mb-1"><span class="text-muted">End Date:</span> <span id="fyiEndDate" class="badge bg-danger-light text-danger">--</span></div>
+                                            </div>
+                                            
+                                            <!-- Building Information -->
+                                            <div class="col-md-4 border-end">
+                                                <div class="fw-bold text-dark mb-2 border-bottom pb-1">
+                                                    <i class="fa fa-building text-muted me-1"></i> Building Information
+                                                </div>
+                                                <div class="mb-1"><span class="text-muted">Building Name:</span> <strong id="fyiBuildingName">--</strong></div>
+                                                <div class="mb-1"><span class="text-muted">Building Code:</span> <span id="fyiBuildingCode">--</span></div>
+                                                <div class="mb-1"><span class="text-muted">Address / Location:</span> <span id="fyiBuildingAddress">--</span></div>
+                                            </div>
+                                            
+                                            <!-- Floor General Information -->
+                                            <div class="col-md-4">
+                                                <div class="fw-bold text-dark mb-2 border-bottom pb-1">
+                                                    <i class="fa fa-layer-group text-muted me-1"></i> Floor & Premises Information
+                                                </div>
+                                                <div class="mb-1"><span class="text-muted">Floor Label(s):</span> <strong id="fyiFloors">--</strong></div>
+                                                <div class="mb-1"><span class="text-muted">Premises Type:</span> <span id="fyiPremisesType">--</span></div>
+                                                <div class="row text-center mt-2 pt-2 border-top g-1">
+                                                    <div class="col-3">
+                                                        <div class="p-1 bg-white rounded border">
+                                                            <div class="fs-xs text-muted">Floor Area</div>
+                                                            <div class="fw-bold fs-xs text-primary" id="fyiFloorArea">0 sft</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="p-1 bg-white rounded border">
+                                                            <div class="fs-xs text-muted">Parking</div>
+                                                            <div class="fw-bold fs-xs text-info" id="fyiCarParking">0</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="p-1 bg-white rounded border">
+                                                            <div class="fs-xs text-muted">DG Space</div>
+                                                            <div class="fw-bold fs-xs text-warning" id="fyiDgSpace">0 sft</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="p-1 bg-white rounded border">
+                                                            <div class="fs-xs text-muted">Store Space</div>
+                                                            <div class="fw-bold fs-xs text-secondary" id="fyiStoreSpace">0 sft</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-md-12 mb-4">
                                 <label class="form-label" for="remarks">Remarks</label>
@@ -366,13 +439,42 @@
         <script src="{{ asset('js/plugins/select2/js/select2.full.js') }}"></script>
         <script src="{{ asset('js/plugins/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
         @php
-            $agreementAreas = $agreements->mapWithKeys(function ($agreement) {
+            $agreementsData = $agreements->mapWithKeys(function ($agreement) {
+                $buildings = $agreement->floors->map(fn($f) => $f->building)->filter()->unique('id');
+                $bNames = $buildings->pluck('site_name')->filter()->unique()->implode(', ');
+                $bCodes = $buildings->pluck('code')->filter()->unique()->implode(', ');
+                $bAddresses = $buildings->map(function($b) {
+                    return implode(', ', array_filter([$b->address, $b->area, $b->district]));
+                })->filter()->unique()->implode('; ');
+
                 return [
                     (string) $agreement->id => [
+                        'id' => $agreement->id,
+                        'ref_no' => $agreement->agreement_ref_no,
+                        'vendor' => $agreement->vendor ? ($agreement->vendor->name . ($agreement->vendor->vendor_code ? ' (' . $agreement->vendor->vendor_code . ')' : '')) : 'N/A',
+                        'agreement_date' => $agreement->agreement_date ? \Carbon\Carbon::parse($agreement->agreement_date)->format('d M Y') : 'N/A',
+                        'from_date' => $agreement->from_date ? \Carbon\Carbon::parse($agreement->from_date)->format('d M Y') : 'N/A',
+                        'to_date' => $agreement->to_date ? \Carbon\Carbon::parse($agreement->to_date)->format('d M Y') : 'N/A',
+                        'building_name' => $bNames ?: 'N/A',
+                        'building_code' => $bCodes ?: 'N/A',
+                        'building_address' => $bAddresses ?: 'N/A',
+                        'floors' => $agreement->floors->pluck('floor_label')->filter()->implode(', ') ?: 'N/A',
+                        'premises_type' => $agreement->floors->pluck('premises_type')->filter()->unique()->implode(', ') ?: 'N/A',
                         'floor_area' => (float) $agreement->floors->sum('floor_area_sft'),
                         'car_parking' => (float) $agreement->floors->sum('car_parking'),
                         'dg_space' => (float) $agreement->floors->sum('dg_space_sft'),
                         'store_space' => (float) $agreement->floors->sum('store_space_sft'),
+                    ],
+                ];
+            });
+
+            $agreementAreas = $agreementsData->mapWithKeys(function ($item, $key) {
+                return [
+                    $key => [
+                        'floor_area'  => $item['floor_area'],
+                        'car_parking' => $item['car_parking'],
+                        'dg_space'    => $item['dg_space'],
+                        'store_space' => $item['store_space'],
                     ],
                 ];
             });
@@ -823,6 +925,43 @@
                     }
                 });
 
+
+                // --- Agreement ID Change & FYI Info Card Logic ---
+                const agreementsDetails = @json($agreementsData ?? []);
+
+                function updateAgreementFyi(agreementId) {
+                    const data = agreementsDetails[agreementId];
+                    if (data) {
+                        $('#fyiRefNo').text(data.ref_no);
+                        $('#fyiVendor').text(data.vendor);
+                        $('#fyiAgreementDate').text(data.agreement_date);
+                        $('#fyiStartDate').text(data.from_date);
+                        $('#fyiEndDate').text(data.to_date);
+
+                        $('#fyiBuildingName').text(data.building_name);
+                        $('#fyiBuildingCode').text(data.building_code);
+                        $('#fyiBuildingAddress').text(data.building_address);
+
+                        $('#fyiFloors').text(data.floors);
+                        $('#fyiPremisesType').text(data.premises_type);
+                        $('#fyiFloorArea').text(data.floor_area.toLocaleString() + ' sft');
+                        $('#fyiCarParking').text(data.car_parking.toLocaleString());
+                        $('#fyiDgSpace').text(data.dg_space.toLocaleString() + ' sft');
+                        $('#fyiStoreSpace').text(data.store_space.toLocaleString() + ' sft');
+
+                        $('#agreementFyiPanel').removeClass('d-none');
+                    } else {
+                        $('#agreementFyiPanel').addClass('d-none');
+                    }
+                }
+
+                let currentAgreementId = $('[name="agreement_id"]').val() || $('#agreement_id').val();
+                if (currentAgreementId) {
+                    let viewBtn = $('#viewAgreementBtn');
+                    let url = "{{ route('agreements.show', ':id') }}".replace(':id', currentAgreementId);
+                    viewBtn.attr('href', url).css('pointer-events', 'auto').removeClass('text-muted').addClass('text-primary');
+                    updateAgreementFyi(currentAgreementId);
+                }
 
                 // --- Base Rent Dependent Calculations ---
                 function getBaseRent() {

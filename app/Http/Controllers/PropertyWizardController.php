@@ -16,6 +16,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+use App\Services\RentComponentCalculator;
+
 class PropertyWizardController extends Controller
 {
     public function __construct()
@@ -49,12 +51,20 @@ class PropertyWizardController extends Controller
         $projects = Project::where('status', 1)->get();
         $utilityTypes = \App\Models\UtilityType::where('is_active', true)->get();
         $vendors = \App\Models\Vendor::where('is_active', true)->orderBy('name')->get();
+        $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
+        $componentTypes = RentComponentCalculator::COMPONENTS;
+        $taxableAreaSft = (float) config('facilities.rent_taxable_area_sft', 150);
 
-        return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects', 'utilityTypes', 'vendors'));
+        return view('FacilitiesManagement.Wizard.create', compact('activeMenu', 'documents', 'divisions', 'districts', 'upazillas', 'projects', 'utilityTypes', 'vendors', 'vatTax', 'componentTypes', 'taxableAreaSft'));
     }
 
-    public function store(StorePropertyWizardRequest $request)
+    public function store(StorePropertyWizardRequest $request, RentComponentCalculator $calculator)
     {
+        $securityDepositError = $this->validateSecurityDepositRequirement($request);
+        if ($securityDepositError) {
+            return back()->withInput()->withErrors(['deposits' => $securityDepositError]);
+        }
+
         DB::beginTransaction();
 
         try {
@@ -97,21 +107,25 @@ class PropertyWizardController extends Controller
                 'status'          => 'Active',
             ]);
 
-            // 5. Create Rent Base (VAT/Tax Logic from your original Rent controller)
+            // 5. Create Rent Base & Components via RentComponentCalculator
             $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
-            $baseRent = $request->base_rent;
-            $vatAmount = $vatTax ? ($baseRent * $vatTax->vat) / 100 : 0;
-            $taxAmount = $vatTax ? ($baseRent * $vatTax->tax) / 100 : 0;
+            $componentRows = $calculator->rowsFromRequest($request, $vatTax);
+            $totals = $calculator->totals($componentRows);
+            $baseRent = $totals['base_rent'];
 
             $base = RentBase::create([
                 'agreement_id' => $agreement->id,
                 'base_rent'    => $baseRent,
-                'vat'          => $vatAmount,
-                'tax'          => $taxAmount,
+                'vat'          => $totals['vat'],
+                'tax'          => $totals['tax'],
                 'is_at_source' => (int) $request->is_at_source,
                 'rent_type'    => $request->rent_type,
+                'start_date'   => $request->from_date,
+                'end_date'     => $request->to_date,
                 'remarks'      => $request->agreement_remarks,
             ]);
+
+            $calculator->saveRows($base->id, $componentRows);
 
             // Save agreement utilities
             if ($request->has('utilities')) {
@@ -140,11 +154,12 @@ class PropertyWizardController extends Controller
                         'agreement_id'         => $agreement->id,
                         'base_rent_id'         => $base->id,
                         'incremented_amount'   => $runningRent,
-                        'increment_amount'     => $inc['increment_amount'],
-                        'increment_percentage' => $inc['increment_percentage'],
-                        'increment_start_date' => $inc['increment_start_date'],
-                        'increment_end_date'   => $inc['increment_end_date'],
-                        'method_description'   => $inc['method_description'],
+                        'increment_amount'     => $inc['increment_amount'] ?? null,
+                        'increment_percentage' => $inc['increment_percentage'] ?? null,
+                        'increment_start_date' => $inc['increment_start_date'] ?? null,
+                        'increment_end_date'   => $inc['increment_end_date'] ?? null,
+                        'increment_frequency'  => $inc['years'] ?? ($inc['increment_frequency'] ?? null),
+                        'method_description'   => $inc['method_description'] ?? null,
                     ]);
                 }
             }
@@ -216,6 +231,18 @@ class PropertyWizardController extends Controller
             // return null;
             throw $e;
         }
+    }
+
+    private function validateSecurityDepositRequirement(Request $request): ?string
+    {
+        $hasAbsorbable = $this->moneyValue($request->security_deposit_absorbable) > 0;
+        $hasNonAbsorbable = $this->moneyValue($request->security_deposit_non_absorbable) > 0;
+
+        if (($hasAbsorbable || $hasNonAbsorbable) && !$this->hasDepositRows($request)) {
+            return 'Please add at least one deposit schedule row when Absorbable or Non-Absorbable amount is entered.';
+        }
+
+        return null;
     }
 
     private function saveSecurityDeposits(Request $request, int $agreementId): void

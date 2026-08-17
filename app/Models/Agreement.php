@@ -46,6 +46,16 @@ class Agreement extends Model
         return $this->hasMany(RentIncrement::class, 'agreement_id');
     }
 
+    public function rentBases()
+    {
+        return $this->hasMany(RentBase::class, 'agreement_id');
+    }
+
+    public function rentBase()
+    {
+        return $this->hasOne(RentBase::class, 'agreement_id');
+    }
+
     public function advanceSettlements()
     {
         // return $this->hasMany(advanceSettlements::class, 'agreement_id');

@@ -704,18 +704,9 @@
                                 </div>
                             </div>
                             <section class="wizard-finance-panel">
-                                <h5>Base Rent</h5>
-                                <div class="row g-4">
-                                    <div class="col-md-4 mb-2">
-                                        <label class="form-label">Base Rent <span class="text-danger">*</span></label>
-                                        <input type="number" step="0.01" name="base_rent" id="base_rent"
-                                            class="form-control{{ $invalidClass('base_rent') }}" required
-                                            value="{{ old('base_rent') }}">
-                                        @error('base_rent')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="col-md-4 mb-2">
+                                <h5 class="mb-3">Base Rent Settings</h5>
+                                <div class="row g-4 mb-3">
+                                    <div class="col-md-6 mb-2">
                                         <label class="form-label">Rent Type</label>
                                         <select class="form-select{{ $invalidClass('rent_type') }}" name="rent_type">
                                             <option value="Monthly" {{ old('rent_type') == 'Monthly' ? 'selected' : '' }}>
@@ -732,7 +723,7 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    <div class="col-md-4 mb-2">
+                                    <div class="col-md-6 mb-2">
                                         <label class="form-label">Is At Source? <span class="text-danger">*</span></label>
                                         <select class="form-select{{ $invalidClass('is_at_source') }}"
                                             name="is_at_source" required>
@@ -748,6 +739,8 @@
                                     </div>
                                 </div>
                             </section>
+
+                            @include('FacilitiesManagement.Rent.partials.components', ['panelClass' => 'wizard-finance-panel'])
 
                             <section class="wizard-finance-panel">
                                 <h5 class="mb-3">Utilities & Service Charges</h5>
@@ -795,11 +788,11 @@
                                         <thead>
                                             <tr>
                                                 <th>Start Date</th>
-                                                <th>Years</th> {{-- NEW FIELD HEADER --}}
+                                                <th>Months</th>
                                                 <th>End Date</th>
                                                 <th>Amount</th>
-                                                <th>%</th>
-                                                <th>Method Desc</th>
+                                                <th>Percentage</th>
+                                                <th>Method Description</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -860,8 +853,7 @@
                                                             @enderror
                                                         </td>
                                                         <td class="text-center"><button type="button"
-                                                                class="btn btn-alt-danger btn-sm remove-increment"><i
-                                                                    class="fa fa-times"></i></button></td>
+                                                                class="btn btn-alt-danger btn-sm remove-increment">Remove</button></td>
                                                     </tr>
                                                 @endforeach
                                             @endif
@@ -911,11 +903,11 @@
                                     <table class="table table-bordered table-sm wizard-table" id="depositsTable">
                                         <thead>
                                             <tr>
-                                                <th>Adjust Amount</th>
+                                                <th>Adjustable Amount</th>
                                                 <th>Month Interval</th>
-                                                <th>Adjust / Month</th>
-                                                <th>Adjust Start</th>
-                                                <th>Adjust End</th>
+                                                <th>Adjustable / Month</th>
+                                                <th>Adjustable Start</th>
+                                                <th>Adjustable End</th>
                                                 <th>Method Desc</th>
                                                 <th>Action</th>
                                             </tr>
@@ -976,8 +968,7 @@
                                                             @enderror
                                                         </td>
                                                         <td class="text-center"><button type="button"
-                                                                class="btn btn-alt-danger btn-sm remove-deposit"><i
-                                                                    class="fa fa-times"></i></button></td>
+                                                                class="btn btn-alt-danger btn-sm remove-deposit">Remove</button></td>
                                                     </tr>
                                                 @endforeach
                                             @endif
@@ -1011,6 +1002,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="{{ asset('js/building-location-map.js') }}"></script>
     <script src="{{ asset('js/plugins/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
+    @include('FacilitiesManagement.Rent.partials.component-script')
 
     <script>
         One.helpersOnLoad(["jq-notify"]);
@@ -1182,7 +1174,7 @@
                 if (!nextRow.length) break; // No more rows to update
 
                 const nextStartDateInput = nextRow.find('.inc-start-date');
-                const nextYearsInput = nextRow.find('.inc-years');
+                const nextMonthsInput = nextRow.find('.inc-years');
                 const nextEndDateInput = nextRow.find('.inc-end-date');
 
                 const newNextStartDate = calculateNextStartDate(currentEndDate);
@@ -1192,8 +1184,8 @@
                     nextStartDateInput.val(newNextStartDate);
                 }
 
-                const nextYears = nextYearsInput.val();
-                const newNextEndDate = calculateEndDate(newNextStartDate, nextYears);
+                const nextMonths = nextMonthsInput.val();
+                const newNextEndDate = calculateMonthEndDate(newNextStartDate, nextMonths);
 
                 // Only update end date if it's different
                 if (nextEndDateInput.val() !== newNextEndDate) {
@@ -1439,15 +1431,15 @@
                         <td><input type="number" step="0.01" name="increments[${incIdx}][increment_amount]" class="form-control inc-amount" required></td>
                         <td><input type="number" step="0.01" name="increments[${incIdx}][increment_percentage]" class="form-control inc-percent"></td>
                         <td><input type="text" name="increments[${incIdx}][method_description]" class="form-control"></td>
-                        <td class="text-center"><button type="button" class="btn btn-alt-danger btn-sm remove-increment"><i class="fa fa-times"></i></button></td>
+                        <td class="text-center"><button type="button" class="btn btn-alt-danger btn-sm remove-increment">Remove</button></td>
                     </tr>
                 `);
 
                 const newRow = $('#incrementsTable tbody tr').last();
                 const startDateInput = newRow.find('.inc-start-date');
-                const yearsInput = newRow.find('.inc-years');
-                if (startDateInput.val() && yearsInput.val()) {
-                    const endDate = calculateEndDate(startDateInput.val(), yearsInput.val());
+                const monthsInput = newRow.find('.inc-years');
+                if (startDateInput.val() && monthsInput.val()) {
+                    const endDate = calculateMonthEndDate(startDateInput.val(), monthsInput.val());
                     newRow.find('.inc-end-date').val(endDate);
                     updateSubsequentIncrements(newRow);
                 }
@@ -1473,14 +1465,14 @@
                 }
             });
 
-            // Handle changes to start date or years for any increment row
+            // Handle changes to start date or months for any increment row
             $(document).on('change', '.inc-start-date, .inc-years', function() {
                 const currentRow = $(this).closest('tr');
                 const startDateStr = currentRow.find('.inc-start-date').val();
-                const years = currentRow.find('.inc-years').val();
+                const months = currentRow.find('.inc-years').val();
                 const endDateInput = currentRow.find('.inc-end-date');
 
-                const newEndDate = calculateEndDate(startDateStr, years);
+                const newEndDate = calculateMonthEndDate(startDateStr, months);
                 endDateInput.val(newEndDate);
 
                 updateSubsequentIncrements(currentRow);
@@ -1490,11 +1482,11 @@
             $('#incrementsTable tbody tr').each(function() {
                 const currentRow = $(this);
                 const startDateInput = currentRow.find('.inc-start-date');
-                const yearsInput = currentRow.find('.inc-years');
+                const monthsInput = currentRow.find('.inc-years');
                 const endDateInput = currentRow.find('.inc-end-date');
 
-                if (startDateInput.val() && yearsInput.val()) {
-                    const newEndDate = calculateEndDate(startDateInput.val(), yearsInput.val());
+                if (startDateInput.val() && monthsInput.val()) {
+                    const newEndDate = calculateMonthEndDate(startDateInput.val(), monthsInput.val());
                     if (endDateInput.val() !== newEndDate) {
                         endDateInput.val(newEndDate);
                     }
@@ -1528,7 +1520,7 @@
                         <td><input type="date" name="deposits[${depIdx}][absorb_start_date]" class="form-control dep-start-date" value="${newStartDate}"></td>
                         <td><input type="date" name="deposits[${depIdx}][absorb_end_date]" class="form-control dep-end-date" required></td>
                         <td><input type="text" name="deposits[${depIdx}][method_description]" class="form-control"></td>
-                        <td class="text-center"><button type="button" class="btn btn-alt-danger btn-sm remove-deposit"><i class="fa fa-times"></i></button></td>
+                        <td class="text-center"><button type="button" class="btn btn-alt-danger btn-sm remove-deposit">Remove</button></td>
                     </tr>
                 `);
 

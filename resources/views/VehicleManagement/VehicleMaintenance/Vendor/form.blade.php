@@ -4,8 +4,8 @@
 </div>
 
 <div class="mb-3">
-    <label class="form-label" for="vendor_type">Vendor Type <span class="text-danger">*</span></label>
-    <select class="form-select" id="vendor_type" name="vendor_type" required>
+    <label class="form-label" for="vendor_type">Vendor Type</label>
+    <select class="form-select" id="vendor_type" name="vendor_type">
         <option value="">Select Type</option>
         <option value="workshop" {{ old('vendor_type', $vendor->vendor_type ?? '') == 'workshop' ? 'selected' : '' }}>Workshop</option>
         <option value="parts_supplier" {{ old('vendor_type', $vendor->vendor_type ?? '') == 'parts_supplier' ? 'selected' : '' }}>Parts Supplier</option>

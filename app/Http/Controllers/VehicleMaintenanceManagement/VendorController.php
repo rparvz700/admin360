@@ -65,7 +65,7 @@ class VendorController extends Controller
         
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'vendor_type' => 'required|in:workshop,parts_supplier,both',
+            'vendor_type' => 'nullable|in:workshop,parts_supplier,both',
             'contact_person' => 'nullable|string|max:255',
             'phone' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
@@ -116,7 +116,7 @@ class VendorController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'vendor_type' => 'required|in:workshop,parts_supplier,both',
+            'vendor_type' => 'nullable|in:workshop,parts_supplier,both',
             'contact_person' => 'nullable|string|max:255',
             'phone' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',

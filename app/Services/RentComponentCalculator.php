@@ -32,30 +32,31 @@ class RentComponentCalculator
     {
         $input = collect($request->input('rent_components', []));
         $areaFallbacks = $this->areasFromRequest($request);
+        $isAtSource = $request->boolean('is_at_source');
 
         return collect(self::COMPONENTS)
-            ->map(function (array $meta, string $type) use ($input, $areaFallbacks, $vatTax) {
+            ->map(function (array $meta, string $type) use ($input, $areaFallbacks, $vatTax, $isAtSource) {
                 $component = $input->get($type, []);
                 $area = $this->moneyValue($component['area_sft'] ?? $areaFallbacks[$type] ?? 0);
                 $rentAmount = $this->moneyValue($component['rent_amount'] ?? 0);
 
-                return $this->calculateRow($type, $area, $rentAmount, $vatTax);
+                return $this->calculateRow($type, $area, $rentAmount, $vatTax, $isAtSource);
             })
             ->filter(fn (array $row) => $row['area_sft'] > 0 || $row['rent_amount'] > 0)
             ->values();
     }
 
-    public function rowsFromFloor(?PropertiesFloor $floor, ?VatTax $vatTax = null, Collection|array $existingRows = []): Collection
+    public function rowsFromFloor(?PropertiesFloor $floor, ?VatTax $vatTax = null, Collection|array $existingRows = [], bool $isAtSource = false): Collection
     {
         $existing = collect($existingRows)->keyBy('component_type');
 
         return collect(self::COMPONENTS)
-            ->map(function (array $meta, string $type) use ($floor, $vatTax, $existing) {
+            ->map(function (array $meta, string $type) use ($floor, $vatTax, $existing, $isAtSource) {
                 $existingRow = $existing->get($type);
                 $area = $existingRow ? $this->moneyValue($existingRow->area_sft ?? 0) : $this->areaFromFloor($floor, $type);
                 $rentAmount = $existingRow ? $this->moneyValue($existingRow->rent_amount ?? 0) : 0;
 
-                return $this->calculateRow($type, $area, $rentAmount, $vatTax);
+                return $this->calculateRow($type, $area, $rentAmount, $vatTax, $isAtSource);
             });
     }
 
@@ -103,15 +104,26 @@ class RentComponentCalculator
         ];
     }
 
-    private function calculateRow(string $type, float $area, float $rentAmount, ?VatTax $vatTax): array
+    private function calculateRow(string $type, float $area, float $rentAmount, ?VatTax $vatTax, bool $isAtSource = false): array
     {
         $rentAmount = round($rentAmount, 2);
         $rate = $area > 0 ? round($rentAmount / $area, 2) : 0.0;
         $vatApplicable = $area >= (float) config('facilities.rent_taxable_area_sft', 150);
         $vatPercent = $vatTax ? $this->moneyValue($vatTax->vat) : 0;
         $taxPercent = $vatTax ? $this->moneyValue($vatTax->tax) : 0;
-        $vatAmount = $vatApplicable ? round(($rentAmount * $vatPercent) / 100, 2) : 0.0;
-        $taxAmount = round(($rentAmount * $taxPercent) / 100, 2);
+
+        if ($isAtSource && $taxPercent > 0) {
+            $taxDecimal = $taxPercent / 100.0;
+            $denominator = 1.0 - $taxDecimal;
+            $grossBeforeVat = $denominator > 0 ? ($rentAmount / $denominator) : $rentAmount;
+            $taxAmount = round($grossBeforeVat - $rentAmount, 2);
+            $vatAmount = $vatApplicable ? round(($grossBeforeVat * $vatPercent) / 100, 2) : 0.0;
+            $totalAmount = round($grossBeforeVat + $vatAmount, 2);
+        } else {
+            $vatAmount = $vatApplicable ? round(($rentAmount * $vatPercent) / 100, 2) : 0.0;
+            $taxAmount = round(($rentAmount * $taxPercent) / 100, 2);
+            $totalAmount = round($rentAmount + $vatAmount + $taxAmount, 2);
+        }
 
         return [
             'component_type' => $type,
@@ -122,7 +134,7 @@ class RentComponentCalculator
             'vat_applicable' => $vatApplicable,
             'vat_amount' => $vatAmount,
             'tax_amount' => $taxAmount,
-            'total_amount' => round($rentAmount + $vatAmount + $taxAmount, 2),
+            'total_amount' => $totalAmount,
         ];
     }
 

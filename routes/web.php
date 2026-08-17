@@ -39,6 +39,8 @@ use App\Http\Controllers\FacilitiesManagement\Electricity\ElectricityMeterContro
 use App\Http\Controllers\FacilitiesManagement\Electricity\ElectricityBillController;
 use App\Http\Controllers\FacilitiesManagement\Electricity\ElectricityReportController;
 
+use App\Http\Controllers\FacilitiesManagement\NpvAnalysisController;
+use App\Http\Controllers\Admin\FinanceSettingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PropertyWizardController;
 use Illuminate\Http\Request;
@@ -139,6 +141,19 @@ Route::middleware(['auth'])->group(function(){
     Route::get('user-list', [UserController::class, 'userList'])->name('userList');
     // Facilities Management Dashboard
     Route::get('facilities/dashboard', [DashboardController::class, 'index'])->name('facilities.dashboard');
+
+    // Net Present Value (NPV) Calculation Routes
+    Route::prefix('facilities/npv')->name('facilities.npv.')->group(function () {
+        Route::get('/', [NpvAnalysisController::class, 'index'])->name('index');
+        Route::post('/calculate', [NpvAnalysisController::class, 'calculate'])->name('calculate');
+        Route::get('/export/{format?}', [NpvAnalysisController::class, 'export'])->name('export');
+    });
+
+    // Finance Settings Routes (Discount Rate management)
+    Route::prefix('admin/finance-settings')->name('admin.finance-settings.')->group(function () {
+        Route::get('/', [FinanceSettingController::class, 'index'])->name('index');
+        Route::post('/', [FinanceSettingController::class, 'update'])->name('update');
+    });
 
 
 
