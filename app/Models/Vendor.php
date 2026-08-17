@@ -18,18 +18,30 @@ class Vendor extends Model
         'phone',
         'email',
         'address',
+        'bank_name',
+        'bank_account_no',
+        'routing_number',
+        'tin_vat_no',
         'services_offered',
         'rating',
+        'metadata',
         'is_active',
     ];
 
     protected $casts = [
         'services_offered' => 'array',
+        'metadata' => 'array',
         'rating' => 'decimal:2',
         'is_active' => 'boolean',
     ];
 
     // Relationships
+    public function categories()
+    {
+        return $this->belongsToMany(VendorCategory::class, 'vendor_category_vendor')
+                    ->withTimestamps();
+    }
+
     public function maintenances()
     {
         return $this->hasMany(VehicleMaintenance::class);
@@ -61,6 +73,25 @@ class Vendor extends Model
         return $query->where('vendor_type', $type);
     }
 
+    public function scopeForCategory($query, $categoryId)
+    {
+        return $query->whereHas('categories', function ($q) use ($categoryId) {
+            $q->where('vendor_categories.id', $categoryId);
+        });
+    }
+
+    public function scopeForModule($query, string $module)
+    {
+        return $query->where(function ($q) use ($module) {
+            $q->whereHas('categories', function ($catQuery) use ($module) {
+                $catQuery->where(function ($m) use ($module) {
+                    $m->where('module_scope', $module)
+                      ->orWhere('module_scope', 'general');
+                });
+            })->orWhereDoesntHave('categories'); // Include unassigned vendors by default for safety
+        });
+    }
+
     // Helpers
     public function getTotalMaintenanceCost($startDate = null, $endDate = null)
     {
@@ -80,12 +111,30 @@ class Vendor extends Model
 
     public function getVendorTypeLabel()
     {
+        if ($this->relationLoaded('categories') && $this->categories->count() > 0) {
+            return $this->categories->pluck('name')->implode(', ');
+        }
+
         return match($this->vendor_type) {
             'workshop'       => 'Workshop',
             'parts_supplier' => 'Parts Supplier',
             'both'           => 'Workshop & Parts',
-            default          => 'N/A',
+            default          => 'General Vendor',
         };
+    }
+
+    public function getCategoryBadgesHtml(): string
+    {
+        if ($this->relationLoaded('categories') && $this->categories->count() > 0) {
+            $badges = $this->categories->map(function ($cat) {
+                return '<span class="' . $cat->getModuleScopeBadgeClass() . '" title="' . e($cat->getModuleScopeLabel()) . '">' . e($cat->name) . '</span>';
+            })->implode(' ');
+
+            return '<div class="d-flex flex-wrap gap-1 align-items-center" style="max-width: 250px;">' . $badges . '</div>';
+        }
+
+        $label = $this->getVendorTypeLabel();
+        return '<span class="badge bg-body-light text-dark border px-2 py-1">' . e($label) . '</span>';
     }
 
     public static function generateVendorCode()

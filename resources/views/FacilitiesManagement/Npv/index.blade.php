@@ -317,7 +317,7 @@
                                 <td class="text-end num-cell text-success fw-bold">-৳ {{ number_format($initialResult->totalDepositRefunds, 2) }}</td>
                                 <td class="text-end num-cell fw-bold">৳ {{ number_format($initialResult->totalUndiscountedOutflow, 2) }}</td>
                                 <td class="text-center">-</td>
-                                <td class="text-end num-cell text-primary fw-bold fs-xs npv-col-right-2">৳ {{ number_format($initialResult->totalNPV, 2) }}</td>
+                                <td class="text-end num-cell text-primary fw-bold npv-col-right-2">৳ {{ number_format($initialResult->totalNPV, 2) }}</td>
                                 <td class="text-end npv-col-right-1">-</td>
                             </tr>
                         </tfoot>

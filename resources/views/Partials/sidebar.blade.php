@@ -490,10 +490,10 @@
 
                                     {{-- ----------------------Vendors------------------- --}}
                                     <li class="nav-main-item">
-                                        <a class="nav-main-link {{ (isset($activeMenu) && $activeMenu == 'vendors') || request()->routeIs('maintenance.vendors.*') ? 'active' : '' }}"
-                                            href="{{ route('maintenance.vendors.index') }}">
+                                        <a class="nav-main-link {{ (isset($activeMenu) && $activeMenu == 'vendors') || request()->routeIs('vendors.*', 'maintenance.vendors.*') ? 'active' : '' }}"
+                                            href="{{ route('vendors.index') }}">
                                             <i class="nav-main-link-icon fa fa-store"></i>
-                                            <span class="nav-main-link-name">Vendors</span>
+                                            <span class="nav-main-link-name">Vendors Master</span>
                                         </a>
                                     </li>
 

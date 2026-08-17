@@ -127,7 +127,7 @@ class ElectricityMeterController extends Controller
     {
         $buildings = PropertiesBuilding::with('rio')->orderBy('site_name')->get();
         $floors = PropertiesFloor::orderBy('floor_label')->get();
-        $vendors = Vendor::orderBy('name')->get();
+        $vendors = Vendor::forModule('utility')->active()->orderBy('name')->get();
 
         return view('FacilitiesManagement.Electricity.Meters.create', compact('buildings', 'floors', 'vendors'));
     }
@@ -170,7 +170,7 @@ class ElectricityMeterController extends Controller
         $meter->load(['floors']);
         $buildings = PropertiesBuilding::with('rio')->orderBy('site_name')->get();
         $floors = PropertiesFloor::orderBy('floor_label')->get();
-        $vendors = Vendor::orderBy('name')->get();
+        $vendors = Vendor::forModule('utility')->active()->orderBy('name')->get();
 
         return view('FacilitiesManagement.Electricity.Meters.edit', compact('meter', 'buildings', 'floors', 'vendors'));
     }

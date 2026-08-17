@@ -58,7 +58,7 @@ class AgreementsController extends Controller
     public function create()
     {   
         $documents = GenericDocument::with('category')->get();
-        $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
+        $vendors = Vendor::forModule('facilities')->active()->orderBy('name')->get();
         $agreement = new Agreement();
         return view('FacilitiesManagement.Agreements.create', compact('agreement','documents', 'vendors'));
     }
@@ -94,7 +94,7 @@ class AgreementsController extends Controller
     public function edit($id)
     {
         $documents = GenericDocument::with('category')->get();
-        $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
+        $vendors = Vendor::forModule('facilities')->active()->orderBy('name')->get();
         $agreement = Agreement::findOrFail($id);
         return view('FacilitiesManagement.Agreements.edit', compact('agreement', 'documents', 'vendors'));
     }

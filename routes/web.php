@@ -24,7 +24,7 @@ use App\Http\Controllers\TicketManagement\TicketController;
 use App\Http\Controllers\TicketManagement\AdminTicketController;
 use App\Http\Controllers\TicketManagement\VehicleAssignmentController;
 
-use App\Http\Controllers\VehicleMaintenanceManagement\VendorController;
+use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VehicleMaintenanceManagement\VehicleMaintenanceController;
 use App\Http\Controllers\VehicleMaintenanceManagement\VehiclePartController;
 use App\Http\Controllers\VehicleMaintenanceManagement\VehicleOperationalLogController;
@@ -287,6 +287,12 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin Reset User Password
     Route::post('/admin/users/{user}/reset-password', [App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset-password');
+});
+
+// Universal Master Vendor Routes
+Route::middleware(['auth'])->group(function () {
+    Route::resource('vendors', VendorController::class);
+    Route::get('vendors/{vendor}/history', [VendorController::class, 'history'])->name('vendors.history');
 });
 
 Route::prefix('maintenance')->name('maintenance.')->middleware(['auth'])->group(function () {

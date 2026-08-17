@@ -101,7 +101,7 @@ class VehicleMaintenanceController extends Controller
     public function create()
     {
         $vehicles = Vehicle::where('status', 'active')->get();
-        $vendors = Vendor::active()->get();
+        $vendors = Vendor::forModule('vehicle')->active()->orderBy('name')->get();
         $parts = VehiclePart::active()->orderBy('part_name')->get();
 
         return view('VehicleManagement.VehicleMaintenance.create', compact('vehicles', 'vendors', 'parts'));
@@ -222,7 +222,7 @@ class VehicleMaintenanceController extends Controller
     public function edit(VehicleMaintenance $maintenance)
     {
         $vehicles = Vehicle::where('status', 'active')->get();
-        $vendors = Vendor::active()->get();
+        $vendors = Vendor::forModule('vehicle')->active()->orderBy('name')->get();
         $parts = VehiclePart::active()->get();
         $maintenance->load('maintenanceParts');
 
