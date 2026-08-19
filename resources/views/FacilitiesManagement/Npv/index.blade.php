@@ -20,12 +20,15 @@
         <!-- Document / Report Title Header -->
         <div class="npv-report-header d-flex justify-content-between align-items-end flex-wrap gap-3">
             <div>
-                <div class="npv-report-eyebrow"><i class="fa fa-calculator me-1"></i> Facilities Management &bull; Financial Analytics</div>
+                <div class="npv-report-eyebrow"><i class="fa fa-calculator me-1"></i> Facilities Management &bull; Financial
+                    Analytics</div>
                 <h2 class="npv-report-title">Net Present Value (NPV) Valuation Report</h2>
-                <p class="npv-report-sub">Comprehensive lease cash outflow analysis, compounded rent escalations, advance deductions, and discounted present values.</p>
+                <p class="npv-report-sub">Comprehensive lease cash outflow analysis, compounded rent escalations, advance
+                    deductions, and discounted present values.</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ route('admin.finance-settings.index') }}" class="btn npv-header-btn" title="Configure Default Annual Interest Rate">
+                <a href="{{ route('admin.finance-settings.index') }}" class="btn npv-header-btn"
+                    title="Configure Default Annual Interest Rate">
                     <i class="fa fa-cog me-1 text-muted"></i> Rate Settings
                 </a>
             </div>
@@ -46,17 +49,19 @@
                     <!-- Select Agreement -->
                     <div class="col-lg-5 col-md-6">
                         <label class="form-label">Property Lease Agreement <span class="text-danger">*</span></label>
-                        <select name="agreement_id" id="agreement_id" class="form-select js-select2" data-placeholder="-- Choose Lease Agreement --" style="width: 100%;" required>
+                        <select name="agreement_id" id="agreement_id" class="form-select js-select2"
+                            data-placeholder="-- Choose Lease Agreement --" style="width: 100%;" required>
                             <option value=""></option>
                             @foreach ($agreements as $agr)
                                 @php
-                                    $bName = $agr->floors->first()->building->site_name ?? ($agr->floors->first()->building->code ?? 'N/A');
+                                    $bName =
+                                        $agr->floors->first()->building->site_name ??
+                                        ($agr->floors->first()->building->code ?? 'N/A');
                                     $vendorName = $agr->vendor->name ?? 'N/A';
                                 @endphp
-                                <option value="{{ $agr->id }}" 
-                                    {{ (old('agreement_id', $selectedAgreementId) == $agr->id) ? 'selected' : '' }}
-                                    data-from="{{ $agr->from_date }}"
-                                    data-to="{{ $agr->to_date }}">
+                                <option value="{{ $agr->id }}"
+                                    {{ old('agreement_id', $selectedAgreementId) == $agr->id ? 'selected' : '' }}
+                                    data-from="{{ $agr->from_date }}" data-to="{{ $agr->to_date }}">
                                     {{ $agr->agreement_ref_no }} | Site: {{ $bName }} ({{ $vendorName }})
                                 </option>
                             @endforeach
@@ -74,10 +79,13 @@
                     <div class="col-lg-4 col-md-3">
                         <label class="form-label">Annual Interest Rate (%) <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <input type="number" step="0.0001" min="0" max="100" name="annual_discount_rate" id="annual_discount_rate" class="form-control"
-                                value="{{ old('annual_discount_rate', request('annual_discount_rate', $defaultRate)) }}" required>
+                            <input type="number" step="0.0001" min="0" max="100" name="annual_discount_rate"
+                                id="annual_discount_rate" class="form-control"
+                                value="{{ old('annual_discount_rate', request('annual_discount_rate', $defaultRate)) }}"
+                                required>
                             <span class="input-group-text">%</span>
-                            <button type="button" class="btn btn-outline-secondary" id="resetRateBtn" title="Reset to DB Default ({{ $defaultRate }}%)">
+                            <button type="button" class="btn btn-outline-secondary" id="resetRateBtn"
+                                title="Reset to DB Default ({{ $defaultRate }}%)">
                                 <i class="fa fa-undo"></i>
                             </button>
                         </div>
@@ -86,7 +94,8 @@
 
                 <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-3">
                     <span class="fs-xs text-muted">
-                        <i class="fa fa-info-circle me-1"></i> Tax top-up (gross-up) & VAT are automatically sourced from DB <code>rent_base</code>.
+                        <i class="fa fa-info-circle me-1"></i> Tax top-up (gross-up) & VAT are automatically sourced from DB
+                        <code>rent_base</code>.
                     </span>
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary px-4 btn-sm">
@@ -101,25 +110,51 @@
             <!-- Executive Summary Strip (Single Bar Layout) -->
             <div class="npv-summary-strip">
                 <div class="row g-0">
-                    <div class="col-6 col-lg-3 summary-metric-item hero-metric ps-4 ps-md-5" title="Total Present Value (NPV): Sum of discounted monthly net cash outflows over {{ $initialResult->totalMonths }} months">
-                        <div class="metric-label" title="Total Present Value (NPV)"><i class="fa fa-coins me-1 text-primary"></i> Total Present Value (NPV)</div>
-                        <div class="metric-value text-npv-primary" title="৳ {{ number_format($initialResult->totalNPV, 2) }}">৳ {{ number_format($initialResult->totalNPV, 2) }}</div>
-                        <div class="metric-subtext" title="Sum of discounted monthly net cash outflows over {{ $initialResult->totalMonths }} months (Discount Rate: {{ number_format($initialResult->monthlyDiscountRate * 100, 4) }}% monthly / {{ number_format($initialResult->annualDiscountRate, 2) }}% annual)">Discounted Net Outflows</div>
+                    <div class="col-6 col-lg-3 summary-metric-item hero-metric ps-4 ps-md-5"
+                        title="Total Present Value (NPV): Sum of discounted monthly net cash outflows over {{ $initialResult->totalMonths }} months">
+                        <div class="metric-label" title="Total Present Value (NPV)"><i
+                                class="fa fa-coins me-1 text-primary"></i> Total Present Value (NPV)</div>
+                        <div class="metric-value text-npv-primary"
+                            title="৳ {{ number_format($initialResult->totalNPV, 2) }}">৳
+                            {{ number_format($initialResult->totalNPV, 2) }}</div>
+                        <div class="metric-subtext"
+                            title="Sum of discounted monthly net cash outflows over {{ $initialResult->totalMonths }} months (Discount Rate: {{ number_format($initialResult->monthlyDiscountRate * 100, 4) }}% monthly / {{ number_format($initialResult->annualDiscountRate, 2) }}% annual)">
+                            Discounted Net Outflows</div>
                     </div>
-                    <div class="col-6 col-lg-3 summary-metric-item ps-4 ps-md-5" title="Total Nominal Outflow: Undiscounted total cash outflow over lease term">
-                        <div class="metric-label" title="Total Nominal Outflow"><i class="fa fa-money-bill-wave me-1 text-warning"></i> Total Nominal Outflow</div>
-                        <div class="metric-value text-npv-warning" title="৳ {{ number_format($initialResult->totalUndiscountedOutflow, 2) }}">৳ {{ number_format($initialResult->totalUndiscountedOutflow, 2) }}</div>
-                        <div class="metric-subtext" title="Undiscounted gross cash outflow over entire lease term of {{ $initialResult->totalMonths }} months">Undiscounted Cash Total</div>
+                    <div class="col-6 col-lg-3 summary-metric-item ps-4 ps-md-5"
+                        title="Total Nominal Outflow: Undiscounted total cash outflow over lease term">
+                        <div class="metric-label" title="Total Nominal Outflow"><i
+                                class="fa fa-money-bill-wave me-1 text-warning"></i> Total Nominal Outflow</div>
+                        <div class="metric-value text-npv-warning"
+                            title="৳ {{ number_format($initialResult->totalUndiscountedOutflow, 2) }}">৳
+                            {{ number_format($initialResult->totalUndiscountedOutflow, 2) }}</div>
+                        <div class="metric-subtext"
+                            title="Undiscounted gross cash outflow over entire lease term of {{ $initialResult->totalMonths }} months">
+                            Undiscounted Cash Total</div>
                     </div>
-                    <div class="col-6 col-lg-3 summary-metric-item ps-4 ps-md-5" title="Lease Horizon & Discount Rate: {{ $initialResult->totalMonths }} months at {{ number_format($initialResult->annualDiscountRate, 2) }}% annual discount rate">
-                        <div class="metric-label" title="Lease Horizon & Discount Rate"><i class="fa fa-calendar-alt me-1 text-info"></i> Lease Horizon & Rate</div>
-                        <div class="metric-value text-npv-info" title="{{ $initialResult->totalMonths }} months (Rate: {{ number_format($initialResult->annualDiscountRate, 2) }}% annual)">{{ $initialResult->totalMonths }} <span class="fs-xs font-normal">mos</span></div>
-                        <div class="metric-subtext" title="Monthly Discount Rate: {{ number_format($initialResult->monthlyDiscountRate * 100, 4) }}% | Annual Rate: {{ number_format($initialResult->annualDiscountRate, 2) }}%">Monthly Rate: {{ number_format($initialResult->monthlyDiscountRate * 100, 4) }}% (Annual: {{ number_format($initialResult->annualDiscountRate, 2) }}%)</div>
+                    <div class="col-6 col-lg-3 summary-metric-item ps-4 ps-md-5"
+                        title="Lease Horizon & Discount Rate: {{ $initialResult->totalMonths }} months at {{ number_format($initialResult->annualDiscountRate, 2) }}% annual discount rate">
+                        <div class="metric-label" title="Lease Horizon & Discount Rate"><i
+                                class="fa fa-calendar-alt me-1 text-info"></i> Lease Horizon & Rate</div>
+                        <div class="metric-value text-npv-info"
+                            title="{{ $initialResult->totalMonths }} months (Rate: {{ number_format($initialResult->annualDiscountRate, 2) }}% annual)">
+                            {{ $initialResult->totalMonths }} <span class="fs-xs font-normal">mos</span></div>
+                        <div class="metric-subtext"
+                            title="Monthly Discount Rate: {{ number_format($initialResult->monthlyDiscountRate * 100, 4) }}% | Annual Rate: {{ number_format($initialResult->annualDiscountRate, 2) }}%">
+                            Monthly Rate: {{ number_format($initialResult->monthlyDiscountRate * 100, 4) }}% (Annual:
+                            {{ number_format($initialResult->annualDiscountRate, 2) }}%)</div>
                     </div>
-                    <div class="col-6 col-lg-3 summary-metric-item ps-4 ps-md-5" title="Absorbable Advance & Security Deposit Summary">
-                        <div class="metric-label" title="Absorbable Advance & Security Deposit"><i class="fa fa-hand-holding-usd me-1 text-success"></i> Advance (Absorbable)</div>
-                        <div class="metric-value text-npv-success" title="৳ {{ number_format($initialResult->absorbableAdvanceTotal, 2) }}">৳ {{ number_format($initialResult->absorbableAdvanceTotal, 2) }}</div>
-                        <div class="metric-subtext" title="Total Advance Deducted in Schedule: ৳ {{ number_format($initialResult->totalAdvanceDeductions, 2) }} | Non-Absorbable Deposit: ৳ {{ number_format($initialResult->nonAbsorbableDepositTotal, 2) }}">Deducted: ৳ {{ number_format($initialResult->totalAdvanceDeductions, 2) }} | SD: ৳ {{ number_format($initialResult->nonAbsorbableDepositTotal, 2) }}</div>
+                    <div class="col-6 col-lg-3 summary-metric-item ps-4 ps-md-5"
+                        title="Absorbable Advance & Security Deposit Summary">
+                        <div class="metric-label" title="Absorbable Advance & Security Deposit"><i
+                                class="fa fa-hand-holding-usd me-1 text-success"></i> Advance (Absorbable)</div>
+                        <div class="metric-value text-npv-success"
+                            title="৳ {{ number_format($initialResult->absorbableAdvanceTotal, 2) }}">৳
+                            {{ number_format($initialResult->absorbableAdvanceTotal, 2) }}</div>
+                        <div class="metric-subtext"
+                            title="Total Advance Deducted in Schedule: ৳ {{ number_format($initialResult->totalAdvanceDeductions, 2) }} | Non-Absorbable Deposit: ৳ {{ number_format($initialResult->nonAbsorbableDepositTotal, 2) }}">
+                            Deducted: ৳ {{ number_format($initialResult->totalAdvanceDeductions, 2) }} | SD: ৳
+                            {{ number_format($initialResult->nonAbsorbableDepositTotal, 2) }}</div>
                     </div>
                 </div>
             </div>
@@ -128,15 +163,17 @@
             <div class="npv-source-audit mb-4">
                 <div class="audit-header d-flex justify-content-between align-items-center">
                     <h3 class="audit-title">
-                        <i class="fa fa-database me-1 text-muted"></i> Rent Base & Contract Source Audit (Agreement #{{ $initialResult->agreement->id }} - {{ $initialResult->agreement->agreement_ref_no }})
+                        <i class="fa fa-database me-1 text-muted"></i> Rent Base & Contract Source Audit (Agreement
+                        #{{ $initialResult->agreement->id }} - {{ $initialResult->agreement->agreement_ref_no }})
                     </h3>
-                    <button type="button" class="btn btn-sm btn-alt-secondary py-0 px-2" data-bs-toggle="collapse" data-bs-target="#npvAuditContent" aria-expanded="false">
+                    <button type="button" class="btn btn-sm btn-alt-secondary py-0 px-2" data-bs-toggle="collapse"
+                        data-bs-target="#npvAuditContent" aria-expanded="false">
                         <i class="fa fa-chevron-down fs-xs"></i>
                     </button>
                 </div>
                 <div class="collapse show" id="npvAuditContent">
                     <div class="p-3 fs-xs">
-                        @php 
+                        @php
                             $latestRentBase = $initialResult->agreement->rentBases->sortByDesc('id')->first();
                             $latestSd = $initialResult->agreement->securityDeposits->sortByDesc('id')->first();
                         @endphp
@@ -144,16 +181,21 @@
                             <div class="col-md-3">
                                 <div class="audit-data-box">
                                     <div class="text-muted font-semibold mb-1">Rent Base Parameters</div>
-                                    <div>Base Rent: <strong>৳ {{ number_format($latestRentBase->base_rent ?? 0, 2) }}</strong></div>
-                                    <div>At Source Tax: <strong>{{ ($latestRentBase->is_at_source ?? false) ? 'YES (1)' : 'NO (0)' }}</strong></div>
-                                    <div>VAT: ৳ {{ number_format($latestRentBase->vat ?? 0, 2) }} | Tax: ৳ {{ number_format($latestRentBase->tax ?? 0, 2) }}</div>
+                                    <div>Base Rent: <strong>৳
+                                            {{ number_format($latestRentBase->base_rent ?? 0, 2) }}</strong></div>
+                                    <div>At Source Tax:
+                                        <strong>{{ $latestRentBase->is_at_source ?? false ? 'YES (1)' : 'NO (0)' }}</strong>
+                                    </div>
+                                    <div>VAT: ৳ {{ number_format($latestRentBase->vat ?? 0, 2) }} | Tax: ৳
+                                        {{ number_format($latestRentBase->tax ?? 0, 2) }}</div>
                                 </div>
                             </div>
                             <div class="col-md-5">
                                 <div class="audit-data-box">
                                     <div class="text-muted font-semibold mb-1">Rent Components Breakdown</div>
                                     @if ($latestRentBase && $latestRentBase->components->count() > 0)
-                                        <table class="table table-sm table-bordered mb-0 bg-white" style="font-size: 11px;">
+                                        <table class="table table-sm table-bordered mb-0 bg-white"
+                                            style="font-size: 11px;">
                                             <thead>
                                                 <tr class="table-secondary">
                                                     <th>Type</th>
@@ -167,25 +209,34 @@
                                                     <tr>
                                                         <td><strong>{{ $comp->component_type }}</strong></td>
                                                         <td class="text-end">{{ number_format($comp->area_sft, 2) }}</td>
-                                                        <td class="text-end">৳ {{ number_format($comp->rent_amount, 2) }}</td>
-                                                        <td class="text-end">৳ {{ number_format($comp->total_amount, 2) }}</td>
+                                                        <td class="text-end">৳ {{ number_format($comp->rent_amount, 2) }}
+                                                        </td>
+                                                        <td class="text-end">৳ {{ number_format($comp->total_amount, 2) }}
+                                                        </td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
                                         </table>
                                     @else
-                                        <em class="text-muted">No component breakdown rows. Using base_rent fallback: ৳ {{ number_format($latestRentBase->base_rent ?? 0, 2) }}</em>
+                                        <em class="text-muted">No component breakdown rows. Using base_rent fallback: ৳
+                                            {{ number_format($latestRentBase->base_rent ?? 0, 2) }}</em>
                                     @endif
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="audit-data-box">
                                     <div class="text-muted font-semibold mb-1">Security Deposit & Advance Structure</div>
-                                    <div>Total Deposit: <strong>৳ {{ number_format($latestSd->security_deposit_total ?? 0, 2) }}</strong></div>
-                                    <div>Adjustable Advance: <strong>৳ {{ number_format($latestSd->security_deposit_absorbable ?? 0, 2) }}</strong></div>
-                                    <div>Non-Adjustable Deposit: <strong>৳ {{ number_format($latestSd->security_deposit_non_absorbable ?? 0, 2) }}</strong></div>
+                                    <div>Total Deposit: <strong>৳
+                                            {{ number_format($latestSd->security_deposit_total ?? 0, 2) }}</strong></div>
+                                    <div>Adjustable Advance: <strong>৳
+                                            {{ number_format($latestSd->security_deposit_absorbable ?? 0, 2) }}</strong>
+                                    </div>
+                                    <div>Non-Adjustable Deposit: <strong>৳
+                                            {{ number_format($latestSd->security_deposit_non_absorbable ?? 0, 2) }}</strong>
+                                    </div>
                                     <div class="mt-1 fs-2xs text-muted">
-                                        Interval: {{ $latestSd->absorb_frequency ?? 'N/A' }} months | Start: {{ $latestSd->absorb_start_date ?? 'N/A' }}
+                                        Interval: {{ $latestSd->absorb_frequency ?? 'N/A' }} months | Start:
+                                        {{ $latestSd->absorb_start_date ?? 'N/A' }}
                                     </div>
                                 </div>
                             </div>
@@ -198,17 +249,19 @@
             <div class="npv-report-section">
                 <div class="npv-section-header">
                     <h3 class="npv-section-title">
-                        <i class="fa fa-table text-primary"></i> Monthly Cash Outflow & Present Value Schedule ({{ $initialResult->totalMonths }} Months)
+                        <i class="fa fa-table text-primary"></i> Monthly Cash Outflow & Present Value Schedule
+                        ({{ $initialResult->totalMonths }} Months)
                     </h3>
                     <div class="d-flex flex-wrap align-items-center gap-3">
-                        <div class="form-check form-switch mb-0 npv-breakdown-toggle" title="Show/hide per-space (Office/DG/Parking/Store) gross rent breakdown columns">
+                        <div class="form-check form-switch mb-0 npv-breakdown-toggle"
+                            title="Show/hide per-space (Office/DG/Parking/Store) gross rent breakdown columns">
                             <input class="form-check-input" type="checkbox" role="switch" id="npvToggleBreakdown">
                             <label class="form-check-label" for="npvToggleBreakdown">
                                 <i class="fa fa-list-ul me-1"></i> Space Breakdown
                             </label>
                         </div>
                         <a href="{{ route('facilities.npv.export', ['agreement_id' => $initialResult->agreement->id, 'base_date' => $initialResult->baseDate, 'annual_discount_rate' => $initialResult->annualDiscountRate]) }}"
-                           class="btn btn-sm btn-outline-success">
+                            class="btn btn-sm btn-outline-success">
                             <i class="fa fa-file-excel me-1"></i> Export Schedule (Excel)
                         </a>
                     </div>
@@ -244,53 +297,95 @@
                 @endif
 
                 <div class="npv-table-wrapper">
-                    <table class="table table-sm table-bordered table-striped table-hover table-vcenter table-npv" id="npvBreakdownTable">
+                    <table class="table table-sm table-bordered table-striped table-hover table-vcenter table-npv"
+                        id="npvBreakdownTable">
                         <thead>
                             <tr>
                                 <th class="text-center npv-col-left-1">#</th>
-                                <th class="text-center npv-col-left-2" title="Billing month. A badge marks which rent increment cycle (1st, 2nd, 3rd...) is in force — solid on the month the cycle takes effect, faded while it is carried forward.">Billing Month</th>
-                                <th class="text-end npv-col-breakdown" title="Office space gross rent for the month">Office Gross (৳)</th>
-                                <th class="text-end npv-col-breakdown" title="Diesel generator (DG) gross rent for the month">DG Gross (৳)</th>
-                                <th class="text-end npv-col-breakdown" title="Parking space gross rent for the month">Parking Gross (৳)</th>
-                                <th class="text-end npv-col-breakdown" title="Store space gross rent for the month">Store Gross (৳)</th>
-                                <th class="text-end npv-total-col" title="Sum of all space-wise gross rents for the month">Total Gross (৳)</th>
-                                <th class="text-end text-danger" title="Adjustable advance deducted from this month's payment">Advance Adj. (-৳)</th>
-                                <th class="text-end text-success" title="Security deposit refunded/adjusted this month">SD Refund (-৳)</th>
-                                <th class="text-end fw-bold" title="Total Gross minus Advance Adj. minus SD Refund">Net Outflow (৳)</th>
-                                <th class="text-center" title="Present value discount factor applied to this month's net outflow">Discount Factor</th>
-                                <th class="text-end text-primary fw-bold npv-col-right-2" title="Net Outflow x Discount Factor">Present Value (NPV) (৳)</th>
-                                <th class="text-end text-info npv-col-right-1" title="Running total of Present Value up to this month">Cumulative PV (৳)</th>
+                                <th class="text-center npv-col-left-2"
+                                    title="Billing month. A badge marks which rent increment cycle (1st, 2nd, 3rd...) is in force — solid on the month the cycle takes effect, faded while it is carried forward.">
+                                    Billing Month</th>
+                                <th class="text-end npv-col-breakdown" title="Office space gross rent for the month">
+                                    Office Gross (৳)</th>
+                                <th class="text-end npv-col-breakdown"
+                                    title="Diesel generator (DG) gross rent for the month">DG Gross (৳)</th>
+                                <th class="text-end npv-col-breakdown" title="Parking space gross rent for the month">
+                                    Parking Gross (৳)</th>
+                                <th class="text-end npv-col-breakdown" title="Store space gross rent for the month">Store
+                                    Gross (৳)</th>
+                                <th class="text-end npv-total-col"
+                                    title="Sum of all space-wise gross rents for the month">Total Gross (৳)</th>
+                                <th class="text-end text-danger"
+                                    title="Adjustable advance deducted from this month's payment">Advance Adj. (-৳)</th>
+                                <th class="text-end text-success" title="Security deposit refunded/adjusted this month">SD
+                                    Refund (-৳)</th>
+                                <th class="text-end fw-bold" title="Total Gross minus Advance Adj. minus SD Refund">Net
+                                    Outflow (৳)</th>
+                                <th class="text-center"
+                                    title="Present value discount factor applied to this month's net outflow">Discount
+                                    Factor</th>
+                                <th class="text-end text-primary fw-bold npv-col-right-2"
+                                    title="Net Outflow x Discount Factor">Present Value (NPV) (৳)</th>
+                                <th class="text-end text-info npv-col-right-1"
+                                    title="Running total of Present Value up to this month">Cumulative PV (৳)</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($initialResult->cashFlows as $cf)
                                 <tr>
-                                    <td class="text-center text-muted font-mono fs-xs npv-col-left-1">{{ $cf->periodIndex }}</td>
+                                    <td class="text-center text-muted font-mono fs-xs npv-col-left-1">
+                                        {{ $cf->periodIndex }}</td>
                                     <td class="text-center fw-semibold fs-xs npv-col-left-2">
                                         {{ $cf->monthLabel }}
                                         @if ($cf->incrementCycle > 0)
                                             @php
                                                 $incCurrent = collect($cf->activeIncrements)->last();
-                                                $incRate = $incCurrent['percentage']
-                                                    ?? ($incCurrent['equivalent_pct'] ?? null);
-                                                $incTooltip = $npvOrdinal($cf->incrementCycle) . ' rent increment'
-                                                    . ($cf->totalIncrementCycles > 0 ? ' (cycle ' . $cf->incrementCycle . ' of ' . $cf->totalIncrementCycles . ')' : '')
-                                                    . ($cf->incrementEffectiveFrom ? ' — effective from ' . \Carbon\Carbon::parse($cf->incrementEffectiveFrom)->format('d M Y') : '')
-                                                    . ($incRate !== null ? ', at ' . number_format((float) $incRate, 2) . '%' : '')
-                                                    . '. Cumulative uplift over base rent: ' . number_format($cf->incrementUpliftPct, 2) . '%.'
-                                                    . ($cf->incrementStartsThisMonth ? ' This cycle takes effect this month.' : ' Carried forward into this month.');
+                                                $incRate =
+                                                    $incCurrent['percentage'] ??
+                                                    ($incCurrent['equivalent_pct'] ?? null);
+                                                $incTooltip =
+                                                    $npvOrdinal($cf->incrementCycle) .
+                                                    ' rent increment' .
+                                                    ($cf->totalIncrementCycles > 0
+                                                        ? ' (cycle ' .
+                                                            $cf->incrementCycle .
+                                                            ' of ' .
+                                                            $cf->totalIncrementCycles .
+                                                            ')'
+                                                        : '') .
+                                                    ($cf->incrementEffectiveFrom
+                                                        ? ' — effective from ' .
+                                                            \Carbon\Carbon::parse($cf->incrementEffectiveFrom)->format(
+                                                                'd M Y',
+                                                            )
+                                                        : '') .
+                                                    ($incRate !== null
+                                                        ? ', at ' . number_format((float) $incRate, 2) . '%'
+                                                        : '') .
+                                                    '. Cumulative uplift over base rent: ' .
+                                                    number_format($cf->incrementUpliftPct, 2) .
+                                                    '%.' .
+                                                    ($cf->incrementStartsThisMonth
+                                                        ? ' This cycle takes effect this month.'
+                                                        : ' Carried forward into this month.');
                                             @endphp
-                                            <span class="badge npv-inc-badge {{ $cf->incrementStartsThisMonth ? 'npv-inc-badge-new' : 'npv-inc-badge-carry' }}"
-                                                  title="{{ $incTooltip }}">
+                                            <span
+                                                class="badge npv-inc-badge {{ $cf->incrementStartsThisMonth ? 'npv-inc-badge-new' : 'npv-inc-badge-carry' }}"
+                                                title="{{ $incTooltip }}">
                                                 <i class="fa fa-arrow-up"></i> {{ $npvOrdinal($cf->incrementCycle) }}
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="text-end num-cell npv-col-breakdown">{{ number_format($cf->officeGrossRent, 2) }}</td>
-                                    <td class="text-end num-cell npv-col-breakdown">{{ number_format($cf->dgGrossRent, 2) }}</td>
-                                    <td class="text-end num-cell npv-col-breakdown">{{ number_format($cf->parkingGrossRent, 2) }}</td>
-                                    <td class="text-end num-cell npv-col-breakdown">{{ number_format($cf->storeGrossRent, 2) }}</td>
-                                    <td class="text-end num-cell fw-semibold npv-total-col">{{ number_format($cf->totalGrossRent, 2) }}</td>
+                                    <td class="text-end num-cell npv-col-breakdown">
+                                        {{ number_format($cf->officeGrossRent, 2) }}</td>
+                                    <td class="text-end num-cell npv-col-breakdown">
+                                        {{ number_format($cf->dgGrossRent, 2) }}</td>
+                                    <td class="text-end num-cell npv-col-breakdown">
+                                        {{ number_format($cf->parkingGrossRent, 2) }}</td>
+                                    <td class="text-end num-cell npv-col-breakdown">
+                                        {{ number_format($cf->storeGrossRent, 2) }}</td>
+                                    <td class="text-end num-cell fw-semibold npv-total-col">
+                                        {{ number_format($cf->totalGrossRent, 2) }}</td>
                                     <td class="text-end num-cell text-danger">
                                         {{ $cf->advanceDeduction > 0 ? '-' . number_format($cf->advanceDeduction, 2) : '0.00' }}
                                     </td>
@@ -298,9 +393,12 @@
                                         {{ $cf->depositRefund > 0 ? '-' . number_format($cf->depositRefund, 2) : '0.00' }}
                                     </td>
                                     <td class="text-end num-cell fw-bold">{{ number_format($cf->netOutflow, 2) }}</td>
-                                    <td class="text-center num-cell text-muted fs-xs">{{ number_format($cf->discountFactor, 6) }}</td>
-                                    <td class="text-end num-cell text-primary fw-bold npv-col-right-2">৳ {{ number_format($cf->presentValue, 2) }}</td>
-                                    <td class="text-end num-cell text-info fs-xs npv-col-right-1">৳ {{ number_format($cf->cumulativePV, 2) }}</td>
+                                    <td class="text-center num-cell text-muted fs-xs">
+                                        {{ number_format($cf->discountFactor, 6) }}</td>
+                                    <td class="text-end num-cell text-primary fw-bold npv-col-right-2">৳
+                                        {{ number_format($cf->presentValue, 2) }}</td>
+                                    <td class="text-end num-cell text-info fs-xs npv-col-right-1">৳
+                                        {{ number_format($cf->cumulativePV, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -312,12 +410,17 @@
                                 <td class="text-end npv-col-breakdown">-</td>
                                 <td class="text-end npv-col-breakdown">-</td>
                                 <td class="text-end npv-col-breakdown">-</td>
-                                <td class="text-end num-cell fw-bold npv-total-col">৳ {{ number_format($initialResult->totalGrossRent, 2) }}</td>
-                                <td class="text-end num-cell text-warning fw-bold">-৳ {{ number_format($initialResult->totalAdvanceDeductions, 2) }}</td>
-                                <td class="text-end num-cell text-success fw-bold">-৳ {{ number_format($initialResult->totalDepositRefunds, 2) }}</td>
-                                <td class="text-end num-cell fw-bold">৳ {{ number_format($initialResult->totalUndiscountedOutflow, 2) }}</td>
+                                <td class="text-end num-cell fw-bold npv-total-col">৳
+                                    {{ number_format($initialResult->totalGrossRent, 2) }}</td>
+                                <td class="text-end num-cell text-warning fw-bold">-৳
+                                    {{ number_format($initialResult->totalAdvanceDeductions, 2) }}</td>
+                                <td class="text-end num-cell text-success fw-bold">-৳
+                                    {{ number_format($initialResult->totalDepositRefunds, 2) }}</td>
+                                <td class="text-end num-cell fw-bold">৳
+                                    {{ number_format($initialResult->totalUndiscountedOutflow, 2) }}</td>
                                 <td class="text-center">-</td>
-                                <td class="text-end num-cell text-primary fw-bold npv-col-right-2">৳ {{ number_format($initialResult->totalNPV, 2) }}</td>
+                                <td class="text-end num-cell text-primary fw-bold npv-col-right-2">৳
+                                    {{ number_format($initialResult->totalNPV, 2) }}</td>
                                 <td class="text-end npv-col-right-1">-</td>
                             </tr>
                         </tfoot>
@@ -361,16 +464,22 @@
 
                 var npvTable = $('#npvBreakdownTable').DataTable({
                     pageLength: -1,
-                    lengthMenu: [[12, 25, 50, 100, -1], [12, 25, 50, 100, "All"]],
-                    order: [[0, 'asc']],
+                    lengthMenu: [
+                        [12, 25, 50, 100, -1],
+                        [12, 25, 50, 100, "All"]
+                    ],
+                    order: [
+                        [0, 'asc']
+                    ],
                     responsive: false,
                     scrollX: true,
                     scrollY: '55vh',
                     scrollCollapse: true,
                     autoWidth: false,
-                    columnDefs: [
-                        { targets: npvBreakdownColumns, visible: false }
-                    ],
+                    columnDefs: [{
+                        targets: npvBreakdownColumns,
+                        visible: false
+                    }],
                     language: {
                         searchPlaceholder: "Search month or value..."
                     }
@@ -412,8 +521,7 @@
                     type: 'bar',
                     data: {
                         labels: labels,
-                        datasets: [
-                            {
+                        datasets: [{
                                 label: 'Net Cash Outflow (Tk)',
                                 data: netOutflows,
                                 backgroundColor: 'rgba(148, 163, 184, 0.5)',

@@ -1,464 +1,468 @@
 @extends('Partials.app', ['activeMenu' => 'floors'])
 
 @section('title')
-    {{ config('app.name') }}
+    {{ $floor->floor_label ?: 'Floor Details' }}
 @endsection
 
 @section('page_title')
     Floor Details
 @endsection
 
+@section('styles')
+    <link rel="stylesheet" href="{{ asset('css/floor-details.css') }}">
+@endsection
+
 @section('content')
-    <div class="content">
-        <div class="block block-rounded shadow-sm">
-            <div class="block-header block-header-default"
-                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
-                <h3 class="block-title text-white"><i class="fa fa-building me-2"></i>Floor Details</h3>
-                <a href="{{ route('floors.index') }}" class="btn btn-sm btn-light"><i class="fa fa-arrow-left me-1"></i>Back to
-                    List</a>
-            </div>
-            <div class="block-content p-4">
-                <ul class="nav nav-tabs nav-tabs-alt mb-4" id="floorTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic"
-                            type="button" role="tab" aria-controls="basic" aria-selected="true">
-                            <i class="fa fa-info-circle me-1"></i>Basic Info
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="agreement-tab" data-bs-toggle="tab" data-bs-target="#agreement"
-                            type="button" role="tab" aria-controls="agreement" aria-selected="false">
-                            <i class="fa fa-file-contract me-1"></i>Agreement & Rent
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link view-history" id="history-tab" data-bs-toggle="tab"
-                            data-bs-target="#history" data-id="{{ $floor->id }}" type="button" role="tab"
-                            aria-controls="history" aria-selected="false">
-                            <i class="fa fa-file-contract me-1"></i>History
-                        </button>
-                    </li>
-                </ul>
-                <div class="tab-content" id="floorTabsContent">
-                    <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
-                        <!-- Floor Information Card -->
-                        <div class="card border-0 shadow-sm mb-4">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0"><i class="fa fa-layer-group me-2"></i>Floor Information</h5>
-                            </div>
-                            <div class="card-body"
-                                style="background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);">
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <div class="p-3 rounded"
-                                            style="background-color: rgba(102, 126, 234, 0.05); border-left: 3px solid #667eea;">
-                                            <small class="text-muted d-block mb-1">Floor ID</small>
-                                            <strong class="fs-5">{{ $floor->id }}</strong>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="p-3 rounded"
-                                            style="background-color: rgba(102, 126, 234, 0.05); border-left: 3px solid #667eea;">
-                                            <small class="text-muted d-block mb-1">Floor Label</small>
-                                            <strong class="fs-5">{{ $floor->floor_label }}</strong>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="p-3 rounded"
-                                            style="background-color: rgba(118, 75, 162, 0.05); border-left: 3px solid #764ba2;">
-                                            <small class="text-muted d-block mb-1">Area (sft)</small>
-                                            <strong class="fs-5">{{ number_format($floor->floor_area_sft) }}</strong>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="p-3 rounded"
-                                            style="background-color: rgba(118, 75, 162, 0.05); border-left: 3px solid #764ba2;">
-                                            <small class="text-muted d-block mb-1">DG Space (sft)</small>
-                                            <strong class="fs-5">{{ number_format($floor->dg_space_sft) }}</strong>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="p-3 rounded"
-                                            style="background-color: rgba(118, 75, 162, 0.05); border-left: 3px solid #764ba2;">
-                                            <small class="text-muted d-block mb-1">Store Space (sft)</small>
-                                            <strong class="fs-5">{{ number_format($floor->store_space_sft) }}</strong>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="p-3 rounded"
-                                            style="background-color: rgba(40, 167, 69, 0.05); border-left: 3px solid #28a745;">
-                                            <small class="text-muted d-block mb-1">Premises Type</small>
-                                            <strong>{{ $floor->premises_type }}</strong>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="p-3 rounded"
-                                            style="background-color: rgba(40, 167, 69, 0.05); border-left: 3px solid #28a745;">
-                                            <small class="text-muted d-block mb-1">Car Parking</small>
-                                            <strong>{{ $floor->car_parking }}</strong>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="p-3 rounded"
-                                            style="background-color: rgba(255, 193, 7, 0.05); border-left: 3px solid #ffc107;">
-                                            <small class="text-muted d-block mb-1">Project Name</small>
-                                            <strong>{{ $floor->project->name ?? '' }}</strong>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="p-3 rounded"
-                                            style="background-color: rgba(255, 193, 7, 0.05); border-left: 3px solid #ffc107;">
-                                            <small class="text-muted d-block mb-1">Status</small>
-                                            <span
-                                                class="badge bg-{{ ucfirst($floor->status) == 'Active' ? 'success' : 'secondary' }} fs-6">{{ ucfirst($floor->status) }}</span>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Building Information Card -->
-                        <div class="card border-0 shadow-sm">
-                            <div class="card-header bg-info text-white">
-                                <h5 class="mb-0"><i class="fa fa-building me-2"></i>Building Information</h5>
-                            </div>
-                            <div class="card-body"
-                                style="background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);">
-                                @if ($building)
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <div class="p-3 rounded"
-                                                style="background-color: rgba(23, 162, 184, 0.05); border-left: 3px solid #17a2b8;">
-                                                <small class="text-muted d-block mb-1">Building ID</small>
-                                                <strong>{{ $building->id }}</strong>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="p-3 rounded"
-                                                style="background-color: rgba(23, 162, 184, 0.05); border-left: 3px solid #17a2b8;">
-                                                <small class="text-muted d-block mb-1">Site Name</small>
-                                                <strong>{{ $building->site_name }}</strong>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="p-3 rounded" style="background-color: rgba(23, 162, 184, 0.05);">
-                                                <small class="text-muted d-block mb-1">Code</small>
-                                                <strong>{{ $building->code }}</strong>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="p-3 rounded" style="background-color: rgba(23, 162, 184, 0.05);">
-                                                <small class="text-muted d-block mb-1">Country</small>
-                                                <strong>{{ $building->country }}</strong>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="p-3 rounded" style="background-color: rgba(23, 162, 184, 0.05);">
-                                                <small class="text-muted d-block mb-1">Division</small>
-                                                <strong>{{ $building->division }}</strong>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="p-3 rounded" style="background-color: rgba(23, 162, 184, 0.05);">
-                                                <small class="text-muted d-block mb-1">District</small>
-                                                <strong>{{ $building->district }}</strong>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="p-3 rounded" style="background-color: rgba(23, 162, 184, 0.05);">
-                                                <small class="text-muted d-block mb-1">Upazila</small>
-                                                <strong>{{ $building->upazila }}</strong>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="p-3 rounded" style="background-color: rgba(23, 162, 184, 0.05);">
-                                                <small class="text-muted d-block mb-1">Area</small>
-                                                <strong>{{ $building->area }}</strong>
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="p-3 rounded"
-                                                style="background-color: rgba(23, 162, 184, 0.05); border-left: 3px solid #17a2b8;">
-                                                <small class="text-muted d-block mb-1"><i
-                                                        class="fa fa-map-marker-alt me-1"></i>Address</small>
-                                                <strong>{{ $building->address }}</strong>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="p-3 rounded" style="background-color: rgba(23, 162, 184, 0.05);">
-                                                <small class="text-muted d-block mb-1">Latitude</small>
-                                                <strong>{{ $building->lat }}</strong>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="p-3 rounded" style="background-color: rgba(23, 162, 184, 0.05);">
-                                                <small class="text-muted d-block mb-1">Longitude</small>
-                                                <strong>{{ $building->long }}</strong>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @else
-                                    <div class="alert alert-warning mb-0"><i
-                                            class="fa fa-exclamation-triangle me-2"></i>No building data available.</div>
-                                @endif
-                            </div>
+    <div class="content fd-page">
+        <!-- Clean Enterprise Page Header -->
+        <div class="fd-header">
+            <div class="fd-header-top">
+                <div class="fd-title-group">
+                    <div class="fd-title-icon">
+                        <i class="fa fa-layer-group"></i>
+                    </div>
+                    <div>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb breadcrumb-alt mb-1 fs-sm">
+                                <li class="breadcrumb-item">
+                                    <a href="{{ route('floors.index') }}" class="text-muted">Floors</a>
+                                </li>
+                                <li class="breadcrumb-item active text-dark" aria-current="page">
+                                    {{ $floor->floor_label ?: 'Floor Details' }}
+                                </li>
+                            </ol>
+                        </nav>
+                        <div class="d-flex align-items-center gap-2">
+                            <h1 class="h4 fw-bold text-dark mb-0">
+                                {{ $floor->floor_label ?: 'Floor Details' }}
+                            </h1>
+                            <span class="fd-pill {{ strtolower($floor->status) == 'active' ? 'fd-pill-active' : 'fd-pill-inactive' }}">
+                                <i class="fa fa-circle fs-xs"></i> {{ ucfirst($floor->status ?: 'N/A') }}
+                            </span>
                         </div>
                     </div>
+                </div>
 
-                    <div class="tab-pane fade" id="agreement" role="tabpanel" aria-labelledby="agreement-tab">
-                        <!-- Agreement Card -->
-                        <div class="card border-0 shadow-sm mb-4">
-                            <div class="card-header bg-success text-white">
-                                <h5 class="mb-0"><i class="fa fa-file-signature me-2"></i>Agreement Details</h5>
-                            </div>
-                            <div class="card-body"
-                                style="background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);">
-                                @if ($agreement)
-                                    <div class="table-responsive">
-                                        <table class="table table-hover mb-0">
-                                            <tbody>
-                                                <tr>
-                                                    <th style="width: 30%; background-color: rgba(40, 167, 69, 0.1);">
-                                                        Reference No</th>
-                                                    <td><strong>{{ $agreement->agreement_ref_no }}</strong></td>
-                                                </tr>
-                                                <tr>
-                                                    <th style="background-color: rgba(40, 167, 69, 0.1);">Agreement Date
-                                                    </th>
-                                                    <td>{{ $agreement->agreement_date ? \Carbon\Carbon::parse($agreement->agreement_date)->format('M d, Y') : 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th style="background-color: rgba(40, 167, 69, 0.1);">From Date</th>
-                                                    <td>{{ $agreement->from_date ? \Carbon\Carbon::parse($agreement->from_date)->format('M d, Y') : 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th style="background-color: rgba(40, 167, 69, 0.1);">To Date</th>
-                                                    <td>{{ $agreement->to_date ? \Carbon\Carbon::parse($agreement->to_date)->format('M d, Y') : 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th style="background-color: rgba(40, 167, 69, 0.1);">Status</th>
-                                                    <td><span
-                                                            class="badge bg-{{ $agreement->status == '1' ? 'success' : 'secondary' }}">{{ $agreement->status == '1' ? 'Active' : 'Inactive' }}</span>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th style="background-color: rgba(40, 167, 69, 0.1);">Remarks</th>
-                                                    <td>{{ $agreement->remarks ?: 'N/A' }}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                @else
-                                    <div class="alert alert-warning mb-0"><i
-                                            class="fa fa-exclamation-triangle me-2"></i>No agreement data available.</div>
-                                @endif
-                            </div>
-                        </div>
-
-                        <!-- Rent Base Card -->
-                        <div class="card border-0 shadow-sm mb-4">
-                            <div class="card-header bg-warning text-white">
-                                <h5 class="mb-0"><i class="fa fa-dollar-sign me-2"></i>Rent Base</h5>
-                            </div>
-                            <div class="card-body"
-                                style="background: linear-gradient(to bottom, #ffffff 0%, #fff9e6 100%);">
-                                @if ($rentBase)
-                                    <div class="row g-3">
-                                        <div class="col-md-3">
-                                            <div class="p-3 text-center rounded"
-                                                style="background-color: rgba(255, 193, 7, 0.15); border: 2px solid #ffc107;">
-                                                <small class="text-muted d-block mb-2">Base Rent</small>
-                                                <h4 class="mb-0 text-warning">
-                                                    ৳{{ number_format($rentBase->base_rent, 2) }}</h4>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="p-3 text-center rounded"
-                                                style="background-color: rgba(255, 193, 7, 0.1);">
-                                                <small class="text-muted d-block mb-2">Total (Inc. VAT, TAX)</small>
-                                                <h5 class="mb-0">
-                                                    ৳{{ number_format($rentBase->base_rent + $rentBase->vat + $rentBase->tax, 2) }}
-                                                </h5>
-                                            </div>
-                                        </div>
-                                        {{-- <div class="col-md-3">
-                                            <div class="p-3 text-center rounded"
-                                                style="background-color: rgba(255, 193, 7, 0.1);">
-                                                <small class="text-muted d-block mb-2">Tax</small>
-                                                <h5 class="mb-0">{{ $rentBase->tax }}%</h5>
-                                            </div>
-                                        </div> --}}
-                                        <div class="col-md-3">
-                                            <div class="p-3 text-center rounded"
-                                                style="background-color: rgba(255, 193, 7, 0.1);">
-                                                <small class="text-muted d-block mb-2">At Source</small>
-                                                <h5 class="mb-0">{{ $rentBase->is_at_source ? 'Yes' : 'No' }}</h5>
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="p-3 rounded" style="background-color: rgba(255, 193, 7, 0.1);">
-                                                <small class="text-muted d-block mb-1">Rent Type</small>
-                                                <strong>{{ $rentBase->rent_type }}</strong>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @else
-                                    <div class="alert alert-warning mb-0"><i
-                                            class="fa fa-exclamation-triangle me-2"></i>No rent base data available.</div>
-                                @endif
-                            </div>
-                        </div>
-
-                        <!-- Rent Increments Card -->
-                        <div class="card border-0 shadow-sm mb-4">
-                            <div class="card-header bg-danger text-white">
-                                <h5 class="mb-0"><i class="fa fa-chart-line me-2"></i>Rent Increments</h5>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-striped mb-0">
-                                        <thead
-                                            style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>Incremented Amount</th>
-                                                <th>Start Date</th>
-                                                <th>End Date</th>
-                                                <th>Amount</th>
-                                                <th>Percentage</th>
-                                                <th>Frequency</th>
-                                                <th>Method</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse($rentIncrements as $inc)
-                                                <tr>
-                                                    <td><strong>{{ $inc->id }}</strong></td>
-                                                    <td><strong
-                                                            class="text-danger">৳{{ number_format($inc->incremented_amount, 2) }}</strong>
-                                                    </td>
-                                                    <td>{{ $inc->increment_start_date ? \Carbon\Carbon::parse($inc->increment_start_date)->format('M d, Y') : 'N/A' }}
-                                                    </td>
-                                                    <td>{{ $inc->increment_end_date ? \Carbon\Carbon::parse($inc->increment_end_date)->format('M d, Y') : 'N/A' }}
-                                                    </td>
-                                                    <td>৳{{ number_format($inc->increment_amount, 2) }}</td>
-                                                    <td>{{ $inc->increment_percentage }}%</td>
-                                                    <td><span
-                                                            class="badge bg-secondary">{{ $inc->increment_frequency }}</span>
-                                                    </td>
-                                                    <td>{{ $inc->method_description }}</td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="8" class="text-center text-muted py-4"><i
-                                                            class="fa fa-inbox me-2"></i>No rent increments found.</td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Security Deposits Card -->
-                        <div class="card border-0 shadow-sm">
-                            <div class="card-header text-white"
-                                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                <h5 class="mb-0"><i class="fa fa-shield-alt me-2"></i>Security Deposits</h5>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-striped mb-0">
-                                        <thead
-                                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>Total</th>
-                                                <th>Adjustable</th>
-                                                <th>Non-Adjustable</th>
-                                                <th>Adjust Start</th>
-                                                <th>Adjust End</th>
-                                                <th>Amount</th>
-                                                <th>Month Interval</th>
-                                                <th>Adjust / Month</th>
-                                                <th>Method</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse($securityDeposits as $sd)
-                                                @php
-                                                    $monthInterval = (int) ($sd->absorb_frequency ?? 0);
-                                                    $adjustPerMonth =
-                                                        $monthInterval > 0
-                                                            ? ((float) ($sd->absorb_amount ?? 0)) / $monthInterval
-                                                            : null;
-                                                @endphp
-                                                <tr>
-                                                    <td><strong>{{ $sd->id }}</strong></td>
-                                                    <td><strong
-                                                            class="text-primary">৳{{ number_format($sd->security_deposit_total, 2) }}</strong>
-                                                    </td>
-                                                    <td>৳{{ number_format($sd->security_deposit_absorbable, 2) }}</td>
-                                                    <td>৳{{ number_format($sd->security_deposit_non_absorbable, 2) }}</td>
-                                                    <td>{{ $sd->absorb_start_date ? \Carbon\Carbon::parse($sd->absorb_start_date)->format('M d, Y') : 'N/A' }}
-                                                    </td>
-                                                    <td>{{ $sd->absorb_end_date ? \Carbon\Carbon::parse($sd->absorb_end_date)->format('M d, Y') : 'N/A' }}
-                                                    </td>
-                                                    <td>৳{{ number_format($sd->absorb_amount, 2) }}</td>
-                                                    <td><span
-                                                            class="badge bg-secondary">{{ $monthInterval > 0 ? $monthInterval . ' month(s)' : 'N/A' }}</span>
-                                                    </td>
-                                                    <td>{{ $adjustPerMonth !== null ? '৳' . number_format($adjustPerMonth, 2) : 'N/A' }}
-                                                    </td>
-                                                    <td>{{ $sd->method_description }}</td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="10" class="text-center text-muted py-4"><i
-                                                            class="fa fa-inbox me-2"></i>No security deposits found.</td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
-                        <!-- Agreement Card -->
-                        <div class="card border-0 shadow-sm mb-4">
-                            <div class="card-header bg-info text-white">
-                                <h5 class="mb-0"><i class="fa fa-file-signature me-2"></i>History</h5>
-                            </div>
-                            <div class="card-body p-0"
-                                style="background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);">
-                                <div class="table-responsive">
-                                    <table class="table table-vcenter table-hover table-sm mb-0 fs-sm">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th style="width: 155px;">Date & Time</th>
-                                                <th style="width: 120px;">User</th>
-                                                <th>Field</th>
-                                                <th>From</th>
-                                                <th>To</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="history-items-body">
-                                            <!-- Data will be injected here -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{{ route('floors.index') }}" class="btn btn-sm btn-alt-secondary">
+                        <i class="fa fa-arrow-left me-1"></i> Back to List
+                    </a>
+                    @can('edit-floor')
+                        <a href="{{ route('floors.edit', $floor->id) }}" class="btn btn-sm btn-primary">
+                            <i class="fa fa-pencil-alt me-1"></i> Edit Floor
+                        </a>
+                    @endcan
                 </div>
             </div>
+
+            <!-- Inline Meta Summary Bar -->
+            <div class="fd-header-meta">
+                <div class="fd-meta-item">
+                    <i class="fa fa-building"></i>
+                    <span>Building: <strong>{{ $building ? $building->site_name : 'N/A' }}</strong> @if($building && $building->code)<span class="text-muted">({{ $building->code }})</span>@endif</span>
+                </div>
+                <div class="fd-meta-dot"></div>
+                <div class="fd-meta-item">
+                    <i class="fa fa-ruler-combined"></i>
+                    <span>Area: <strong>{{ number_format($floor->floor_area_sft) }} sft</strong></span>
+                </div>
+                <div class="fd-meta-dot"></div>
+                <div class="fd-meta-item">
+                    <i class="fa fa-dollar-sign"></i>
+                    <span>Base Rent: <strong>{{ $rentBase ? '৳' . number_format($rentBase->base_rent, 2) : 'N/A' }}</strong></span>
+                </div>
+                <div class="fd-meta-dot"></div>
+                <div class="fd-meta-item">
+                    <i class="fa fa-file-contract"></i>
+                    <span>Agreement Ref: <strong>{{ $agreement ? $agreement->agreement_ref_no : 'N/A' }}</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Navigation Tabs -->
+        <ul class="nav fd-tabs" id="floorTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic"
+                    type="button" role="tab" aria-controls="basic" aria-selected="true">
+                    <i class="fa fa-info-circle me-1"></i> Property Overview
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="agreement-tab" data-bs-toggle="tab" data-bs-target="#agreement"
+                    type="button" role="tab" aria-controls="agreement" aria-selected="false">
+                    <i class="fa fa-file-contract me-1"></i> Agreement & Financials
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link view-history" id="history-tab" data-bs-toggle="tab"
+                    data-bs-target="#history" data-id="{{ $floor->id }}" type="button" role="tab"
+                    aria-controls="history" aria-selected="false">
+                    <i class="fa fa-history me-1"></i> Activity History
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content Panels -->
+        <div class="tab-content" id="floorTabsContent">
+            
+            <!-- OVERVIEW TAB -->
+            <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                <div class="row g-4">
+                    <!-- Floor Details Panel -->
+                    <div class="col-lg-7">
+                        <div class="fd-panel h-100">
+                            <div class="fd-panel-header">
+                                <h3 class="fd-panel-title">
+                                    <i class="fa fa-layer-group"></i> Floor Specifications
+                                </h3>
+                            </div>
+                            <div class="fd-panel-body">
+                                <div class="fd-detail-list">
+                                    <div class="fd-detail-item">
+                                        <span class="fd-detail-label">Floor Label</span>
+                                        <span class="fd-detail-value">{{ $floor->floor_label ?: 'N/A' }}</span>
+                                    </div>
+                                    <div class="fd-detail-item">
+                                        <span class="fd-detail-label">Premises Type</span>
+                                        <span class="fd-detail-value">{{ $floor->premises_type ?: 'N/A' }}</span>
+                                    </div>
+                                    <div class="fd-detail-item">
+                                        <span class="fd-detail-label">Total Floor Area</span>
+                                        <span class="fd-detail-value num">{{ number_format($floor->floor_area_sft) }} sft</span>
+                                    </div>
+                                    <div class="fd-detail-item">
+                                        <span class="fd-detail-label">DG Space Area</span>
+                                        <span class="fd-detail-value num">{{ number_format($floor->dg_space_sft) }} sft</span>
+                                    </div>
+                                    <div class="fd-detail-item">
+                                        <span class="fd-detail-label">Store Space Area</span>
+                                        <span class="fd-detail-value num">{{ number_format($floor->store_space_sft) }} sft</span>
+                                    </div>
+                                    <div class="fd-detail-item">
+                                        <span class="fd-detail-label">Car Parking Area</span>
+                                        <span class="fd-detail-value num">{{ number_format($floor->car_parking) }} sft</span>
+                                    </div>
+                                    <div class="fd-detail-item">
+                                        <span class="fd-detail-label">Project Name</span>
+                                        <span class="fd-detail-value">{{ $floor->project->name ?? 'N/A' }}</span>
+                                    </div>
+                                    <div class="fd-detail-item">
+                                        <span class="fd-detail-label">Status</span>
+                                        <div>
+                                            <span class="fd-pill {{ strtolower($floor->status) == 'active' ? 'fd-pill-active' : 'fd-pill-inactive' }}">
+                                                {{ ucfirst($floor->status ?: 'N/A') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Building Context Sidebar -->
+                    <div class="col-lg-5">
+                        <div class="fd-panel h-100">
+                            <div class="fd-panel-header">
+                                <h3 class="fd-panel-title">
+                                    <i class="fa fa-building"></i> Building & Location
+                                </h3>
+                                @if($building && $building->code)
+                                    <span class="fd-pill fd-pill-info">Code: {{ $building->code }}</span>
+                                @endif
+                            </div>
+                            <div class="fd-panel-body">
+                                @if ($building)
+                                    <div class="fd-sidebar-block">
+                                        <div class="fw-bold text-dark fs-base mb-1">{{ $building->site_name }}</div>
+                                        <div class="text-muted fs-sm">
+                                            <i class="fa fa-map-marker-alt me-1 text-muted"></i>
+                                            {{ $building->address ?: 'No street address specified' }}
+                                        </div>
+                                    </div>
+
+                                    <div class="fd-detail-list">
+                                        <div class="fd-detail-item">
+                                            <span class="fd-detail-label">Division</span>
+                                            <span class="fd-detail-value">{{ $building->division ?: 'N/A' }}</span>
+                                        </div>
+                                        <div class="fd-detail-item">
+                                            <span class="fd-detail-label">District</span>
+                                            <span class="fd-detail-value">{{ $building->district ?: 'N/A' }}</span>
+                                        </div>
+                                        <div class="fd-detail-item">
+                                            <span class="fd-detail-label">Upazila</span>
+                                            <span class="fd-detail-value">{{ $building->upazila ?: 'N/A' }}</span>
+                                        </div>
+                                        <div class="fd-detail-item">
+                                            <span class="fd-detail-label">Area / Location</span>
+                                            <span class="fd-detail-value">{{ $building->area ?: 'N/A' }}</span>
+                                        </div>
+                                    </div>
+
+                                    @if($building->lat || $building->long)
+                                        <div class="mt-3 pt-3 border-top d-flex gap-3 fs-xs text-muted">
+                                            <div><i class="fa fa-compass me-1"></i> Lat: <span class="fw-medium text-dark">{{ $building->lat ?: 'N/A' }}</span></div>
+                                            <div><i class="fa fa-compass me-1"></i> Long: <span class="fw-medium text-dark">{{ $building->long ?: 'N/A' }}</span></div>
+                                        </div>
+                                    @endif
+                                @else
+                                    <div class="fd-empty">
+                                        <i class="fa fa-building fs-3 text-muted mb-2"></i>
+                                        <p class="mb-0 fs-sm">No building information linked to this floor.</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AGREEMENT & FINANCIALS TAB -->
+            <div class="tab-pane fade" id="agreement" role="tabpanel" aria-labelledby="agreement-tab">
+                <div class="row g-4 mb-4">
+                    <!-- Agreement Details Panel -->
+                    <div class="col-lg-6">
+                        <div class="fd-panel h-100">
+                            <div class="fd-panel-header">
+                                <h3 class="fd-panel-title">
+                                    <i class="fa fa-file-signature"></i> Agreement Information
+                                </h3>
+                                @if($agreement)
+                                    <span class="fd-pill {{ $agreement->status == '1' ? 'fd-pill-active' : 'fd-pill-inactive' }}">
+                                        {{ $agreement->status == '1' ? 'Active' : 'Inactive' }}
+                                    </span>
+                                @endif
+                            </div>
+                            <div class="fd-panel-body">
+                                @if ($agreement)
+                                    <div class="fd-detail-list mb-3">
+                                        <div class="fd-detail-item">
+                                            <span class="fd-detail-label">Reference No</span>
+                                            <span class="fd-detail-value text-primary">{{ $agreement->agreement_ref_no }}</span>
+                                        </div>
+                                        <div class="fd-detail-item">
+                                            <span class="fd-detail-label">Agreement Date</span>
+                                            <span class="fd-detail-value">{{ $agreement->agreement_date ? \Carbon\Carbon::parse($agreement->agreement_date)->format('M d, Y') : 'N/A' }}</span>
+                                        </div>
+                                        <div class="fd-detail-item">
+                                            <span class="fd-detail-label">Start Date</span>
+                                            <span class="fd-detail-value">{{ $agreement->from_date ? \Carbon\Carbon::parse($agreement->from_date)->format('M d, Y') : 'N/A' }}</span>
+                                        </div>
+                                        <div class="fd-detail-item">
+                                            <span class="fd-detail-label">End Date</span>
+                                            <span class="fd-detail-value">{{ $agreement->to_date ? \Carbon\Carbon::parse($agreement->to_date)->format('M d, Y') : 'N/A' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="p-3 bg-light rounded border">
+                                        <span class="fd-detail-label mb-1">Remarks</span>
+                                        <span class="fs-sm text-dark">{{ $agreement->remarks ?: 'No remarks recorded.' }}</span>
+                                    </div>
+                                @else
+                                    <div class="fd-empty">
+                                        <i class="fa fa-file-contract fs-3 text-muted mb-2"></i>
+                                        <p class="mb-0 fs-sm">No agreement records linked to this floor.</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rent Base Breakdown Panel -->
+                    <div class="col-lg-6">
+                        <div class="fd-panel h-100">
+                            <div class="fd-panel-header">
+                                <h3 class="fd-panel-title">
+                                    <i class="fa fa-calculator"></i> Rent Base Breakdown
+                                </h3>
+                                @if($rentBase)
+                                    <span class="fd-pill fd-pill-info">{{ $rentBase->rent_type ?: 'Standard' }}</span>
+                                @endif
+                            </div>
+                            <div class="fd-panel-body">
+                                @if ($rentBase)
+                                    <div class="fd-detail-list">
+                                        <div class="fd-detail-item">
+                                            <span class="fd-detail-label">Base Rent</span>
+                                            <span class="fd-detail-value num fs-5 text-dark">৳{{ number_format($rentBase->base_rent, 2) }}</span>
+                                        </div>
+                                        <div class="fd-detail-item">
+                                            <span class="fd-detail-label">Total (Inc. VAT & TAX)</span>
+                                            <span class="fd-detail-value num fs-5 text-success">৳{{ number_format($rentBase->base_rent + $rentBase->vat + $rentBase->tax, 2) }}</span>
+                                        </div>
+                                        <div class="fd-detail-item">
+                                            <span class="fd-detail-label">Tax Deduction At Source</span>
+                                            <span class="fd-detail-value">{{ $rentBase->is_at_source ? 'Yes (Applicable)' : 'No' }}</span>
+                                        </div>
+                                        <div class="fd-detail-item">
+                                            <span class="fd-detail-label">Rent Type</span>
+                                            <span class="fd-detail-value">{{ $rentBase->rent_type ?: 'N/A' }}</span>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="fd-empty">
+                                        <i class="fa fa-dollar-sign fs-3 text-muted mb-2"></i>
+                                        <p class="mb-0 fs-sm">No rent base records available.</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rent Increments Schedule Table -->
+                <div class="fd-panel">
+                    <div class="fd-panel-header">
+                        <h3 class="fd-panel-title">
+                            <i class="fa fa-chart-line"></i> Rent Increments Schedule
+                        </h3>
+                        <span class="badge bg-light text-dark border fw-normal fs-xs">{{ $rentIncrements->count() }} Record(s)</span>
+                    </div>
+                    <div class="fd-panel-body p-0">
+                        <div class="fd-table-wrap">
+                            <table class="fd-table-clean">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 70px;">ID</th>
+                                        <th class="num">Incremented Amount</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th class="num">Increment Amount</th>
+                                        <th class="num">Percentage</th>
+                                        <th>Frequency</th>
+                                        <th>Method Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($rentIncrements as $inc)
+                                        <tr>
+                                            <td class="fw-bold">#{{ $inc->id }}</td>
+                                            <td class="num fw-bold text-dark">৳{{ number_format($inc->incremented_amount, 2) }}</td>
+                                            <td>{{ $inc->increment_start_date ? \Carbon\Carbon::parse($inc->increment_start_date)->format('M d, Y') : 'N/A' }}</td>
+                                            <td>{{ $inc->increment_end_date ? \Carbon\Carbon::parse($inc->increment_end_date)->format('M d, Y') : 'N/A' }}</td>
+                                            <td class="num">৳{{ number_format($inc->increment_amount, 2) }}</td>
+                                            <td class="num">{{ $inc->increment_percentage }}%</td>
+                                            <td>
+                                                <span class="fd-pill fd-pill-info">{{ $inc->increment_frequency ?: 'N/A' }}</span>
+                                            </td>
+                                            <td><span class="fs-xs text-muted">{{ $inc->method_description ?: 'N/A' }}</span></td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="8">
+                                                <div class="fd-empty">
+                                                    <i class="fa fa-inbox fs-3 text-muted mb-2"></i>
+                                                    <p class="mb-0 fs-sm">No rent increments configured for this agreement.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Deposits Absorption Schedule Table -->
+                <div class="fd-panel">
+                    <div class="fd-panel-header">
+                        <h3 class="fd-panel-title">
+                            <i class="fa fa-shield-alt"></i> Security Deposits & Absorption Schedule
+                        </h3>
+                        <span class="badge bg-light text-dark border fw-normal fs-xs">{{ $securityDeposits->count() }} Record(s)</span>
+                    </div>
+                    <div class="fd-panel-body p-0">
+                        <div class="fd-table-wrap">
+                            <table class="fd-table-clean">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 70px;">ID</th>
+                                        <th class="num">Total Deposit</th>
+                                        <th class="num">Absorbable</th>
+                                        <th class="num">Non-Absorbable</th>
+                                        <th>Adjust Start</th>
+                                        <th>Adjust End</th>
+                                        <th class="num">Absorb Amount</th>
+                                        <th>Frequency</th>
+                                        <th class="num">Adjust / Month</th>
+                                        <th>Method Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($securityDeposits as $sd)
+                                        @php
+                                            $monthInterval = (int) ($sd->absorb_frequency ?? 0);
+                                            $adjustPerMonth = $monthInterval > 0
+                                                ? ((float) ($sd->absorb_amount ?? 0)) / $monthInterval
+                                                : null;
+                                        @endphp
+                                        <tr>
+                                            <td class="fw-bold">#{{ $sd->id }}</td>
+                                            <td class="num fw-bold text-primary">৳{{ number_format($sd->security_deposit_total, 2) }}</td>
+                                            <td class="num">৳{{ number_format($sd->security_deposit_absorbable, 2) }}</td>
+                                            <td class="num">৳{{ number_format($sd->security_deposit_non_absorbable, 2) }}</td>
+                                            <td>{{ $sd->absorb_start_date ? \Carbon\Carbon::parse($sd->absorb_start_date)->format('M d, Y') : 'N/A' }}</td>
+                                            <td>{{ $sd->absorb_end_date ? \Carbon\Carbon::parse($sd->absorb_end_date)->format('M d, Y') : 'N/A' }}</td>
+                                            <td class="num">৳{{ number_format($sd->absorb_amount, 2) }}</td>
+                                            <td>
+                                                <span class="fd-pill fd-pill-info">
+                                                    {{ $monthInterval > 0 ? $monthInterval . ' Month(s)' : 'N/A' }}
+                                                </span>
+                                            </td>
+                                            <td class="num fw-medium">
+                                                {{ $adjustPerMonth !== null ? '৳' . number_format($adjustPerMonth, 2) : 'N/A' }}
+                                            </td>
+                                            <td><span class="fs-xs text-muted">{{ $sd->method_description ?: 'N/A' }}</span></td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="10">
+                                                <div class="fd-empty">
+                                                    <i class="fa fa-inbox fs-3 text-muted mb-2"></i>
+                                                    <p class="mb-0 fs-sm">No security deposits found for this agreement.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTIVITY HISTORY TAB -->
+            <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+                <div class="fd-panel">
+                    <div class="fd-panel-header">
+                        <h3 class="fd-panel-title">
+                            <i class="fa fa-history"></i> Floor Change History & Audit Logs
+                        </h3>
+                    </div>
+                    <div class="fd-panel-body p-0">
+                        <div class="fd-table-wrap">
+                            <table class="fd-table-clean">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 170px;">Date & Time</th>
+                                        <th style="width: 140px;">User</th>
+                                        <th style="width: 160px;">Modified Field</th>
+                                        <th>Previous Value</th>
+                                        <th>New Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-items-body">
+                                    <tr>
+                                        <td colspan="5" class="fd-empty py-4">
+                                            <i class="fa fa-spinner fa-spin me-2"></i> Loading change history...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 @endsection
@@ -469,23 +473,31 @@
     <script>
         $(document).on('click', '.view-history', function() {
             let id = $(this).data('id');
-            $('#history-items').empty();
+            $('#history-items-body').html('<tr><td colspan="5" class="fd-empty py-4"><i class="fa fa-spinner fa-spin me-2"></i> Loading change history...</td></tr>');
 
             $.get(`/floors/${id}/history`, function(data) {
                 let html = '';
-                data.forEach(log => {
-                    log.changes.forEach(change => {
-                        html += `<tr>
-                    <td>${log.date}</td>
-                    <td>${log.user}</td>
-                    <td><strong>${change.field}</strong></td>
-                    <td class="text-danger">${change.from}</td>
-                    <td class="text-success">${change.to}</td>
-                </tr>`;
+                if (data && data.length > 0) {
+                    data.forEach(log => {
+                        if (log.changes && log.changes.length > 0) {
+                            log.changes.forEach(change => {
+                                html += `<tr>
+                                    <td class="text-muted fs-xs">${log.date}</td>
+                                    <td><span class="fw-medium text-dark">${log.user}</span></td>
+                                    <td><span class="badge bg-light text-dark border">${change.field}</span></td>
+                                    <td class="text-danger">${change.from !== null ? change.from : '<em class="text-muted">None</em>'}</td>
+                                    <td class="text-success fw-medium">${change.to !== null ? change.to : '<em class="text-muted">None</em>'}</td>
+                                </tr>`;
+                            });
+                        }
                     });
-                });
+                }
                 $('#history-items-body').html(html ||
-                    '<tr><td colspan="5" class="text-center">No history found</td></tr>');
+                    '<tr><td colspan="5" class="fd-empty py-4"><i class="fa fa-inbox me-2 text-muted"></i> No change history records found for this floor.</td></tr>');
+            }).fail(function() {
+                $('#history-items-body').html(
+                    '<tr><td colspan="5" class="fd-empty py-4 text-danger"><i class="fa fa-exclamation-triangle me-2"></i> Failed to load change history.</td></tr>'
+                );
             });
         });
     </script>

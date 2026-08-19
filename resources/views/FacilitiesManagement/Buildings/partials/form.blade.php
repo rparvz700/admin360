@@ -53,15 +53,6 @@
 
     <div class="row g-4">
         <div class="col-lg-6">
-            <label class="form-label" for="country">Country</label>
-            <input type="text" class="form-control @error('country') is-invalid @enderror" id="country"
-                name="country" value="{{ old('country', $building->country ?? '') }}">
-            @error('country')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <div class="col-lg-6">
             <label class="form-label" for="division">Division</label>
             <select class="form-select js-select2 @error('division') is-invalid @enderror" id="division"
                 name="division" style="width: 100%;">
