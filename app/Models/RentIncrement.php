@@ -24,6 +24,21 @@ class RentIncrement extends Model
         'method_description',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(function ($increment) {
+            if ($increment->agreement_id) {
+                \App\Models\NpvAgreementSummary::where('agreement_id', $increment->agreement_id)->delete();
+            }
+        });
+
+        static::deleted(function ($increment) {
+            if ($increment->agreement_id) {
+                \App\Models\NpvAgreementSummary::where('agreement_id', $increment->agreement_id)->delete();
+            }
+        });
+    }
+
     public function agreement()
     {
         return $this->belongsTo(Agreement::class);

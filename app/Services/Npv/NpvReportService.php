@@ -40,13 +40,16 @@ class NpvReportService
             $this->clearCacheForRate($rate);
         }
 
-        // Check if pre-calculated DB summary rows exist for this discount_rate
-        $existingCount = NpvAgreementSummary::where('discount_rate', $rate)->count();
-        $activeAgreementsCount = Agreement::where('status', 1)->count();
+        // Check active agreement IDs against cached summary IDs for this discount_rate
+        $activeAgreementIds = Agreement::where('status', 1)->pluck('id')->toArray();
+        $cachedAgreementIds = NpvAgreementSummary::where('discount_rate', $rate)->pluck('agreement_id')->toArray();
 
-        // If DB table has summaries for all active agreements at this rate, fetch directly from DB in < 3ms
-        if (!$forceRefresh && $existingCount > 0 && $existingCount >= $activeAgreementsCount) {
+        $missingIds = array_diff($activeAgreementIds, $cachedAgreementIds);
+
+        // If all active agreements have up-to-date summaries for this rate, fetch directly from DB in < 3ms
+        if (!$forceRefresh && empty($missingIds) && count($cachedAgreementIds) === count($activeAgreementIds)) {
             $cachedRows = NpvAgreementSummary::where('discount_rate', $rate)
+                ->whereIn('agreement_id', $activeAgreementIds)
                 ->orderBy('total_npv', 'desc')
                 ->get();
 

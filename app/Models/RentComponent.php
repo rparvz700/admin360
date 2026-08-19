@@ -21,6 +21,23 @@ class RentComponent extends Model
         'total_amount',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(function ($component) {
+            $agreementId = $component->rentBase?->agreement_id;
+            if ($agreementId) {
+                \App\Models\NpvAgreementSummary::where('agreement_id', $agreementId)->delete();
+            }
+        });
+
+        static::deleted(function ($component) {
+            $agreementId = $component->rentBase?->agreement_id;
+            if ($agreementId) {
+                \App\Models\NpvAgreementSummary::where('agreement_id', $agreementId)->delete();
+            }
+        });
+    }
+
     protected $casts = [
         'area_sft' => 'decimal:2',
         'rate' => 'decimal:2',

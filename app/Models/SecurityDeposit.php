@@ -25,6 +25,21 @@ class SecurityDeposit extends Model
         'method_description',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(function ($sd) {
+            if ($sd->agreement_id) {
+                \App\Models\NpvAgreementSummary::where('agreement_id', $sd->agreement_id)->delete();
+            }
+        });
+
+        static::deleted(function ($sd) {
+            if ($sd->agreement_id) {
+                \App\Models\NpvAgreementSummary::where('agreement_id', $sd->agreement_id)->delete();
+            }
+        });
+    }
+
     public function agreement()
     {
         return $this->belongsTo(Agreement::class);

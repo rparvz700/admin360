@@ -26,6 +26,17 @@ class Agreement extends Model
         'updated_at',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(function ($agreement) {
+            \App\Models\NpvAgreementSummary::where('agreement_id', $agreement->id)->delete();
+        });
+
+        static::deleted(function ($agreement) {
+            \App\Models\NpvAgreementSummary::where('agreement_id', $agreement->id)->delete();
+        });
+    }
+
     public function vendor()
     {
         return $this->belongsTo(Vendor::class, 'vendor_id');

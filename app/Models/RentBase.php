@@ -35,6 +35,21 @@ class RentBase extends Model
         'invoice_id',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(function ($rentBase) {
+            if ($rentBase->agreement_id) {
+                \App\Models\NpvAgreementSummary::where('agreement_id', $rentBase->agreement_id)->delete();
+            }
+        });
+
+        static::deleted(function ($rentBase) {
+            if ($rentBase->agreement_id) {
+                \App\Models\NpvAgreementSummary::where('agreement_id', $rentBase->agreement_id)->delete();
+            }
+        });
+    }
+
     public function agreement()
     {
         return $this->belongsTo(Agreement::class);
