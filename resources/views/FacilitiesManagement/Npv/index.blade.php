@@ -107,6 +107,22 @@
         </div>
 
         @if ($initialResult)
+            @php
+                // 1 -> "1st", 2 -> "2nd", 3 -> "3rd", 4 -> "4th" ...
+                $npvOrdinal = function (int $n): string {
+                    $suffix = 'th';
+                    if (!in_array($n % 100, [11, 12, 13], true)) {
+                        $suffix = match ($n % 10) {
+                            1 => 'st',
+                            2 => 'nd',
+                            3 => 'rd',
+                            default => 'th',
+                        };
+                    }
+                    return $n . $suffix;
+                };
+            @endphp
+
             <!-- Executive Summary Strip (Single Bar Layout) -->
             <div class="npv-summary-strip">
                 <div class="row g-0">
@@ -176,10 +192,12 @@
                         @php
                             $latestRentBase = $initialResult->agreement->rentBases->sortByDesc('id')->first();
                             $latestSd = $initialResult->agreement->securityDeposits->sortByDesc('id')->first();
+                            $increments = $initialResult->agreement->rentIncrements->sortBy('increment_start_date');
                         @endphp
                         <div class="row g-3">
-                            <div class="col-md-3">
-                                <div class="audit-data-box">
+                            <!-- Row 1 Left: Rent Base Parameters -->
+                            <div class="col-md-6">
+                                <div class="audit-data-box h-100">
                                     <div class="text-muted font-semibold mb-1">Rent Base Parameters</div>
                                     <div>Base Rent: <strong>৳
                                             {{ number_format($latestRentBase->base_rent ?? 0, 2) }}</strong></div>
@@ -188,43 +206,15 @@
                                     </div>
                                     <div>VAT: ৳ {{ number_format($latestRentBase->vat ?? 0, 2) }} | Tax: ৳
                                         {{ number_format($latestRentBase->tax ?? 0, 2) }}</div>
+                                    <div class="mt-1 fs-2xs text-muted">
+                                        Agreement Term: <strong>{{ $initialResult->agreement->from_date ? \Carbon\Carbon::parse($initialResult->agreement->from_date)->format('d M Y') : 'N/A' }}</strong> to <strong>{{ $initialResult->agreement->to_date ? \Carbon\Carbon::parse($initialResult->agreement->to_date)->format('d M Y') : 'N/A' }}</strong>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-5">
-                                <div class="audit-data-box">
-                                    <div class="text-muted font-semibold mb-1">Rent Components Breakdown</div>
-                                    @if ($latestRentBase && $latestRentBase->components->count() > 0)
-                                        <table class="table table-sm table-bordered mb-0 bg-white"
-                                            style="font-size: 11px;">
-                                            <thead>
-                                                <tr class="table-secondary">
-                                                    <th>Type</th>
-                                                    <th class="text-end">Area</th>
-                                                    <th class="text-end">Rent Amount</th>
-                                                    <th class="text-end">Total Amount</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($latestRentBase->components as $comp)
-                                                    <tr>
-                                                        <td><strong>{{ $comp->component_type }}</strong></td>
-                                                        <td class="text-end">{{ number_format($comp->area_sft, 2) }}</td>
-                                                        <td class="text-end">৳ {{ number_format($comp->rent_amount, 2) }}
-                                                        </td>
-                                                        <td class="text-end">৳ {{ number_format($comp->total_amount, 2) }}
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    @else
-                                        <em class="text-muted">No component breakdown rows. Using base_rent fallback: ৳
-                                            {{ number_format($latestRentBase->base_rent ?? 0, 2) }}</em>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="audit-data-box">
+
+                            <!-- Row 1 Right: Security Deposit & Advance Structure -->
+                            <div class="col-md-6">
+                                <div class="audit-data-box h-100">
                                     <div class="text-muted font-semibold mb-1">Security Deposit & Advance Structure</div>
                                     <div>Total Deposit: <strong>৳
                                             {{ number_format($latestSd->security_deposit_total ?? 0, 2) }}</strong></div>
@@ -238,6 +228,87 @@
                                         Interval: {{ $latestSd->absorb_frequency ?? 'N/A' }} months | Start:
                                         {{ $latestSd->absorb_start_date ?? 'N/A' }}
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Row 2 Left: Rent Components Breakdown -->
+                            <div class="col-md-6">
+                                <div class="audit-data-box h-100">
+                                    <div class="text-muted font-semibold mb-1">Rent Components Breakdown</div>
+                                    @if ($latestRentBase && $latestRentBase->components->count() > 0)
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered mb-0 bg-white"
+                                                style="font-size: 10px;">
+                                                 <thead>
+                                                    <tr class="table-secondary" style="font-size: 12px; text-transform: uppercase;">
+                                                        <th>Type</th>
+                                                        <th class="text-end">Area</th>
+                                                        <th class="text-end">Rent</th>
+                                                        <th class="text-end">VAT</th>
+                                                        <th class="text-end">TAX</th>
+                                                        <th class="text-end">Total</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($latestRentBase->components as $comp)
+                                                        <tr>
+                                                            <td><strong>{{ $comp->component_type }}</strong></td>
+                                                            <td class="text-end">{{ number_format($comp->area_sft, 2) }}</td>
+                                                            <td class="text-end">৳ {{ number_format($comp->rent_amount, 2) }}</td>
+                                                            <td class="text-end">৳ {{ number_format($comp->vat_amount ?? 0, 2) }}</td>
+                                                            <td class="text-end">৳ {{ number_format($comp->tax_amount ?? 0, 2) }}</td>
+                                                            <td class="text-end font-bold">৳ {{ number_format($comp->total_amount, 2) }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @else
+                                        <em class="text-muted">No component breakdown rows. Using base_rent fallback: ৳
+                                            {{ number_format($latestRentBase->base_rent ?? 0, 2) }}</em>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Row 2 Right: Rent Escalation Cycles -->
+                            <div class="col-md-6">
+                                <div class="audit-data-box h-100">
+                                    <div class="text-muted font-semibold mb-1 d-flex justify-content-between align-items-center">
+                                        <span>Rent Escalation Cycles</span>
+                                        <span class="badge bg-primary-light text-primary fs-3xs">{{ $increments->count() }} Defined</span>
+                                    </div>
+                                    @if ($increments->count() > 0)
+                                        <div class="table-responsive" style="max-height: 140px; overflow-y: auto;">
+                                            <table class="table table-sm table-bordered mb-0 bg-white" style="font-size: 11px;">
+                                                <thead>
+                                                    <tr class="table-secondary" style="font-size: 12px; text-transform: uppercase;">
+                                                        <th class="text-center" style="width: 45px;">Cycle</th>
+                                                        <th class="text-center">Effective From</th>
+                                                        <th class="text-end">Escalation</th>
+                                                        <th class="text-end">New Rent</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($increments as $idx => $inc)
+                                                        @php
+                                                            $cycleOrd = $npvOrdinal($idx + 1);
+                                                            $escalationStr = $inc->increment_percentage ? number_format((float)$inc->increment_percentage, 2) . '%' : ($inc->increment_amount ? '৳ ' . number_format((float)$inc->increment_amount, 2) : '-');
+                                                        @endphp
+                                                        <tr>
+                                                            <td class="text-center">
+                                                                <span class="badge npv-inc-badge npv-inc-badge-new" style="margin-left: 0;">{{ $cycleOrd }}</span>
+                                                            </td>
+                                                            <td class="text-center fs-3xs">{{ $inc->increment_start_date ? \Carbon\Carbon::parse($inc->increment_start_date)->format('d M Y') : '-' }}</td>
+                                                            <td class="text-end fw-semibold text-warning fs-3xs">{{ $escalationStr }}</td>
+                                                            <td class="text-end num-cell font-bold fs-3xs">৳ {{ number_format((float)($inc->incremented_amount ?? 0), 2) }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @else
+                                        <em class="text-muted fs-3xs">No rent escalation cycles configured. Base rent remains constant.</em>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -267,21 +338,7 @@
                     </div>
                 </div>
 
-                @php
-                    // 1 -> "1st", 2 -> "2nd", 3 -> "3rd", 4 -> "4th" ...
-                    $npvOrdinal = function (int $n): string {
-                        $suffix = 'th';
-                        if (!in_array($n % 100, [11, 12, 13], true)) {
-                            $suffix = match ($n % 10) {
-                                1 => 'st',
-                                2 => 'nd',
-                                3 => 'rd',
-                                default => 'th',
-                            };
-                        }
-                        return $n . $suffix;
-                    };
-                @endphp
+
 
                 @if (($initialResult->cashFlows[0]->totalIncrementCycles ?? 0) > 0)
                     <div class="npv-inc-legend">

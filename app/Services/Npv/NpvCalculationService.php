@@ -15,7 +15,7 @@ class NpvCalculationService
     ) {}
 
     /**
-     * Run full NPV / Present Value calculation for an agreement.
+     * Run full NPV / Present Value calculation for an agreement ID.
      *
      * @param NpvCalculationInput $input
      * @return NpvCalculationResult
@@ -30,6 +30,19 @@ class NpvCalculationService
             'securityDeposits' => fn($q) => $q->orderBy('id', 'desc'),
         ])->findOrFail($input->agreementId);
 
+        return $this->calculateForAgreement($agreement, $input);
+    }
+
+    /**
+     * Run full NPV calculation for an already loaded Agreement model instance.
+     * Useful for batch processing without extra DB queries.
+     *
+     * @param Agreement $agreement
+     * @param NpvCalculationInput $input
+     * @return NpvCalculationResult
+     */
+    public function calculateForAgreement(Agreement $agreement, NpvCalculationInput $input): NpvCalculationResult
+    {
         // Source annual discount rate: user override > DB setting > 12.16 default
         $annualRate = $input->annualDiscountRate > 0
             ? $input->annualDiscountRate
@@ -62,7 +75,7 @@ class NpvCalculationService
             $totalDepositRefunds += $cf->depositRefund;
         }
 
-        // Fetch security deposit summary totals from DB
+        // Fetch security deposit summary totals from DB/relation
         $firstDeposit = $agreement->securityDeposits->first();
         $absorbableTotal = (float) ($firstDeposit->security_deposit_absorbable ?? 0);
         $nonAbsorbableTotal = (float) ($firstDeposit->security_deposit_non_absorbable ?? 0);

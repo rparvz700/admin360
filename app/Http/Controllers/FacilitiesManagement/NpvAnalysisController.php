@@ -8,13 +8,15 @@ use App\Models\FinanceSetting;
 use App\Models\VatTax;
 use App\Services\Npv\Dto\NpvCalculationInput;
 use App\Services\Npv\NpvCalculationService;
+use App\Services\Npv\NpvReportService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class NpvAnalysisController extends Controller
 {
     public function __construct(
-        private NpvCalculationService $npvService
+        private NpvCalculationService $npvService,
+        private NpvReportService $reportService
     ) {
         $this->middleware('auth');
     }
@@ -185,5 +187,89 @@ class NpvAnalysisController extends Controller
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
+    }
+
+    /**
+     * Render the NPV Portfolio Summary Report page.
+     */
+    public function report(Request $request)
+    {
+        $defaultRate = FinanceSetting::getValue('npv_annual_discount_rate', 12.16);
+        $annualDiscountRate = (float) $request->get('annual_discount_rate', $defaultRate);
+
+        // Fetch summary rows (leveraging fast caching + eager loading)
+        $summaryRows = $this->reportService->generateSummaryForAll($annualDiscountRate);
+
+        // Aggregate KPI Metrics
+        $totalAgreements = count($summaryRows);
+        $portfolioTotalNPV = array_sum(array_column(array_map(fn($r) => $r->toArray(), $summaryRows), 'total_npv'));
+        $portfolioTotalOutflow = array_sum(array_column(array_map(fn($r) => $r->toArray(), $summaryRows), 'total_undiscounted_outflow'));
+        $portfolioTotalGrossRent = array_sum(array_column(array_map(fn($r) => $r->toArray(), $summaryRows), 'total_gross_rent'));
+        $averageNPV = $totalAgreements > 0 ? ($portfolioTotalNPV / $totalAgreements) : 0;
+
+        return view('FacilitiesManagement.Npv.report', compact(
+            'summaryRows',
+            'defaultRate',
+            'annualDiscountRate',
+            'totalAgreements',
+            'portfolioTotalNPV',
+            'portfolioTotalOutflow',
+            'portfolioTotalGrossRent',
+            'averageNPV'
+        ));
+    }
+
+    /**
+     * JSON data provider for Server-Side or Client-Side DataTables with value-wise sorting.
+     */
+    public function reportData(Request $request)
+    {
+        $defaultRate = FinanceSetting::getValue('npv_annual_discount_rate', 12.16);
+        $annualDiscountRate = (float) $request->get('annual_discount_rate', $defaultRate);
+
+        $summaryRows = $this->reportService->generateSummaryForAll($annualDiscountRate);
+        $data = array_map(fn($r) => $r->toArray(), $summaryRows);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'total_npv' => array_sum(array_column($data, 'total_npv')),
+            'total_outflow' => array_sum(array_column($data, 'total_undiscounted_outflow')),
+            'count' => count($data),
+        ]);
+    }
+
+    /**
+     * Fetch full calculation breakdown for AJAX detail modal.
+     */
+    public function agreementDetail(Request $request, int $agreementId)
+    {
+        $defaultRate = FinanceSetting::getValue('npv_annual_discount_rate', 12.16);
+        $annualDiscountRate = (float) $request->get('annual_discount_rate', $defaultRate);
+
+        try {
+            $result = $this->reportService->getDetailBreakdown($agreementId, $annualDiscountRate);
+
+            return response()->json([
+                'success' => true,
+                'data' => $result->toArray(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading detail breakdown: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Force recalculation and flush report cache.
+     */
+    public function refreshReportCache(Request $request)
+    {
+        $defaultRate = FinanceSetting::getValue('npv_annual_discount_rate', 12.16);
+        $this->reportService->generateSummaryForAll($defaultRate, forceRefresh: true);
+
+        return back()->with('success', 'NPV Report cache has been successfully cleared and recalculated!');
     }
 }

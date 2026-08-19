@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\FinanceSetting;
+use App\Services\Npv\NpvReportService;
 use Illuminate\Http\Request;
 
 class FinanceSettingController extends Controller
 {
-    public function __construct()
-    {
+    public function __construct(
+        private NpvReportService $reportService
+    ) {
         $this->middleware('auth');
     }
 
@@ -42,6 +44,9 @@ class FinanceSettingController extends Controller
                 ]);
             }
         }
+
+        // Flush cached NPV report computations
+        $this->reportService->clearCache();
 
         return redirect()->route('admin.finance-settings.index')->with('success', 'NPV Annual Discount Rate updated successfully.');
     }

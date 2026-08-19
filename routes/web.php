@@ -142,11 +142,17 @@ Route::middleware(['auth'])->group(function(){
     // Facilities Management Dashboard
     Route::get('facilities/dashboard', [DashboardController::class, 'index'])->name('facilities.dashboard');
 
-    // Net Present Value (NPV) Calculation Routes
+    // Net Present Value (NPV) Calculation & Reporting Routes
     Route::prefix('facilities/npv')->name('facilities.npv.')->group(function () {
         Route::get('/', [NpvAnalysisController::class, 'index'])->name('index');
         Route::post('/calculate', [NpvAnalysisController::class, 'calculate'])->name('calculate');
         Route::get('/export/{format?}', [NpvAnalysisController::class, 'export'])->name('export');
+
+        // Portfolio NPV Summary Reporting Routes
+        Route::get('/report', [NpvAnalysisController::class, 'report'])->name('report');
+        Route::get('/report/data', [NpvAnalysisController::class, 'reportData'])->name('report.data');
+        Route::get('/report/{agreementId}/detail', [NpvAnalysisController::class, 'agreementDetail'])->name('report.detail');
+        Route::post('/report/refresh-cache', [NpvAnalysisController::class, 'refreshReportCache'])->name('report.refresh-cache');
     });
 
     // Finance Settings Routes (Discount Rate management)

@@ -28,6 +28,16 @@ class NpvCalculationResult
 
     public function toArray(): array
     {
+        $latestRentBase = $this->agreement->relationLoaded('rentBases')
+            ? $this->agreement->rentBases->sortByDesc('id')->first()
+            : null;
+        $latestSd = $this->agreement->relationLoaded('securityDeposits')
+            ? $this->agreement->securityDeposits->sortByDesc('id')->first()
+            : null;
+        $increments = $this->agreement->relationLoaded('rentIncrements')
+            ? $this->agreement->rentIncrements->sortBy('increment_start_date')
+            : collect();
+
         return [
             'agreement_ref' => $this->agreement->agreement_ref_no,
             'vendor_name' => $this->agreement->vendor->name ?? 'N/A',
@@ -43,6 +53,32 @@ class NpvCalculationResult
             'total_deposit_refunds' => round($this->totalDepositRefunds, 2),
             'absorbable_advance_total' => round($this->absorbableAdvanceTotal, 2),
             'non_absorbable_deposit_total' => round($this->nonAbsorbableDepositTotal, 2),
+            'audit' => [
+                'base_rent' => round($latestRentBase->base_rent ?? 0, 2),
+                'is_at_source' => (bool) ($latestRentBase->is_at_source ?? false),
+                'vat' => round($latestRentBase->vat ?? 0, 2),
+                'tax' => round($latestRentBase->tax ?? 0, 2),
+                'components' => ($latestRentBase && $latestRentBase->components) ? $latestRentBase->components->map(fn($c) => [
+                    'type' => $c->component_type,
+                    'area' => round($c->area_sft, 2),
+                    'rent' => round($c->rent_amount, 2),
+                    'vat' => round($c->vat_amount ?? 0, 2),
+                    'tax' => round($c->tax_amount ?? 0, 2),
+                    'total' => round($c->total_amount, 2),
+                ])->values()->all() : [],
+                'increments' => $increments->map(fn($inc, $idx) => [
+                    'cycle' => $idx + 1,
+                    'start_date' => $inc->increment_start_date,
+                    'percentage' => $inc->increment_percentage ? round($inc->increment_percentage, 2) : null,
+                    'amount' => $inc->increment_amount ? round($inc->increment_amount, 2) : null,
+                    'incremented_amount' => round($inc->incremented_amount ?? 0, 2),
+                ])->values()->all(),
+                'sd_total' => round($latestSd->security_deposit_total ?? 0, 2),
+                'sd_absorbable' => round($latestSd->security_deposit_absorbable ?? 0, 2),
+                'sd_non_absorbable' => round($latestSd->security_deposit_non_absorbable ?? 0, 2),
+                'sd_frequency' => $latestSd->absorb_frequency ?? null,
+                'sd_start_date' => $latestSd->absorb_start_date ?? null,
+            ],
             'cash_flows' => array_map(fn(MonthlyCashFlow $cf) => [
                 'period_index' => $cf->periodIndex,
                 'billing_month' => $cf->billingMonth,
@@ -59,6 +95,11 @@ class NpvCalculationResult
                 'present_value' => round($cf->presentValue, 2),
                 'cumulative_pv' => round($cf->cumulativePV, 2),
                 'active_increments' => $cf->activeIncrements,
+                'increment_cycle' => $cf->incrementCycle,
+                'total_increment_cycles' => $cf->totalIncrementCycles,
+                'increment_starts_this_month' => $cf->incrementStartsThisMonth,
+                'increment_effective_from' => $cf->incrementEffectiveFrom,
+                'increment_uplift_pct' => round($cf->incrementUpliftPct, 2),
             ], $this->cashFlows),
         ];
     }

@@ -62,6 +62,7 @@
                                                 $activeMenu == 'asset-attributes' ||
                                                 $activeMenu == 'wizard.property' ||
                                                 $activeMenu == 'facilities.npv' ||
+                                                $activeMenu == 'facilities.npv.report' ||
                                                 $activeMenu == 'admin.finance-settings')
                                                 ? 'open'
                                                 : '' }}">
@@ -73,7 +74,7 @@
                                             <ul class="nav-main-submenu">
 
                                                 <li
-                                                    class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'buildings' || $activeMenu == 'floors' || $activeMenu == 'agreements' || $activeMenu == 'rent' || $activeMenu == 'utility-types' || $activeMenu == 'wizard.property' || $activeMenu == 'facilities.npv' || $activeMenu == 'admin.finance-settings') ? 'open' : '' }}">
+                                                    class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'buildings' || $activeMenu == 'floors' || $activeMenu == 'agreements' || $activeMenu == 'rent' || $activeMenu == 'utility-types' || $activeMenu == 'wizard.property' || $activeMenu == 'facilities.npv' || $activeMenu == 'facilities.npv.report' || $activeMenu == 'admin.finance-settings') ? 'open' : '' }}">
                                                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                         aria-haspopup="true" aria-expanded="false" href="#">
                                                         <i class="nav-main-link-icon fa fa-home"></i>
@@ -121,12 +122,34 @@
                                                                 </a>
                                                             </li>
                                                         @endcanany
-                                                        <li class="nav-main-item">
-                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'facilities.npv' ? 'active' : '' }}"
-                                                                href="{{ route('facilities.npv.index') }}">
-                                                                <span class="nav-main-link-name">NPV Calculation</span>
-                                                            </a>
-                                                        </li>
+                                                        @canany(['npv-calculation', 'npv-report'])
+                                                            <li
+                                                                class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'facilities.npv' || $activeMenu == 'facilities.npv.report') ? 'open' : '' }}">
+                                                                <a class="nav-main-link nav-main-link-submenu"
+                                                                    data-toggle="submenu" aria-haspopup="true"
+                                                                    aria-expanded="false" href="#">
+                                                                    <span class="nav-main-link-name">NPV</span>
+                                                                </a>
+                                                                <ul class="nav-main-submenu">
+                                                                    {{-- @canany(['npv-calculation'])
+                                                                        <li class="nav-main-item">
+                                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'facilities.npv' ? 'active' : '' }}"
+                                                                                href="{{ route('facilities.npv.index') }}">
+                                                                                <span class="nav-main-link-name">NPV Calculation</span>
+                                                                            </a>
+                                                                        </li>
+                                                                    @endcanany --}}
+                                                                    @canany(['npv-report'])
+                                                                        <li class="nav-main-item">
+                                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'facilities.npv.report' ? 'active' : '' }}"
+                                                                                href="{{ route('facilities.npv.report') }}">
+                                                                                <span class="nav-main-link-name">NPV Report</span>
+                                                                            </a>
+                                                                        </li>
+                                                                    @endcanany
+                                                                </ul>
+                                                            </li>
+                                                        @endcanany
                                                         @canany(['create-rent', 'edit-rent', 'delete-rent'])
                                                             <li
                                                                 class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'utility-types' || $activeMenu == 'admin.finance-settings') ? 'open' : '' }}">
@@ -146,7 +169,8 @@
                                                                     <li class="nav-main-item">
                                                                         <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'admin.finance-settings' ? 'active' : '' }}"
                                                                             href="{{ route('admin.finance-settings.index') }}">
-                                                                            <span class="nav-main-link-name">Finance Settings</span>
+                                                                            <span class="nav-main-link-name">Finance
+                                                                                Settings</span>
                                                                         </a>
                                                                     </li>
                                                                 </ul>
@@ -297,7 +321,8 @@
                                     {{-- -------------------------Vehicle Maintenance Management------------------------- --}}
 
                                     @canany(['vehicle-maintenance-management'])
-                                        <li class="nav-main-item {{ request()->routeIs('maintenance.dashboard', 'maintenance.maintenances.*', 'maintenance.operational-logs.*', 'maintenance.reports.*', 'maintenance.parts*') ? 'open' : '' }}">
+                                        <li
+                                            class="nav-main-item {{ request()->routeIs('maintenance.dashboard', 'maintenance.maintenances.*', 'maintenance.operational-logs.*', 'maintenance.reports.*', 'maintenance.parts*') ? 'open' : '' }}">
                                             <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                 aria-haspopup="true" aria-expanded="false" href="#">
                                                 <i class="nav-main-link-icon si si-wrench"></i>
@@ -445,23 +470,28 @@
                                                         <span class="nav-main-link-name">Dashboard</span>
                                                     </a>
                                                 </li>
-                                                <li class="nav-main-item {{ request()->routeIs('invoices.rent.*', 'invoices.vehicle.*', 'invoices.index') ? 'open' : '' }}">
-                                                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
+                                                <li
+                                                    class="nav-main-item {{ request()->routeIs('invoices.rent.*', 'invoices.vehicle.*', 'invoices.index') ? 'open' : '' }}">
+                                                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
+                                                        aria-haspopup="true" aria-expanded="false" href="#">
                                                         <span class="nav-main-link-name">Invoices</span>
                                                     </a>
                                                     <ul class="nav-main-submenu">
                                                         <li class="nav-main-item">
-                                                            <a class="nav-main-link {{ request()->routeIs('invoices.rent.*') ? 'active' : '' }}" href="{{ route('invoices.rent.index') }}">
+                                                            <a class="nav-main-link {{ request()->routeIs('invoices.rent.*') ? 'active' : '' }}"
+                                                                href="{{ route('invoices.rent.index') }}">
                                                                 <span class="nav-main-link-name">Rent Invoices</span>
                                                             </a>
                                                         </li>
                                                         <li class="nav-main-item">
-                                                            <a class="nav-main-link {{ request()->routeIs('invoices.vehicle.*') ? 'active' : '' }}" href="{{ route('invoices.vehicle.index') }}">
+                                                            <a class="nav-main-link {{ request()->routeIs('invoices.vehicle.*') ? 'active' : '' }}"
+                                                                href="{{ route('invoices.vehicle.index') }}">
                                                                 <span class="nav-main-link-name">Vehicle Invoices</span>
                                                             </a>
                                                         </li>
                                                         <li class="nav-main-item">
-                                                            <a class="nav-main-link {{ request()->routeIs('invoices.index') || (request()->routeIs('invoices.show', 'invoices.create', 'invoices.edit') && !request()->routeIs('invoices.rent.*', 'invoices.vehicle.*')) ? 'active' : '' }}" href="{{ route('invoices.index') }}">
+                                                            <a class="nav-main-link {{ request()->routeIs('invoices.index') || (request()->routeIs('invoices.show', 'invoices.create', 'invoices.edit') && !request()->routeIs('invoices.rent.*', 'invoices.vehicle.*')) ? 'active' : '' }}"
+                                                                href="{{ route('invoices.index') }}">
                                                                 <span class="nav-main-link-name">All Invoices</span>
                                                             </a>
                                                         </li>

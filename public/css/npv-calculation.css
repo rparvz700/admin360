@@ -190,6 +190,21 @@
     height: 100%;
 }
 
+.audit-data-box table th {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    padding: 0.35rem 0.5rem !important;
+    line-height: 1.2 !important;
+    color: #475569 !important;
+}
+
+.audit-data-box table td {
+    font-size: 11px !important;
+    padding: 0.3rem 0.5rem !important;
+}
+
 /* --------------------------------------------------------------------------
    5. Main Report Table Section (Primary Focus)
    -------------------------------------------------------------------------- */
@@ -220,14 +235,16 @@
     gap: 0.4rem;
 }
 
-/* High-specificity table container rules */
-#npvBreakdownTable_wrapper table.dataTable {
+/* High-specificity table container rules for both Workbench & Modal Schedule tables */
+#npvBreakdownTable_wrapper table.dataTable,
+.npv-table-wrapper table.table-npv {
     font-size: 11px !important;
     border-collapse: separate !important;
     border-spacing: 0 !important;
 }
 
-#npvBreakdownTable_wrapper thead th {
+#npvBreakdownTable_wrapper thead th,
+.npv-table-wrapper table.table-npv thead th {
     background-color: #f1f5f9 !important;
     font-size: 10px !important;
     font-weight: 700 !important;
@@ -241,7 +258,8 @@
     border-bottom: 2px solid #cbd5e1 !important;
 }
 
-#npvBreakdownTable_wrapper tbody td {
+#npvBreakdownTable_wrapper tbody td,
+.npv-table-wrapper table.table-npv tbody td {
     font-size: 11px !important;
     padding: 5px 10px !important;
     vertical-align: middle !important;
@@ -250,19 +268,22 @@
     border-color: #f1f5f9 !important;
 }
 
-#npvBreakdownTable_wrapper .num-cell {
+#npvBreakdownTable_wrapper .num-cell,
+.npv-table-wrapper table.table-npv .num-cell {
     font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
     font-size: 11px !important;
 }
 
-#npvBreakdownTable_wrapper tfoot td {
+#npvBreakdownTable_wrapper tfoot td,
+.npv-table-wrapper table.table-npv tfoot td {
     font-size: 13px !important;
     padding: 8px 10px !important;
     white-space: nowrap !important;
 }
 
 /* Soft Table Totals Row (tfoot.npv-tfoot-total) */
-#npvBreakdownTable_wrapper tfoot.npv-tfoot-total td {
+#npvBreakdownTable_wrapper tfoot.npv-tfoot-total td,
+.npv-table-wrapper table.table-npv tfoot.npv-tfoot-total td {
     background-color: #cbd5e1 !important;
     color: #0f172a !important;
     border-top: 2.5px solid #94a3b8 !important;
@@ -273,20 +294,25 @@
 }
 
 #npvBreakdownTable_wrapper tfoot.npv-tfoot-total td.text-warning,
-#npvBreakdownTable_wrapper tfoot.npv-tfoot-total td.text-danger {
+#npvBreakdownTable_wrapper tfoot.npv-tfoot-total td.text-danger,
+.npv-table-wrapper table.table-npv tfoot.npv-tfoot-total td.text-warning,
+.npv-table-wrapper table.table-npv tfoot.npv-tfoot-total td.text-danger {
     color: #dc2626 !important;
     font-size: 13px !important;
     font-weight: 800 !important;
 }
 
-#npvBreakdownTable_wrapper tfoot.npv-tfoot-total td.text-success {
+#npvBreakdownTable_wrapper tfoot.npv-tfoot-total td.text-success,
+.npv-table-wrapper table.table-npv tfoot.npv-tfoot-total td.text-success {
     color: #047857 !important;
     font-size: 13px !important;
     font-weight: 800 !important;
 }
 
 #npvBreakdownTable_wrapper tfoot.npv-tfoot-total td.text-primary,
-#npvBreakdownTable_wrapper tfoot.npv-tfoot-total td.npv-col-right-2 {
+#npvBreakdownTable_wrapper tfoot.npv-tfoot-total td.npv-col-right-2,
+.npv-table-wrapper table.table-npv tfoot.npv-tfoot-total td.text-primary,
+.npv-table-wrapper table.table-npv tfoot.npv-tfoot-total td.npv-col-right-2 {
     color: #1e1b4b !important;
     font-size: 13.5px !important;
     font-weight: 800 !important;
@@ -354,7 +380,11 @@
 #npvBreakdownTable_wrapper thead th.npv-col-left-1,
 #npvBreakdownTable_wrapper thead th.npv-col-left-2,
 #npvBreakdownTable_wrapper thead th.npv-col-right-2,
-#npvBreakdownTable_wrapper thead th.npv-col-right-1 {
+#npvBreakdownTable_wrapper thead th.npv-col-right-1,
+.npv-table-wrapper thead th.npv-col-left-1,
+.npv-table-wrapper thead th.npv-col-left-2,
+.npv-table-wrapper thead th.npv-col-right-2,
+.npv-table-wrapper thead th.npv-col-right-1 {
     background-color: #f1f5f9 !important;
     z-index: 8 !important;
 }
@@ -362,42 +392,61 @@
 #npvBreakdownTable_wrapper tbody tr:nth-of-type(odd) td.npv-col-left-1,
 #npvBreakdownTable_wrapper tbody tr:nth-of-type(odd) td.npv-col-left-2,
 #npvBreakdownTable_wrapper tbody tr:nth-of-type(odd) td.npv-col-right-2,
-#npvBreakdownTable_wrapper tbody tr:nth-of-type(odd) td.npv-col-right-1 {
+#npvBreakdownTable_wrapper tbody tr:nth-of-type(odd) td.npv-col-right-1,
+.npv-table-wrapper tbody tr:nth-of-type(odd) td.npv-col-left-1,
+.npv-table-wrapper tbody tr:nth-of-type(odd) td.npv-col-left-2,
+.npv-table-wrapper tbody tr:nth-of-type(odd) td.npv-col-right-2,
+.npv-table-wrapper tbody tr:nth-of-type(odd) td.npv-col-right-1 {
     background-color: #ffffff !important;
 }
 
 #npvBreakdownTable_wrapper tbody tr:nth-of-type(even) td.npv-col-left-1,
 #npvBreakdownTable_wrapper tbody tr:nth-of-type(even) td.npv-col-left-2,
 #npvBreakdownTable_wrapper tbody tr:nth-of-type(even) td.npv-col-right-2,
-#npvBreakdownTable_wrapper tbody tr:nth-of-type(even) td.npv-col-right-1 {
+#npvBreakdownTable_wrapper tbody tr:nth-of-type(even) td.npv-col-right-1,
+.npv-table-wrapper tbody tr:nth-of-type(even) td.npv-col-left-1,
+.npv-table-wrapper tbody tr:nth-of-type(even) td.npv-col-left-2,
+.npv-table-wrapper tbody tr:nth-of-type(even) td.npv-col-right-2,
+.npv-table-wrapper tbody tr:nth-of-type(even) td.npv-col-right-1 {
     background-color: #f8fafc !important;
 }
 
 #npvBreakdownTable_wrapper tbody tr:hover td.npv-col-left-1,
 #npvBreakdownTable_wrapper tbody tr:hover td.npv-col-left-2,
 #npvBreakdownTable_wrapper tbody tr:hover td.npv-col-right-2,
-#npvBreakdownTable_wrapper tbody tr:hover td.npv-col-right-1 {
+#npvBreakdownTable_wrapper tbody tr:hover td.npv-col-right-1,
+.npv-table-wrapper tbody tr:hover td.npv-col-left-1,
+.npv-table-wrapper tbody tr:hover td.npv-col-left-2,
+.npv-table-wrapper tbody tr:hover td.npv-col-right-2,
+.npv-table-wrapper tbody tr:hover td.npv-col-right-1 {
     background-color: #edf2f7 !important;
 }
 
 #npvBreakdownTable_wrapper tfoot td.npv-col-left-1,
 #npvBreakdownTable_wrapper tfoot td.npv-col-left-2,
 #npvBreakdownTable_wrapper tfoot td.npv-col-right-2,
-#npvBreakdownTable_wrapper tfoot td.npv-col-right-1 {
+#npvBreakdownTable_wrapper tfoot td.npv-col-right-1,
+.npv-table-wrapper tfoot td.npv-col-left-1,
+.npv-table-wrapper tfoot td.npv-col-left-2,
+.npv-table-wrapper tfoot td.npv-col-right-2,
+.npv-table-wrapper tfoot td.npv-col-right-1 {
     background-color: #e2e8f0 !important;
     color: #0f172a !important;
     z-index: 8 !important;
 }
 
-#npvBreakdownTable_wrapper .dataTables_scrollHead {
+#npvBreakdownTable_wrapper .dataTables_scrollHead,
+.npv-table-wrapper .dataTables_scrollHead {
     background-color: #f1f5f9;
 }
 
-#npvBreakdownTable_wrapper .dataTables_scrollFoot {
+#npvBreakdownTable_wrapper .dataTables_scrollFoot,
+.npv-table-wrapper .dataTables_scrollFoot {
     background-color: #e2e8f0;
 }
 
-#npvBreakdownTable_wrapper .dataTables_scrollBody {
+#npvBreakdownTable_wrapper .dataTables_scrollBody,
+.npv-table-wrapper .dataTables_scrollBody {
     border-top: 1px solid #e2e8f0;
     border-bottom: 1px solid #e2e8f0;
 }
@@ -407,16 +456,20 @@
 }
 
 #npvBreakdownTable_wrapper td.npv-total-col,
-#npvBreakdownTable_wrapper th.npv-total-col {
+#npvBreakdownTable_wrapper th.npv-total-col,
+.npv-table-wrapper td.npv-total-col,
+.npv-table-wrapper th.npv-total-col {
     background-color: #eef2ff !important;
     color: #312e81 !important;
 }
 
-#npvBreakdownTable_wrapper tbody tr:hover td.npv-total-col {
+#npvBreakdownTable_wrapper tbody tr:hover td.npv-total-col,
+.npv-table-wrapper tbody tr:hover td.npv-total-col {
     background-color: #e0e7ff !important;
 }
 
-#npvBreakdownTable_wrapper tfoot td.npv-total-col {
+#npvBreakdownTable_wrapper tfoot td.npv-total-col,
+.npv-table-wrapper tfoot td.npv-total-col {
     background-color: #e2e8f0 !important;
     color: #3730a3 !important;
 }
@@ -501,3 +554,116 @@
     color: #cbd5e1;
     padding: 0 0.15rem;
 }
+
+
+.npv-kpi-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 1.15rem 1.25rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .npv-kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        }
+
+        .npv-kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .npv-kpi-card.kpi-primary::before {
+            background-color: #2563eb;
+        }
+
+        .npv-kpi-card.kpi-warning::before {
+            background-color: #d97706;
+        }
+
+        .npv-kpi-card.kpi-info::before {
+            background-color: #0284c7;
+        }
+
+        .npv-kpi-card.kpi-success::before {
+            background-color: #16a34a;
+        }
+
+        .npv-kpi-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+        }
+
+        /* Single-View Uniform High-Density Table Styling */
+        .table-npv-summary {
+            font-size: 0.8125rem !important;
+            /* Uniform font size for all cells */
+            width: 100% !important;
+        }
+
+        .table-npv-summary thead th {
+            font-size: 0.725rem !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.4px !important;
+            color: #475569 !important;
+            background-color: #f8fafc !important;
+            border-bottom: 2px solid #cbd5e1 !important;
+            padding: 8px 10px !important;
+            vertical-align: middle !important;
+            white-space: nowrap !important;
+        }
+
+        .table-npv-summary tbody td {
+            font-size: 0.8125rem !important;
+            padding: 8px 10px !important;
+            vertical-align: middle !important;
+        }
+
+        .table-npv-summary tfoot td {
+            font-size: 0.8125rem !important;
+            padding: 9px 10px !important;
+            background-color: #f8fafc !important;
+            border-top: 2px solid #cbd5e1 !important;
+            vertical-align: middle !important;
+        }
+
+        .npv-pill-ref {
+            font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-weight: 700;
+            color: #1e40af;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .npv-pill-ref:hover {
+            text-decoration: underline;
+            color: #1d4ed8;
+        }
+
+        .npv-value-cell {
+            background-color: #eff6ff;
+            color: #1e40af;
+            font-weight: 700;
+            border-radius: 4px;
+            padding: 2px 6px;
+            display: inline-block;
+            font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        .npv-num-cell {
+            font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
