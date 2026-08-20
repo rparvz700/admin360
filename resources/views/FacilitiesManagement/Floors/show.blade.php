@@ -245,12 +245,12 @@
                                             <span class="fd-detail-value">{{ $agreement->agreement_date ? \Carbon\Carbon::parse($agreement->agreement_date)->format('M d, Y') : 'N/A' }}</span>
                                         </div>
                                         <div class="fd-detail-item">
-                                            <span class="fd-detail-label">Start Date</span>
-                                            <span class="fd-detail-value">{{ $agreement->from_date ? \Carbon\Carbon::parse($agreement->from_date)->format('M d, Y') : 'N/A' }}</span>
+                                            <span class="fd-detail-label">Payment Start Date</span>
+                                            <span class="fd-detail-value">{{ ($agreement->payment_start_date ?? $agreement->from_date) ? \Carbon\Carbon::parse($agreement->payment_start_date ?? $agreement->from_date)->format('M d, Y') : 'N/A' }}</span>
                                         </div>
                                         <div class="fd-detail-item">
-                                            <span class="fd-detail-label">End Date</span>
-                                            <span class="fd-detail-value">{{ $agreement->to_date ? \Carbon\Carbon::parse($agreement->to_date)->format('M d, Y') : 'N/A' }}</span>
+                                            <span class="fd-detail-label">Expiry Date</span>
+                                            <span class="fd-detail-value">{{ ($agreement->expiry_date ?? $agreement->to_date) ? \Carbon\Carbon::parse($agreement->expiry_date ?? $agreement->to_date)->format('M d, Y') : 'N/A' }}</span>
                                         </div>
                                     </div>
                                     <div class="p-3 bg-light rounded border">

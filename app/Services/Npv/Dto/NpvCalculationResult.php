@@ -122,6 +122,8 @@ class NpvCalculationResult
                 'increment_starts_this_month' => $cf->incrementStartsThisMonth,
                 'increment_effective_from' => $cf->incrementEffectiveFrom,
                 'increment_uplift_pct' => round($cf->incrementUpliftPct, 2),
+                'is_deferred' => $cf->isDeferred,
+                'arrears_amount' => round($cf->arrearsAmount, 2),
             ], $this->cashFlows),
         ];
     }

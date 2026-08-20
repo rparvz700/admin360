@@ -64,8 +64,8 @@
                                 <th class="all">Reference No</th>
                                 <th class="all">Vendor</th>
                                 <th class="all">Agreement Date</th>
-                                <th class="all">From Date</th>
-                                <th class="all">To Date</th>
+                                <th class="all">Payment Start Date</th>
+                                <th class="all">Expiry Date</th>
                                 <th class="all">Status</th>
                                 <th class="all">Remarks</th>
                                 <th class="all">Actions</th>
@@ -166,12 +166,14 @@
                                 name: 'agreement_date'
                             },
                             {
-                                data: 'from_date',
-                                name: 'from_date'
+                                data: 'payment_start_date',
+                                name: 'payment_start_date',
+                                defaultContent: ''
                             },
                             {
-                                data: 'to_date',
-                                name: 'to_date'
+                                data: 'expiry_date',
+                                name: 'expiry_date',
+                                defaultContent: ''
                             },
                             {
                                 data: 'status',

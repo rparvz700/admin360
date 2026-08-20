@@ -69,15 +69,30 @@ class PropertyWizardController extends Controller
 
         try {
             // 2. Create Agreement
-            $agreement = Agreement::create([
+            $paymentStart = $request->payment_start_date ?? $request->from_date;
+            $expiry = $request->expiry_date ?? $request->to_date;
+
+            $agrData = [
                 'agreement_ref_no' => $request->agreement_ref_no,
                 'vendor_id'        => $request->vendor_id,
                 'agreement_date'   => $request->agreement_date,
-                'from_date'        => $request->from_date,
-                'to_date'          => $request->to_date,
                 'status'           => $request->agreement_status,
                 'remarks'          => $request->agreement_remarks,
-            ]);
+            ];
+
+            if (\Schema::hasColumn('agreements', 'payment_start_date')) {
+                $agrData['payment_start_date'] = $paymentStart;
+            } else {
+                $agrData['from_date'] = $paymentStart;
+            }
+
+            if (\Schema::hasColumn('agreements', 'expiry_date')) {
+                $agrData['expiry_date'] = $expiry;
+            } else {
+                $agrData['to_date'] = $expiry;
+            }
+
+            $agreement = Agreement::create($agrData);
 
             // 3. Create Building
             $building = PropertiesBuilding::create([
@@ -120,8 +135,8 @@ class PropertyWizardController extends Controller
                 'tax'          => $totals['tax'],
                 'is_at_source' => (int) $request->is_at_source,
                 'rent_type'    => $request->rent_type,
-                'start_date'   => $request->from_date,
-                'end_date'     => $request->to_date,
+                'start_date'   => $paymentStart,
+                'end_date'     => $expiry,
                 'remarks'      => $request->agreement_remarks,
             ]);
 

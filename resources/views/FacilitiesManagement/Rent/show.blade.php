@@ -100,13 +100,13 @@
                                             <td>{{ $base->rent_type ?? 'N/A' }}</td>
                                         </tr>
                                         <tr>
-                                            <th>Start Date</th>
-                                            <td>{{ $base->agreement->from_date ? \Carbon\Carbon::parse($base->agreement->from_date)->format('Y-m-d') : 'N/A' }}
+                                            <th>Payment Start Date</th>
+                                            <td>{{ ($base->agreement->payment_start_date ?? $base->agreement->from_date) ? \Carbon\Carbon::parse($base->agreement->payment_start_date ?? $base->agreement->from_date)->format('Y-m-d') : 'N/A' }}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>End Date</th>
-                                            <td>{{ $base->agreement->to_date ? \Carbon\Carbon::parse($base->agreement->to_date)->format('Y-m-d') : 'N/A' }}
+                                            <th>Expiry Date</th>
+                                            <td>{{ ($base->agreement->expiry_date ?? $base->agreement->to_date) ? \Carbon\Carbon::parse($base->agreement->expiry_date ?? $base->agreement->to_date)->format('Y-m-d') : 'N/A' }}
                                             </td>
                                         </tr>
                                     </tbody>
@@ -401,6 +401,8 @@
                                                     'Increment End Date',
                                                     'Absorb Start Date',
                                                     'Absorb End Date',
+                                                    'Payment Start Date',
+                                                    'Expiry Date',
                                                     'Agreement From Date',
                                                     'Agreement To Date'
                                                 ].includes(field) && value.match(

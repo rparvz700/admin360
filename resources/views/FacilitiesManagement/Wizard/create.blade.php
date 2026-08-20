@@ -429,18 +429,24 @@
                                     @enderror
                                 </div>
                                 <div class="col-md-6 mb-2">
-                                    <label class="form-label">From Date</label>
-                                    <input type="date" name="from_date"
-                                        class="form-control{{ $invalidClass('from_date') }}"
-                                        value="{{ old('from_date') }}">
+                                    <label class="form-label">Payment Start Date</label>
+                                    <input type="date" name="payment_start_date"
+                                        class="form-control{{ $invalidClass('payment_start_date') ?: $invalidClass('from_date') }}"
+                                        value="{{ old('payment_start_date', old('from_date')) }}">
+                                    @error('payment_start_date')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                     @error('from_date')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="col-md-6 mb-2">
-                                    <label class="form-label">To Date</label>
-                                    <input type="date" name="to_date" class="form-control{{ $invalidClass('to_date') }}"
-                                        value="{{ old('to_date') }}">
+                                    <label class="form-label">Expiry Date</label>
+                                    <input type="date" name="expiry_date" class="form-control{{ $invalidClass('expiry_date') ?: $invalidClass('to_date') }}"
+                                        value="{{ old('expiry_date', old('to_date')) }}">
+                                    @error('expiry_date')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                     @error('to_date')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror

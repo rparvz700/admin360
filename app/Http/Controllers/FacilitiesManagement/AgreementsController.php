@@ -33,8 +33,10 @@ class AgreementsController extends Controller
                 ->addIndexColumn()
                 ->addColumn('vendor', function($row) { return $row->vendor ? $row->vendor->name : '-'; })
                 ->addColumn('agreement_date', function($row) { return $row->agreement_date; })
-                ->addColumn('from_date', function($row) { return $row->from_date; })
-                ->addColumn('to_date', function($row) { return $row->to_date; })
+                ->addColumn('payment_start_date', function($row) { return $row->payment_start_date ?? $row->from_date; })
+                ->addColumn('expiry_date', function($row) { return $row->expiry_date ?? $row->to_date; })
+                ->addColumn('from_date', function($row) { return $row->payment_start_date ?? $row->from_date; })
+                ->addColumn('to_date', function($row) { return $row->expiry_date ?? $row->to_date; })
                 ->editColumn('status', function ($row) {
                     $badge = '<span class="badge bg-' . ($row->status == 1 ? 'success' : 'danger') . '">' . (($row->status == 1) ? 'Active' : 'Inactive') . '</span>';
                     return $badge;
@@ -70,15 +72,28 @@ class AgreementsController extends Controller
             'vendor_id' => 'nullable|exists:vendors,id',
         ]);
 
+        $paymentStart = $request->payment_start_date ?? $request->from_date;
+        $expiry = $request->expiry_date ?? $request->to_date;
+
         $data = [
             'agreement_ref_no' => $request->agreement_ref_no,
             'vendor_id' => $request->vendor_id,
             'agreement_date' => $request->agreement_date,
-            'from_date' => $request->from_date,
-            'to_date' => $request->to_date,
             'status' => $request->status,
             'remarks' => $request->remarks,
         ];
+
+        if (\Schema::hasColumn('agreements', 'payment_start_date')) {
+            $data['payment_start_date'] = $paymentStart;
+        } else {
+            $data['from_date'] = $paymentStart;
+        }
+
+        if (\Schema::hasColumn('agreements', 'expiry_date')) {
+            $data['expiry_date'] = $expiry;
+        } else {
+            $data['to_date'] = $expiry;
+        }
 
         $agreement = Agreement::create($data);
 
@@ -107,15 +122,28 @@ class AgreementsController extends Controller
             'vendor_id' => 'nullable|exists:vendors,id',
         ]);
 
+        $paymentStart = $request->payment_start_date ?? $request->from_date;
+        $expiry = $request->expiry_date ?? $request->to_date;
+
         $data = [
             'agreement_ref_no' => $request->agreement_ref_no,
             'vendor_id' => $request->vendor_id,
             'agreement_date' => $request->agreement_date,
-            'from_date' => $request->from_date,
-            'to_date' => $request->to_date,
             'status' => $request->status,
             'remarks' => $request->remarks,
         ];
+
+        if (\Schema::hasColumn('agreements', 'payment_start_date')) {
+            $data['payment_start_date'] = $paymentStart;
+        } else {
+            $data['from_date'] = $paymentStart;
+        }
+
+        if (\Schema::hasColumn('agreements', 'expiry_date')) {
+            $data['expiry_date'] = $expiry;
+        } else {
+            $data['to_date'] = $expiry;
+        }
 
         $agreement->update($data);
 

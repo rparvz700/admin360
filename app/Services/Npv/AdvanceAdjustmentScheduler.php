@@ -21,10 +21,12 @@ class AdvanceAdjustmentScheduler
     public function getAdjustmentsForMonth(
         iterable $securityDeposits,
         string $billingMonth,
-        ?string $agreementFromDate = null,
-        ?string $agreementToDate = null,
+        ?string $agreementStartDate = null,
+        ?string $agreementExpiryDate = null,
         bool $isExpiryMonth = false
     ): array {
+        $agreementFromDate = $agreementStartDate;
+        $agreementToDate = $agreementExpiryDate;
         $monthStart = Carbon::parse($billingMonth . '-01')->startOfMonth();
         $monthEnd = $monthStart->copy()->endOfMonth();
 

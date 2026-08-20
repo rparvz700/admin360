@@ -91,7 +91,7 @@ class NpvCalculationService
         return new NpvCalculationResult(
             agreement: $agreement,
             baseDate: $input->baseDate,
-            expiryDate: $agreement->to_date ?? '',
+            expiryDate: $agreement->expiry_date ?? ($agreement->to_date ?? ''),
             totalMonths: $totalMonths,
             annualDiscountRate: $annualRate,
             monthlyDiscountRate: $monthlyRate,

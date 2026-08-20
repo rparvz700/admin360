@@ -17,6 +17,8 @@ class NpvAgreementSummary extends Model
         'agreement_ref_no',
         'vendor_name',
         'site_name',
+        'payment_start_date',
+        'expiry_date',
         'from_date',
         'to_date',
         'total_months',
@@ -27,6 +29,26 @@ class NpvAgreementSummary extends Model
         'total_deposit_refunds',
         'calculated_at',
     ];
+
+    public function getPaymentStartDateAttribute($value)
+    {
+        return $value ?? $this->attributes['from_date'] ?? null;
+    }
+
+    public function getExpiryDateAttribute($value)
+    {
+        return $value ?? $this->attributes['to_date'] ?? null;
+    }
+
+    public function getFromDateAttribute($value)
+    {
+        return $value ?? $this->attributes['payment_start_date'] ?? null;
+    }
+
+    public function getToDateAttribute($value)
+    {
+        return $value ?? $this->attributes['expiry_date'] ?? null;
+    }
 
     protected $casts = [
         'discount_rate' => 'float',

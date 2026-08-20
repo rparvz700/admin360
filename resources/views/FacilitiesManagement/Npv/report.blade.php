@@ -123,7 +123,7 @@
                                 <th>Agreement Ref</th>
                                 <th class="d-none">Site / Building</th>
                                 <th>Vendor / Landlord</th>
-                                <th class="d-none">Start Date</th>
+                                <th class="d-none">Payment Start Date</th>
                                 <th class="d-none">Expiry Date</th>
                                 <th class="text-center" style="width: 140px;">Lease Period</th>
                                 <th class="text-center" style="width: 60px;">Months</th>
@@ -136,13 +136,15 @@
                         <tbody>
                             @foreach ($summaryRows as $index => $row)
                                 @php
+                                    $pStart = $row->paymentStartDate ?? ($row->fromDate ?? null);
+                                    $pExpiry = $row->expiryDate ?? ($row->toDate ?? null);
                                     $formattedFrom =
-                                        $row->fromDate && $row->fromDate !== 'N/A'
-                                            ? \Carbon\Carbon::parse($row->fromDate)->format('d M Y')
+                                        $pStart && $pStart !== 'N/A'
+                                            ? \Carbon\Carbon::parse($pStart)->format('d M Y')
                                             : 'N/A';
                                     $formattedTo =
-                                        $row->toDate && $row->toDate !== 'N/A'
-                                            ? \Carbon\Carbon::parse($row->toDate)->format('d M Y')
+                                        $pExpiry && $pExpiry !== 'N/A'
+                                            ? \Carbon\Carbon::parse($pExpiry)->format('d M Y')
                                             : 'N/A';
                                 @endphp
                                 <tr>
@@ -601,10 +603,18 @@
                                             ` <span class="badge npv-inc-badge ${badgeClass}" title="${tooltipText}"><i class="fa fa-arrow-up"></i> ${ord}</span>`;
                                     }
 
+                                    let rowClass = cf.is_deferred ? 'table-light text-muted opacity-75' : (cf.arrears_amount > 0 ? 'table-warning-light' : '');
+                                    let statusBadge = '';
+                                    if (cf.is_deferred) {
+                                        statusBadge = ' <span class="badge bg-secondary ms-1 fs-3xs" title="Deferred Payment Period"><i class="fa fa-clock"></i> Deferred</span>';
+                                    } else if (cf.arrears_amount > 0) {
+                                        statusBadge = ` <span class="badge bg-warning text-dark ms-1 fs-3xs" title="Includes ৳ ${cf.arrears_amount.toLocaleString('en-US', {minimumFractionDigits: 2})} arrears"><i class="fa fa-hand-holding-usd"></i> Arrears Paid</span>`;
+                                    }
+
                                     rowsHtml += `
-                                        <tr>
+                                        <tr class="${rowClass}">
                                             <td class="text-center text-muted num-cell fs-xs npv-col-left-1">${cf.period_index}</td>
-                                            <td class="text-center fw-semibold fs-xs npv-col-left-2">${cf.month_label}${incBadge}</td>
+                                            <td class="text-center fw-semibold fs-xs npv-col-left-2">${cf.month_label}${statusBadge}${incBadge}</td>
                                             <td class="text-end num-cell npv-col-breakdown">${cf.office_gross_rent.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                                             <td class="text-end num-cell npv-col-breakdown">${cf.dg_gross_rent.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                                             <td class="text-end num-cell npv-col-breakdown">${cf.parking_gross_rent.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>

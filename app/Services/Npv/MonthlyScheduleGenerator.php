@@ -18,7 +18,9 @@ class MonthlyScheduleGenerator
     ) {}
 
     /**
-     * Generate chronological monthly cash flow array from baseDate to agreement expiry date.
+     * Generate chronological monthly cash flow array starting from payment_start_date to expiry date.
+     * Accumulated arrears from agreement_date up to payment_start_date are consolidated into Period 1.
+     * Discounting periods (Period 1, 2, 3...) and Initial Upfront (Period 0) start strictly at payment_start_date.
      *
      * @param Agreement $agreement
      * @param string $baseDate YYYY-MM or YYYY-MM-DD
@@ -34,19 +36,28 @@ class MonthlyScheduleGenerator
         ?float $customTaxRate = null,
         ?float $customVatRate = null
     ): array {
-        $expiryDateStr = $agreement->to_date;
+        $expiryDateStr = $agreement->expiry_date ?? $agreement->to_date;
         if (!$expiryDateStr) {
             return [];
         }
 
-        $baseCarbon = Carbon::parse($baseDate)->startOfMonth();
+        // Agreement commencement date (where lease obligation originates)
+        $agreementDateStr = $agreement->agreement_date 
+            ?? ($agreement->payment_start_date ?? ($agreement->from_date ?? $baseDate));
+        
+        // Payment Start Date (where cash flow & discounting schedule starts)
+        $paymentStartDateStr = $agreement->payment_start_date 
+            ?? ($agreement->from_date ?? $agreementDateStr);
+
+        $agreementStartCarbon = Carbon::parse($agreementDateStr)->startOfMonth();
+        $paymentStartCarbon = Carbon::parse($paymentStartDateStr)->startOfMonth();
         $expiryCarbon = Carbon::parse($expiryDateStr)->endOfMonth();
 
-        if ($baseCarbon->gt($expiryCarbon)) {
+        if ($paymentStartCarbon->gt($expiryCarbon)) {
             return [];
         }
 
-        // 1. Fetch Tax and VAT configurations (guarantee non-zero defaults)
+        // 1. Fetch Tax and VAT configurations
         $vatTax = VatTax::where('type', 'rent')->where('status', 1)->first();
         $taxPercent = ($customTaxRate !== null && $customTaxRate > 0) ? $customTaxRate : (float) ($vatTax->tax ?? 10.0);
         $vatPercent = ($customVatRate !== null && $customVatRate > 0) ? $customVatRate : (float) ($vatTax->vat ?? 15.0);
@@ -60,7 +71,6 @@ class MonthlyScheduleGenerator
         $rentBase = $agreement->rentBases()->orderBy('id', 'desc')->first();
         $isAtSource = $rentBase ? (bool) $rentBase->is_at_source : true;
 
-        // Calculate component floor areas from floors OR rent_components fallbacks
         $floors = $agreement->floors;
         $components = $rentBase?->components ?? collect();
 
@@ -69,12 +79,10 @@ class MonthlyScheduleGenerator
         $parkingArea = max((float) $floors->sum('car_parking'), (float) ($components->where('component_type', 'car_parking')->first()?->area_sft ?? 0));
         $storeArea = max((float) $floors->sum('store_space_sft'), (float) ($components->where('component_type', 'store_space')->first()?->area_sft ?? 0));
 
-        // Default area fallback to 739 sq ft if unpopulated so VAT >= 150 sq ft is properly applied
         if ($officeArea < $taxableThreshold) {
             $officeArea = 739.0;
         }
 
-        // Get base net rents for components
         $baseOfficeNet = 0.0;
         $baseDgNet = 0.0;
         $baseParkingNet = 0.0;
@@ -94,7 +102,7 @@ class MonthlyScheduleGenerator
             $baseOfficeNet = (float) $rentBase->base_rent;
         }
 
-        // 3. Calculate Base Gross Rents (un-incremented) for each component
+        // 3. Calculate Base Gross Rents
         $baseOfficeGross = $this->grossUpCalculator->calculateComponentGross(
             $baseOfficeNet, $officeArea, $isAtSource, $taxPercent, $vatPercent, $taxableThreshold
         )['total_gross'];
@@ -115,9 +123,6 @@ class MonthlyScheduleGenerator
         $increments = $agreement->rentIncrements;
         $securityDeposits = $agreement->securityDeposits;
 
-        // Reference base used solely to derive increment-cycle metadata (cycle no.,
-        // effective date, compounded uplift %). Office gross is preferred; fall back
-        // to the other components so the cycle is still reported when office is 0.
         $incrementReferenceBase = $baseOfficeGross > 0
             ? $baseOfficeGross
             : max($baseDgGross + $baseParkingGross + $baseStoreGross, 1.0);
@@ -125,12 +130,57 @@ class MonthlyScheduleGenerator
         // 5. Setup Discounting
         $monthlyRate = $this->discountingService->annualToMonthlyRate($annualDiscountRate);
 
-        // 6. Generate Schedule Loop
+        // 6. Accumulate Arrears for months between agreement_date and payment_start_date
+        $accumulatedOfficeGross = 0.0;
+        $accumulatedDgGross = 0.0;
+        $accumulatedParkingGross = 0.0;
+        $accumulatedStoreGross = 0.0;
+        $accumulatedTotalGross = 0.0;
+        $accumulatedAdvanceDeduction = 0.0;
+        $priorElapsedMonths = 0;
+
+        if ($paymentStartCarbon->gt($agreementStartCarbon)) {
+            $curr = $agreementStartCarbon->copy();
+            while ($curr->lt($paymentStartCarbon)) {
+                $bMonth = $curr->format('Y-m');
+
+                $offResult = $this->incrementProjector->calculateEffectiveGross($baseOfficeGross, $increments, $bMonth);
+                $dgResult = $this->incrementProjector->calculateEffectiveGross($baseDgGross, $increments, $bMonth);
+                $parkResult = $this->incrementProjector->calculateEffectiveGross($baseParkingGross, $increments, $bMonth);
+                $stResult = $this->incrementProjector->calculateEffectiveGross($baseStoreGross, $increments, $bMonth);
+
+                $mOff = round($offResult['effective_gross'], 2);
+                $mDg = round($dgResult['effective_gross'], 2);
+                $mPark = round($parkResult['effective_gross'], 2);
+                $mSt = round($stResult['effective_gross'], 2);
+                $mTot = round($mOff + $mDg + $mPark + $mSt, 2);
+
+                $adj = $this->advanceScheduler->getAdjustmentsForMonth(
+                    $securityDeposits,
+                    $bMonth,
+                    $agreementDateStr,
+                    $expiryDateStr,
+                    false
+                );
+                $mAdv = round($adj['advance_deduction'], 2);
+
+                $accumulatedOfficeGross += $mOff;
+                $accumulatedDgGross += $mDg;
+                $accumulatedParkingGross += $mPark;
+                $accumulatedStoreGross += $mSt;
+                $accumulatedTotalGross += $mTot;
+                $accumulatedAdvanceDeduction += $mAdv;
+                $priorElapsedMonths++;
+
+                $curr->addMonth();
+            }
+        }
+
         $cashFlows = [];
-        $current = $baseCarbon->copy();
+        $current = $paymentStartCarbon->copy();
         $cumulativePV = 0.0;
 
-        // Period 0: Initial Upfront Settlement (Absorbable Advance + Non-Absorbable Security Deposit paid upfront)
+        // Period 0: Initial Upfront Settlement (Starts strictly at payment_start_date)
         $initialDepositTotal = 0.0;
         if ($securityDeposits->isNotEmpty()) {
             $firstDeposit = $securityDeposits->first();
@@ -156,8 +206,8 @@ class MonthlyScheduleGenerator
         if ($initialDepositTotal > 0) {
             $cashFlows[] = new MonthlyCashFlow(
                 periodIndex: 0,
-                billingMonth: $baseCarbon->format('Y-m'),
-                monthLabel: $baseCarbon->format('M Y') . ' (Initial Upfront)',
+                billingMonth: $paymentStartCarbon->format('Y-m'),
+                monthLabel: $paymentStartCarbon->format('M Y') . ' (Initial Upfront)',
                 officeGrossRent: 0.0,
                 dgGrossRent: 0.0,
                 parkingGrossRent: 0.0,
@@ -174,61 +224,64 @@ class MonthlyScheduleGenerator
             $cumulativePV = round($initialDepositTotal, 2);
         }
 
-        // Check if Base Date is after Agreement Start Date to accumulate initial elapsed months in Month 1
-        $agreementStartCarbon = Carbon::parse($agreement->from_date ?: $baseDate)->startOfMonth();
-        $elapsedMonthsPriorToBase = 0;
-        if ($baseCarbon->gt($agreementStartCarbon)) {
-            $elapsedMonthsPriorToBase = $agreementStartCarbon->diffInMonths($baseCarbon);
-        }
-
         $periodIndex = 1;
 
         while ($current->lte($expiryCarbon)) {
             $billingMonth = $current->format('Y-m');
             $monthLabel = $current->format('M Y');
             $isExpiryMonth = $current->format('Y-m') === Carbon::parse($expiryDateStr)->format('Y-m');
+            $isFirstPaymentMonth = ($periodIndex === 1);
 
-            // Apply increments to component gross rents
+            // Compute current month gross rents
             $officeIncResult = $this->incrementProjector->calculateEffectiveGross($baseOfficeGross, $increments, $billingMonth);
             $dgIncResult = $this->incrementProjector->calculateEffectiveGross($baseDgGross, $increments, $billingMonth);
             $parkingIncResult = $this->incrementProjector->calculateEffectiveGross($baseParkingGross, $increments, $billingMonth);
             $storeIncResult = $this->incrementProjector->calculateEffectiveGross($baseStoreGross, $increments, $billingMonth);
-
-            // Increment cycle metadata for this month (independent of which component is populated)
             $incMeta = $this->incrementProjector->calculateEffectiveGross($incrementReferenceBase, $increments, $billingMonth);
 
-            // Month 1 adjustment multiplier if calculation base date is after lease start date
-            $month1Multiplier = ($periodIndex === 1 && $elapsedMonthsPriorToBase > 0) ? (1 + $elapsedMonthsPriorToBase) : 1;
+            $mOfficeGross = round($officeIncResult['effective_gross'], 2);
+            $mDgGross = round($dgIncResult['effective_gross'], 2);
+            $mParkingGross = round($parkingIncResult['effective_gross'], 2);
+            $mStoreGross = round($storeIncResult['effective_gross'], 2);
+            $mTotalGross = round($mOfficeGross + $mDgGross + $mParkingGross + $mStoreGross, 2);
 
-            $officeGross = round($officeIncResult['effective_gross'] * $month1Multiplier, 2);
-            $dgGross = round($dgIncResult['effective_gross'] * $month1Multiplier, 2);
-            $parkingGross = round($parkingIncResult['effective_gross'] * $month1Multiplier, 2);
-            $storeGross = round($storeIncResult['effective_gross'] * $month1Multiplier, 2);
-            $totalGross = round($officeGross + $dgGross + $parkingGross + $storeGross, 2);
-
-            // Fetch advance deductions & deposit refunds using agreement from_date & to_date fallbacks
             $adjustments = $this->advanceScheduler->getAdjustmentsForMonth(
                 $securityDeposits,
                 $billingMonth,
-                $agreement->from_date,
-                $agreement->to_date,
+                $paymentStartDateStr,
+                $expiryDateStr,
                 $isExpiryMonth
             );
-            $advanceDeduction = round($adjustments['advance_deduction'] * $month1Multiplier, 2);
+            $mAdvanceDeduction = round($adjustments['advance_deduction'], 2);
             $depositRefund = $adjustments['deposit_refund'];
 
-            // Net cash outflow
+            // Period 1 includes accumulated prior arrears from agreement start date
+            $officeGross = round($mOfficeGross + ($isFirstPaymentMonth ? $accumulatedOfficeGross : 0.0), 2);
+            $dgGross = round($mDgGross + ($isFirstPaymentMonth ? $accumulatedDgGross : 0.0), 2);
+            $parkingGross = round($mParkingGross + ($isFirstPaymentMonth ? $accumulatedParkingGross : 0.0), 2);
+            $storeGross = round($mStoreGross + ($isFirstPaymentMonth ? $accumulatedStoreGross : 0.0), 2);
+            $totalGross = round($mTotalGross + ($isFirstPaymentMonth ? $accumulatedTotalGross : 0.0), 2);
+
+            $advanceDeduction = round($mAdvanceDeduction + ($isFirstPaymentMonth ? $accumulatedAdvanceDeduction : 0.0), 2);
             $netOutflow = round($totalGross - $advanceDeduction - $depositRefund, 2);
 
-            // Discount factor & PV
+            // Discounting starts strictly at payment_start_date (Period 1 = payment_start_date)
             $discountFactor = $this->discountingService->calculateDiscountFactor($periodIndex, $monthlyRate);
             $presentValue = round($this->discountingService->calculatePresentValue($netOutflow, $discountFactor), 2);
             $cumulativePV = round($cumulativePV + $presentValue, 2);
 
+            $arrearsTotalForMonth = ($isFirstPaymentMonth && $accumulatedTotalGross > 0)
+                ? round($accumulatedTotalGross - $accumulatedAdvanceDeduction, 2) 
+                : 0.0;
+
+            $totalMonthsPaidStr = ($isFirstPaymentMonth && $priorElapsedMonths > 0)
+                ? ' (' . ($priorElapsedMonths + 1) . ' Mos Rent Paid)'
+                : '';
+
             $cashFlows[] = new MonthlyCashFlow(
                 periodIndex: $periodIndex,
                 billingMonth: $billingMonth,
-                monthLabel: $monthLabel,
+                monthLabel: $monthLabel . $totalMonthsPaidStr,
                 officeGrossRent: $officeGross,
                 dgGrossRent: $dgGross,
                 parkingGrossRent: $parkingGross,
@@ -245,7 +298,9 @@ class MonthlyScheduleGenerator
                 totalIncrementCycles: $incMeta['total_cycles'],
                 incrementStartsThisMonth: $incMeta['starts_this_month'],
                 incrementEffectiveFrom: $incMeta['effective_from'],
-                incrementUpliftPct: $incMeta['uplift_pct']
+                incrementUpliftPct: $incMeta['uplift_pct'],
+                isDeferred: false,
+                arrearsAmount: $arrearsTotalForMonth
             );
 
             $periodIndex++;

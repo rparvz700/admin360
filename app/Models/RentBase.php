@@ -128,12 +128,12 @@ class RentBase extends Model
     // Accessors for agreement start and end date
     public function getAgreementStartDateAttribute()
     {
-        return $this->agreement ? $this->agreement->from_date : null;
+        return $this->agreement ? ($this->agreement->payment_start_date ?? $this->agreement->from_date) : null;
     }
 
     public function getAgreementEndDateAttribute()
     {
-        return $this->agreement ? $this->agreement->to_date : null;
+        return $this->agreement ? ($this->agreement->expiry_date ?? $this->agreement->to_date) : null;
     }
 
     // Relationship: increments

@@ -18,8 +18,9 @@ class DashboardController extends Controller
         $floorsCount = PropertiesFloor::count();
         // Placeholder for air conditions count
         $airConditionsCount = 0;
-        $agreementsExpiring = Agreement::whereMonth('to_date', now()->month)
-            ->whereYear('to_date', now()->year)
+        $expiryCol = \Schema::hasColumn('agreements', 'expiry_date') ? 'expiry_date' : 'to_date';
+        $agreementsExpiring = Agreement::whereMonth($expiryCol, now()->month)
+            ->whereYear($expiryCol, now()->year)
             ->count();
         // Try 'payment_status' if 'status' does not exist. Adjust as needed.
         $pendingPayments = 0;

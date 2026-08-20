@@ -62,7 +62,7 @@
             @enderror
         </div>
 
-        <!-- Row 2: Agreement Date, From Date, To Date -->
+        <!-- Row 2: Agreement Date, Payment Start Date, Expiry Date -->
         <div class="col-lg-4 col-md-6">
             <label class="form-label fw-semibold" for="agreement_date">Agreement Date</label>
             <input type="date" class="form-control @error('agreement_date') is-invalid @enderror" id="agreement_date"
@@ -73,18 +73,24 @@
         </div>
 
         <div class="col-lg-4 col-md-6">
-            <label class="form-label fw-semibold" for="from_date">From Date</label>
-            <input type="date" class="form-control @error('from_date') is-invalid @enderror" id="from_date"
-                name="from_date" value="{{ old('from_date', $agreement->from_date ?? '') }}">
+            <label class="form-label fw-semibold" for="payment_start_date">Payment Start Date</label>
+            <input type="date" class="form-control @error('payment_start_date') @elseif($errors->has('from_date')) is-invalid @enderror" id="payment_start_date"
+                name="payment_start_date" value="{{ old('payment_start_date', old('from_date', $agreement->payment_start_date ?? ($agreement->from_date ?? ''))) }}">
+            @error('payment_start_date')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
             @error('from_date')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
 
         <div class="col-lg-4 col-md-6">
-            <label class="form-label fw-semibold" for="to_date">To Date</label>
-            <input type="date" class="form-control @error('to_date') is-invalid @enderror" id="to_date"
-                name="to_date" value="{{ old('to_date', $agreement->to_date ?? '') }}">
+            <label class="form-label fw-semibold" for="expiry_date">Expiry Date</label>
+            <input type="date" class="form-control @error('expiry_date') @elseif($errors->has('to_date')) is-invalid @enderror" id="expiry_date"
+                name="expiry_date" value="{{ old('expiry_date', old('to_date', $agreement->expiry_date ?? ($agreement->to_date ?? ''))) }}">
+            @error('expiry_date')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
             @error('to_date')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror

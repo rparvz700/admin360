@@ -24,6 +24,8 @@ class MonthlyCashFlow
         public int $totalIncrementCycles = 0, // Total increment cycles defined on the agreement
         public bool $incrementStartsThisMonth = false, // True only on the month the cycle first takes effect
         public ?string $incrementEffectiveFrom = null, // Start date (Y-m-d) of the cycle in force
-        public float $incrementUpliftPct = 0.0 // Compounded uplift over base rent, in %
+        public float $incrementUpliftPct = 0.0, // Compounded uplift over base rent, in %
+        public bool $isDeferred = false, // True if month is in deferred payment period
+        public float $arrearsAmount = 0.0 // Cumulative arrears included in this month (first payment month)
     ) {}
 }

@@ -65,13 +65,13 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>From Date</th>
-                                            <td>{{ $agreement->from_date ? \Carbon\Carbon::parse($agreement->from_date)->format('Y-m-d') : 'N/A' }}
+                                            <th>Payment Start Date</th>
+                                            <td>{{ ($agreement->payment_start_date ?? $agreement->from_date) ? \Carbon\Carbon::parse($agreement->payment_start_date ?? $agreement->from_date)->format('Y-m-d') : 'N/A' }}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>To Date</th>
-                                            <td>{{ $agreement->to_date ? \Carbon\Carbon::parse($agreement->to_date)->format('Y-m-d') : 'N/A' }}
+                                            <th>Expiry Date</th>
+                                            <td>{{ ($agreement->expiry_date ?? $agreement->to_date) ? \Carbon\Carbon::parse($agreement->expiry_date ?? $agreement->to_date)->format('Y-m-d') : 'N/A' }}
                                             </td>
                                         </tr>
                                     </tbody>

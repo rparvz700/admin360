@@ -18,13 +18,33 @@ class Agreement extends Model
         'agreement_ref_no',
         'vendor_id',
         'agreement_date',
-        'from_date',
-        'to_date',
+        'payment_start_date',
+        'expiry_date',
         'status',
         'remarks',
         'created_at',
         'updated_at',
     ];
+
+    public function getPaymentStartDateAttribute($value)
+    {
+        return $value ?? ($this->attributes['from_date'] ?? null);
+    }
+
+    public function getExpiryDateAttribute($value)
+    {
+        return $value ?? ($this->attributes['to_date'] ?? null);
+    }
+
+    public function getFromDateAttribute($value)
+    {
+        return $this->attributes['payment_start_date'] ?? ($value ?? null);
+    }
+
+    public function getToDateAttribute($value)
+    {
+        return $this->attributes['expiry_date'] ?? ($value ?? null);
+    }
 
     protected static function booted(): void
     {

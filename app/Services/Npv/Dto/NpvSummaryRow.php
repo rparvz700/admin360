@@ -9,16 +9,21 @@ class NpvSummaryRow
         public string $agreementRefNo,
         public string $vendorName,
         public string $siteName,
-        public string $fromDate,
-        public string $toDate,
+        public string $paymentStartDate,
+        public string $expiryDate,
         public int $totalMonths,
         public float $totalNPV,
         public float $totalUndiscountedOutflow,
         public float $totalGrossRent,
         public float $totalAdvanceDeductions,
         public float $totalDepositRefunds,
-        public float $annualDiscountRate
-    ) {}
+        public float $annualDiscountRate,
+        public ?string $fromDate = null,
+        public ?string $toDate = null
+    ) {
+        $this->fromDate = $this->fromDate ?? $this->paymentStartDate;
+        $this->toDate = $this->toDate ?? $this->expiryDate;
+    }
 
     public function toArray(): array
     {
@@ -27,8 +32,10 @@ class NpvSummaryRow
             'agreement_ref_no' => $this->agreementRefNo,
             'vendor_name' => $this->vendorName,
             'site_name' => $this->siteName,
-            'from_date' => $this->fromDate,
-            'to_date' => $this->toDate,
+            'payment_start_date' => $this->paymentStartDate,
+            'expiry_date' => $this->expiryDate,
+            'from_date' => $this->paymentStartDate,
+            'to_date' => $this->expiryDate,
             'total_months' => $this->totalMonths,
             'total_npv' => $this->totalNPV,
             'total_undiscounted_outflow' => $this->totalUndiscountedOutflow,

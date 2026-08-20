@@ -88,8 +88,8 @@ return [
             'columns' => [
                 'agreement_ref_no' => 'Reference No',
                 'agreement_date' => 'Agreement Date',
-                'from_date' => 'From Date',
-                'to_date' => 'To Date',
+                'payment_start_date' => 'Payment Start Date',
+                'expiry_date' => 'Expiry Date',
                 'status' => 'Status',
                 'remarks' => 'Remarks',
                 'created_at' => 'Created At',

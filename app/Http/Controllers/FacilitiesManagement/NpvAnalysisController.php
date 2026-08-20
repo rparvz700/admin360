@@ -34,9 +34,9 @@ class NpvAnalysisController extends Controller
         $selectedAgreementId = $request->get('agreement_id');
         $selectedAgreement = $selectedAgreementId ? $agreements->firstWhere('id', $selectedAgreementId) : null;
 
-        // Default base date to selected agreement's from_date, or start of current month
+        // Default base date to selected agreement's payment_start_date, or start of current month
         $defaultBaseDate = $request->get('base_date') 
-            ?: ($selectedAgreement?->from_date ?: now()->startOfMonth()->format('Y-m-d'));
+            ?: (($selectedAgreement?->payment_start_date ?? $selectedAgreement?->from_date) ?: now()->startOfMonth()->format('Y-m-d'));
 
         $initialResult = null;
 
@@ -133,7 +133,8 @@ class NpvAnalysisController extends Controller
             fputcsv($handle, ['Net Present Value (NPV) Calculation Report']);
             fputcsv($handle, ['Agreement Reference', $result->agreement->agreement_ref_no]);
             fputcsv($handle, ['Vendor / Landlord', $result->agreement->vendor->name ?? 'N/A']);
-            fputcsv($handle, ['Base Date', $result->baseDate]);
+            fputcsv($handle, ['Agreement Date', $result->agreement->agreement_date ?? $result->baseDate]);
+            fputcsv($handle, ['Payment Start Date', $result->agreement->payment_start_date ?? ($result->agreement->from_date ?? 'N/A')]);
             fputcsv($handle, ['Expiry Date', $result->expiryDate]);
             fputcsv($handle, ['Annual Discount Rate (%)', $result->annualDiscountRate . '%']);
             fputcsv($handle, ['Monthly Compounding Rate (%)', number_format($result->monthlyDiscountRate * 100, 6) . '%']);

@@ -61,7 +61,9 @@
                                 @endphp
                                 <option value="{{ $agr->id }}"
                                     {{ old('agreement_id', $selectedAgreementId) == $agr->id ? 'selected' : '' }}
-                                    data-from="{{ $agr->from_date }}" data-to="{{ $agr->to_date }}">
+                                    data-from="{{ $agr->agreement_date ?? ($agr->payment_start_date ?? $agr->from_date) }}"
+                                    data-payment-start="{{ $agr->payment_start_date ?? $agr->from_date }}"
+                                    data-to="{{ $agr->expiry_date ?? $agr->to_date }}">
                                     {{ $agr->agreement_ref_no }} | Site: {{ $bName }} ({{ $vendorName }})
                                 </option>
                             @endforeach
@@ -207,7 +209,9 @@
                                     <div>VAT: ৳ {{ number_format($latestRentBase->vat ?? 0, 2) }} | Tax: ৳
                                         {{ number_format($latestRentBase->tax ?? 0, 2) }}</div>
                                     <div class="mt-1 fs-2xs text-muted">
-                                        Agreement Term: <strong>{{ $initialResult->agreement->from_date ? \Carbon\Carbon::parse($initialResult->agreement->from_date)->format('d M Y') : 'N/A' }}</strong> to <strong>{{ $initialResult->agreement->to_date ? \Carbon\Carbon::parse($initialResult->agreement->to_date)->format('d M Y') : 'N/A' }}</strong>
+                                        Agreement Date: <strong>{{ $initialResult->agreement->agreement_date ? \Carbon\Carbon::parse($initialResult->agreement->agreement_date)->format('d M Y') : 'N/A' }}</strong> &bull; 
+                                        Payment Start: <strong>{{ ($initialResult->agreement->payment_start_date ?? $initialResult->agreement->from_date) ? \Carbon\Carbon::parse($initialResult->agreement->payment_start_date ?? $initialResult->agreement->from_date)->format('d M Y') : 'N/A' }}</strong> to 
+                                        Expiry: <strong>{{ ($initialResult->agreement->expiry_date ?? $initialResult->agreement->to_date) ? \Carbon\Carbon::parse($initialResult->agreement->expiry_date ?? $initialResult->agreement->to_date)->format('d M Y') : 'N/A' }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -446,11 +450,20 @@
                         </thead>
                         <tbody>
                             @foreach ($initialResult->cashFlows as $cf)
-                                <tr>
+                                <tr class="{{ $cf->isDeferred ? 'table-light text-muted opacity-75' : ($cf->arrearsAmount > 0 ? 'table-warning-light' : '') }}">
                                     <td class="text-center text-muted font-mono fs-xs npv-col-left-1">
                                         {{ $cf->periodIndex }}</td>
                                     <td class="text-center fw-semibold fs-xs npv-col-left-2">
                                         {{ $cf->monthLabel }}
+                                        @if ($cf->isDeferred)
+                                            <span class="badge bg-secondary ms-1 fs-3xs" title="No payment due this month (Deferred Payment Period)">
+                                                <i class="fa fa-clock"></i> Deferred
+                                            </span>
+                                        @elseif ($cf->arrearsAmount > 0)
+                                            <span class="badge bg-warning text-dark ms-1 fs-3xs" title="Includes ৳ {{ number_format($cf->arrearsAmount, 2) }} arrears from deferred period">
+                                                <i class="fa fa-hand-holding-usd"></i> Arrears Paid
+                                            </span>
+                                        @endif
                                         @if ($cf->incrementCycle > 0)
                                             @php
                                                 $incCurrent = collect($cf->activeIncrements)->last();
@@ -609,12 +622,12 @@
                 });
             }
 
-            // Auto-set Calculation Base Date to Agreement's From Date when agreement is selected
+            // Auto-set Calculation Base Date to Agreement's Payment Start Date when agreement is selected
             $('#agreement_id').on('change select2:select', function() {
                 const selectedOption = $(this).find('option:selected');
-                const fromDate = selectedOption.data('from');
-                if (fromDate) {
-                    $('#base_date').val(fromDate);
+                const paymentStart = selectedOption.data('payment-start') || selectedOption.data('from');
+                if (paymentStart) {
+                    $('#base_date').val(paymentStart);
                 }
             });
 
