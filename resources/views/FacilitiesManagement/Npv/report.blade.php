@@ -417,6 +417,51 @@
                                 $('#modalAuditSdStartDate').text(formatDateStr(audit
                                     .sd_start_date));
 
+                                if (audit.sd_clauses && audit.sd_clauses.length > 0) {
+                                    const activeClauses = audit.sd_clauses.filter(c => c.absorb_amount > 0 || c.frequency > 0);
+                                    if (activeClauses.length > 1) {
+                                        $('#modalAuditSdBadge').text(activeClauses.length + ' Clauses').removeClass('d-none');
+                                    } else {
+                                        $('#modalAuditSdBadge').addClass('d-none');
+                                    }
+
+                                    if (activeClauses.length > 0) {
+                                        let sdHtml = `
+                                            <div class="mt-2 border-top pt-2">
+                                                <div class="fw-semibold text-dark mb-1 fs-3xs">Adjustment Clauses Schedule:</div>
+                                                <div class="table-responsive" style="max-height: 120px; overflow-y: auto;">
+                                                    <table class="table table-sm table-bordered mb-0 bg-white" style="font-size: 10px;">
+                                                        <thead>
+                                                            <tr class="table-secondary" style="font-size: 10px; text-transform: uppercase;">
+                                                                <th>Clause</th>
+                                                                <th class="text-end">Amount</th>
+                                                                <th class="text-center">Interval</th>
+                                                                <th class="text-end">Monthly</th>
+                                                                <th class="text-center">Period</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>`;
+                                        activeClauses.forEach(function(c, idx) {
+                                            let amt = c.absorb_amount || 0;
+                                            let freq = c.frequency || 0;
+                                            let monthly = (amt > 0 && freq > 0) ? (amt / freq) : 0;
+                                            let startStr = c.start_date ? formatDateStr(c.start_date) : 'Auto/Seq';
+                                            let endStr = c.end_date ? formatDateStr(c.end_date) : (freq > 0 ? freq + ' mos' : 'N/A');
+
+                                            sdHtml += `
+                                                <tr>
+                                                    <td>Clause #${idx + 1}</td>
+                                                    <td class="text-end">৳ ${amt.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                                                    <td class="text-center">${freq} mos</td>
+                                                    <td class="text-end text-info fw-semibold">৳ ${monthly.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                                                    <td class="text-center fs-3xs">${startStr} - ${endStr}</td>
+                                                </tr>`;
+                                        });
+                                        sdHtml += `</tbody></table></div></div>`;
+                                        $('#modalAuditSdClausesBox').html(sdHtml);
+                                    }
+                                }
+
                                 // Components Breakdown Table
                                 if (audit.components && audit.components.length > 0) {
                                     let compHtml = `

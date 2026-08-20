@@ -215,19 +215,76 @@
                             <!-- Row 1 Right: Security Deposit & Advance Structure -->
                             <div class="col-md-6">
                                 <div class="audit-data-box h-100">
-                                    <div class="text-muted font-semibold mb-1">Security Deposit & Advance Structure</div>
-                                    <div>Total Deposit: <strong>৳
-                                            {{ number_format($latestSd->security_deposit_total ?? 0, 2) }}</strong></div>
-                                    <div>Adjustable Advance: <strong>৳
-                                            {{ number_format($latestSd->security_deposit_absorbable ?? 0, 2) }}</strong>
+                                    <div class="text-muted font-semibold mb-1 d-flex justify-content-between align-items-center">
+                                        <span>Security Deposit & Advance Structure</span>
+                                        @if($initialResult->agreement->securityDeposits->count() > 1)
+                                            <span class="badge bg-primary-light text-primary fs-3xs">{{ $initialResult->agreement->securityDeposits->count() }} Clauses</span>
+                                        @endif
                                     </div>
-                                    <div>Non-Adjustable Deposit: <strong>৳
-                                            {{ number_format($latestSd->security_deposit_non_absorbable ?? 0, 2) }}</strong>
-                                    </div>
-                                    <div class="mt-1 fs-2xs text-muted">
-                                        Interval: {{ $latestSd->absorb_frequency ?? 'N/A' }} months | Start:
-                                        {{ $latestSd->absorb_start_date ?? 'N/A' }}
-                                    </div>
+                                    <div>Total Deposit: <strong>৳ {{ number_format($initialResult->agreement->securityDeposits->max('security_deposit_total') ?? ($latestSd->security_deposit_total ?? 0), 2) }}</strong></div>
+                                    <div>Adjustable Advance: <strong>৳ {{ number_format($initialResult->absorbableAdvanceTotal, 2) }}</strong></div>
+                                    <div>Non-Adjustable Deposit: <strong>৳ {{ number_format($initialResult->nonAbsorbableDepositTotal, 2) }}</strong></div>
+
+                                    @php $sdRows = $initialResult->agreement->securityDeposits->filter(fn($sd) => $sd->absorb_amount > 0 || $sd->absorb_frequency > 0); @endphp
+                                    @if($sdRows->isNotEmpty())
+                                        <div class="mt-2 border-top pt-2">
+                                            <div class="fw-semibold text-dark mb-1 fs-3xs">Adjustment Clauses Schedule:</div>
+                                            <div class="table-responsive" style="max-height: 120px; overflow-y: auto;">
+                                                <table class="table table-sm table-bordered mb-0 bg-white" style="font-size: 10px;">
+                                                    <thead>
+                                                        <tr class="table-secondary" style="font-size: 10px; text-transform: uppercase;">
+                                                            <th>Clause</th>
+                                                            <th class="text-end">Amount</th>
+                                                            <th class="text-center">Interval</th>
+                                                            <th class="text-end">Monthly</th>
+                                                            <th class="text-center">Period</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @php $prevClauseEnd = null; @endphp
+                                                        @foreach($sdRows as $idx => $sd)
+                                                            @php
+                                                                $amount = (float)($sd->absorb_amount ?? 0);
+                                                                $interval = (int)($sd->absorb_frequency ?? 0);
+                                                                $monthly = ($amount > 0 && $interval > 0) ? ($amount / $interval) : 0;
+                                                                
+                                                                if ($sd->absorb_start_date) {
+                                                                    $cStart = \Carbon\Carbon::parse($sd->absorb_start_date);
+                                                                } elseif ($prevClauseEnd) {
+                                                                    $cStart = $prevClauseEnd->copy()->addMonth()->startOfMonth();
+                                                                } else {
+                                                                    $cStart = $initialResult->agreement->from_date ? \Carbon\Carbon::parse($initialResult->agreement->from_date) : null;
+                                                                }
+
+                                                                if ($sd->absorb_end_date) {
+                                                                    $cEnd = \Carbon\Carbon::parse($sd->absorb_end_date);
+                                                                } elseif ($cStart && $interval > 0) {
+                                                                    $cEnd = $cStart->copy()->addMonths($interval - 1)->endOfMonth();
+                                                                } else {
+                                                                    $cEnd = null;
+                                                                }
+
+                                                                if ($cEnd) { $prevClauseEnd = $cEnd; }
+                                                            @endphp
+                                                            <tr>
+                                                                <td>Clause #{{ $loop->iteration }}</td>
+                                                                <td class="text-end">৳ {{ number_format($amount, 2) }}</td>
+                                                                <td class="text-center">{{ $interval }} mos</td>
+                                                                <td class="text-end text-info fw-semibold">৳ {{ number_format($monthly, 2) }}</td>
+                                                                <td class="text-center fs-3xs">
+                                                                    {{ $cStart ? $cStart->format('M Y') : 'N/A' }} - {{ $cEnd ? $cEnd->format('M Y') : 'N/A' }}
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="mt-1 fs-2xs text-muted">
+                                            Interval: {{ $latestSd->absorb_frequency ?? 'N/A' }} months | Start: {{ $latestSd->absorb_start_date ?? 'N/A' }}
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
 

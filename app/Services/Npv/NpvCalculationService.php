@@ -76,9 +76,17 @@ class NpvCalculationService
         }
 
         // Fetch security deposit summary totals from DB/relation
-        $firstDeposit = $agreement->securityDeposits->first();
-        $absorbableTotal = (float) ($firstDeposit->security_deposit_absorbable ?? 0);
-        $nonAbsorbableTotal = (float) ($firstDeposit->security_deposit_non_absorbable ?? 0);
+        $deposits = $agreement->securityDeposits;
+        $firstDeposit = $deposits->first();
+        $absorbableTotal = max(
+            (float) ($firstDeposit->security_deposit_absorbable ?? 0),
+            (float) $deposits->max('security_deposit_absorbable'),
+            (float) $deposits->sum('absorb_amount')
+        );
+        $nonAbsorbableTotal = max(
+            (float) ($firstDeposit->security_deposit_non_absorbable ?? 0),
+            (float) $deposits->max('security_deposit_non_absorbable')
+        );
 
         return new NpvCalculationResult(
             agreement: $agreement,

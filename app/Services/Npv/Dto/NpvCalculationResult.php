@@ -31,9 +31,24 @@ class NpvCalculationResult
         $latestRentBase = $this->agreement->relationLoaded('rentBases')
             ? $this->agreement->rentBases->sortByDesc('id')->first()
             : null;
-        $latestSd = $this->agreement->relationLoaded('securityDeposits')
-            ? $this->agreement->securityDeposits->sortByDesc('id')->first()
-            : null;
+        $securityDeposits = $this->agreement->relationLoaded('securityDeposits')
+            ? $this->agreement->securityDeposits
+            : collect();
+        $latestSd = $securityDeposits->sortByDesc('id')->first();
+        $sdAbsorbable = max(
+            (float) ($latestSd->security_deposit_absorbable ?? 0),
+            (float) $securityDeposits->max('security_deposit_absorbable'),
+            (float) $securityDeposits->sum('absorb_amount')
+        );
+        $sdNonAbsorbable = max(
+            (float) ($latestSd->security_deposit_non_absorbable ?? 0),
+            (float) $securityDeposits->max('security_deposit_non_absorbable')
+        );
+        $sdTotal = max(
+            (float) ($latestSd->security_deposit_total ?? 0),
+            (float) $securityDeposits->max('security_deposit_total'),
+            $sdAbsorbable + $sdNonAbsorbable
+        );
         $increments = $this->agreement->relationLoaded('rentIncrements')
             ? $this->agreement->rentIncrements->sortBy('increment_start_date')
             : collect();
@@ -73,11 +88,18 @@ class NpvCalculationResult
                     'amount' => $inc->increment_amount ? round($inc->increment_amount, 2) : null,
                     'incremented_amount' => round($inc->incremented_amount ?? 0, 2),
                 ])->values()->all(),
-                'sd_total' => round($latestSd->security_deposit_total ?? 0, 2),
-                'sd_absorbable' => round($latestSd->security_deposit_absorbable ?? 0, 2),
-                'sd_non_absorbable' => round($latestSd->security_deposit_non_absorbable ?? 0, 2),
+                'sd_total' => round($sdTotal, 2),
+                'sd_absorbable' => round($sdAbsorbable, 2),
+                'sd_non_absorbable' => round($sdNonAbsorbable, 2),
                 'sd_frequency' => $latestSd->absorb_frequency ?? null,
                 'sd_start_date' => $latestSd->absorb_start_date ?? null,
+                'sd_clauses' => $securityDeposits->map(fn($sd) => [
+                    'absorb_amount' => round($sd->absorb_amount ?? 0, 2),
+                    'frequency' => $sd->absorb_frequency,
+                    'start_date' => $sd->absorb_start_date,
+                    'end_date' => $sd->absorb_end_date,
+                    'description' => $sd->method_description,
+                ])->values()->all(),
             ],
             'cash_flows' => array_map(fn(MonthlyCashFlow $cf) => [
                 'period_index' => $cf->periodIndex,

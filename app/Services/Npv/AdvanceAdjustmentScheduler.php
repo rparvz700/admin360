@@ -39,8 +39,15 @@ class AdvanceAdjustmentScheduler
 
         // 1. Extract unique summary values (prevent duplicate row aggregation)
         $firstDeposit = $deposits->first();
-        $absorbableTotal = max((float) ($firstDeposit->security_deposit_absorbable ?? 0), (float) $deposits->max('security_deposit_absorbable'));
-        $nonAbsorbableTotal = max((float) ($firstDeposit->security_deposit_non_absorbable ?? 0), (float) $deposits->max('security_deposit_non_absorbable'));
+        $absorbableTotal = max(
+            (float) ($firstDeposit->security_deposit_absorbable ?? 0),
+            (float) $deposits->max('security_deposit_absorbable'),
+            (float) $deposits->sum('absorb_amount')
+        );
+        $nonAbsorbableTotal = max(
+            (float) ($firstDeposit->security_deposit_non_absorbable ?? 0),
+            (float) $deposits->max('security_deposit_non_absorbable')
+        );
 
         // Fallback total agreement duration in months
         $fallbackStart = $agreementFromDate ? Carbon::parse($agreementFromDate)->startOfMonth() : null;
@@ -58,24 +65,43 @@ class AdvanceAdjustmentScheduler
         });
 
         if ($scheduleRows->isNotEmpty()) {
+            $prevEndDate = null;
+
             foreach ($scheduleRows as $sd) {
                 $absorbAmount = (float) ($sd->absorb_amount ?? 0);
-                $startDateStr = $sd->absorb_start_date ?: $agreementFromDate;
-                $endDateStr = $sd->absorb_end_date ?: $agreementToDate;
                 $monthsInterval = (int) ($sd->absorb_frequency ?? 0);
 
                 if ($monthsInterval <= 0) {
                     $monthsInterval = $fallbackMonths;
                 }
 
-                $isWithinRange = false;
-                if ($startDateStr) {
-                    $absStart = Carbon::parse($startDateStr)->startOfMonth();
-                    $absEnd = $endDateStr 
-                        ? Carbon::parse($endDateStr)->endOfMonth()
-                        : ($monthsInterval > 0 ? $absStart->copy()->addMonths($monthsInterval - 1)->endOfMonth() : $fallbackEnd);
+                // Determine start date for this clause (chains sequentially if absorb_start_date is omitted)
+                if ($sd->absorb_start_date) {
+                    $absStart = Carbon::parse($sd->absorb_start_date)->startOfMonth();
+                } elseif ($prevEndDate !== null) {
+                    $absStart = $prevEndDate->copy()->addMonth()->startOfMonth();
+                } elseif ($agreementFromDate) {
+                    $absStart = Carbon::parse($agreementFromDate)->startOfMonth();
+                } else {
+                    $absStart = null;
+                }
 
-                    if ($absEnd && $monthStart->gte($absStart) && $monthStart->lte($absEnd)) {
+                // Determine end date for this clause
+                if ($sd->absorb_end_date) {
+                    $absEnd = Carbon::parse($sd->absorb_end_date)->endOfMonth();
+                } elseif ($absStart && $monthsInterval > 0) {
+                    $absEnd = $absStart->copy()->addMonths($monthsInterval - 1)->endOfMonth();
+                } else {
+                    $absEnd = $fallbackEnd;
+                }
+
+                if ($absEnd) {
+                    $prevEndDate = $absEnd;
+                }
+
+                $isWithinRange = false;
+                if ($absStart && $absEnd) {
+                    if ($monthStart->gte($absStart) && $monthStart->lte($absEnd)) {
                         $isWithinRange = true;
                     }
                 } elseif ($fallbackStart && $fallbackEnd) {
@@ -85,12 +111,9 @@ class AdvanceAdjustmentScheduler
                 }
 
                 if ($isWithinRange) {
-                    if ($absorbAmount > 0) {
-                        // Check if absorb_amount was stored as total or per-month
-                        $deduction = ($monthsInterval > 1 && $absorbAmount > ($absorbableTotal / 2) && $absorbableTotal > 0)
-                            ? ($absorbAmount / $monthsInterval)
-                            : $absorbAmount;
-                    } elseif ($monthsInterval > 0 && $absorbableTotal > 0) {
+                    if ($absorbAmount > 0 && $monthsInterval > 0) {
+                        $deduction = $absorbAmount / $monthsInterval;
+                    } elseif ($absorbableTotal > 0 && $monthsInterval > 0) {
                         $deduction = $absorbableTotal / $monthsInterval;
                     } else {
                         $deduction = 0.0;

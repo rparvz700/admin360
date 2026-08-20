@@ -95,12 +95,17 @@
                                     <!-- Row 1 Right: Security Deposit & Advance Structure -->
                                     <div class="col-md-6">
                                         <div class="audit-data-box h-100">
-                                            <div class="text-muted font-semibold mb-1">Security Deposit & Advance Structure</div>
+                                            <div class="text-muted font-semibold mb-1 d-flex justify-content-between align-items-center">
+                                                <span>Security Deposit & Advance Structure</span>
+                                                <span class="badge bg-primary-light text-primary fs-3xs d-none" id="modalAuditSdBadge">0 Clauses</span>
+                                            </div>
                                             <div>Total Deposit: <strong>৳ <span id="modalAuditSdTotal">0.00</span></strong></div>
                                             <div>Adjustable Advance: <strong>৳ <span id="modalAuditSdAbsorbable">0.00</span></strong></div>
                                             <div>Non-Adjustable Deposit: <strong>৳ <span id="modalAuditSdNonAbsorbable">0.00</span></strong></div>
-                                            <div class="mt-1 fs-2xs text-muted">
-                                                Interval: <span id="modalAuditSdFrequency">N/A</span> months | Start: <span id="modalAuditSdStartDate">N/A</span>
+                                            <div id="modalAuditSdClausesBox">
+                                                <div class="mt-1 fs-2xs text-muted">
+                                                    Interval: <span id="modalAuditSdFrequency">N/A</span> months | Start: <span id="modalAuditSdStartDate">N/A</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

@@ -131,14 +131,26 @@ class MonthlyScheduleGenerator
         $cumulativePV = 0.0;
 
         // Period 0: Initial Upfront Settlement (Absorbable Advance + Non-Absorbable Security Deposit paid upfront)
-        $firstDeposit = $securityDeposits->sortByDesc('id')->first();
         $initialDepositTotal = 0.0;
-        if ($firstDeposit) {
-            $absorbable = (float) ($firstDeposit->security_deposit_absorbable ?? 0);
-            $nonAbsorbable = (float) ($firstDeposit->security_deposit_non_absorbable ?? 0);
+        if ($securityDeposits->isNotEmpty()) {
+            $firstDeposit = $securityDeposits->first();
+            $absorbable = max(
+                (float) ($firstDeposit->security_deposit_absorbable ?? 0),
+                (float) $securityDeposits->max('security_deposit_absorbable'),
+                (float) $securityDeposits->sum('absorb_amount')
+            );
+            $nonAbsorbable = max(
+                (float) ($firstDeposit->security_deposit_non_absorbable ?? 0),
+                (float) $securityDeposits->max('security_deposit_non_absorbable')
+            );
+            $sdTotal = max(
+                (float) ($firstDeposit->security_deposit_total ?? 0),
+                (float) $securityDeposits->max('security_deposit_total')
+            );
+
             $initialDepositTotal = ($absorbable + $nonAbsorbable) > 0 
                 ? ($absorbable + $nonAbsorbable) 
-                : (float) ($firstDeposit->security_deposit_total ?? 0);
+                : $sdTotal;
         }
 
         if ($initialDepositTotal > 0) {
