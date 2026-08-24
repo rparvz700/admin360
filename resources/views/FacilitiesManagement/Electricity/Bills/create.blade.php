@@ -83,26 +83,35 @@
                     <div id="postpaid-section" class="border rounded p-3 mb-4 bg-body-extra-light">
                         <h4 class="fw-light mb-3 text-primary"><i class="fa fa-tachometer-alt me-1"></i> Postpaid Meter Reading</h4>
 
+                        <!-- NOC Verification Alert Banner Container (Empty by default) -->
+                        <div id="noc-banner-container"></div>
+
                         <!-- Off-Peak (Flat) - Required -->
                         <h5 class="fw-normal text-muted mb-2"><i class="fa fa-moon me-1"></i> Off-Peak / Flat - <span
                                 class="text-danger">Required</span></h5>
                         <div class="row mb-3">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label class="form-label" for="previous_reading">Previous Off-Peak Reading (kWh)</label>
                                 <input type="number" step="0.01" class="form-control bg-light calc-input"
                                     id="previous_reading" name="previous_reading" value="0.00" readonly>
                                 <small class="form-text text-muted">Auto-fetched from previous bill</small>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label class="form-label" for="current_reading">Current Off-Peak Reading (kWh) <span
-                                        class="text-danger">*</span></label>
+                                        class="text-danger" id="current_reading_req_mark">*</span></label>
                                 <input type="number" step="0.01" class="form-control calc-input" id="current_reading"
                                     name="current_reading" value="0.00">
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label class="form-label" for="units_consumed">Off-Peak Units Consumed (kWh)</label>
                                 <input type="number" step="0.01" class="form-control bg-light fw-bold text-info"
                                     id="units_consumed" name="units_consumed" readonly value="0.00">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label" for="rate_per_unit">Off-Peak Unit Charge (৳)</label>
+                                <input type="number" step="0.01" class="form-control bg-light" id="rate_per_unit"
+                                    name="rate_per_unit" value="0.00" readonly>
+                                <small class="form-text text-muted">Auto-fetched from meter</small>
                             </div>
                         </div>
 
@@ -112,34 +121,27 @@
                         <h5 class="fw-normal text-muted mb-2"><i class="fa fa-sun me-1"></i> Peak - <span
                                 class="text-secondary">Optional</span></h5>
                         <div class="row mb-3">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label class="form-label" for="previous_peak_reading">Previous Peak Reading (kWh)</label>
                                 <input type="number" step="0.01" class="form-control bg-light calc-input"
                                     id="previous_peak_reading" name="previous_peak_reading" value="0.00" readonly>
                                 <small class="form-text text-muted">Auto-fetched from previous bill</small>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label class="form-label" for="current_peak_reading">Current Peak Reading (kWh)</label>
                                 <input type="number" step="0.01" class="form-control calc-input"
                                     id="current_peak_reading" name="current_peak_reading" value="0.00">
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label class="form-label" for="units_peak_consumed">Peak Units Consumed (kWh)</label>
                                 <input type="number" step="0.01" class="form-control bg-light fw-bold text-info"
                                     id="units_peak_consumed" name="units_peak_consumed" readonly value="0.00">
                             </div>
-                        </div>
-
-                        <hr class="my-3">
-
-                        <!-- Unit Charge -->
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label" for="rate_per_unit">Unit Charge (৳) <span
-                                        class="text-danger">*</span></label>
-                                <input type="number" step="0.01" class="form-control calc-input" id="rate_per_unit"
-                                    name="rate_per_unit" value="0.00" placeholder="Enter unit charge">
-                                <small class="form-text text-muted">Flat unit charge rate applied to both readings</small>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label" for="rate_peak_per_unit">Peak Unit Charge (৳) <span class="text-muted">(Optional)</span></label>
+                                <input type="number" step="0.01" class="form-control bg-light" id="rate_peak_per_unit"
+                                    name="rate_peak_per_unit" value="0.00" readonly>
+                                <small class="form-text text-muted">Auto-fetched from meter</small>
                             </div>
                         </div>
                     </div>
@@ -351,6 +353,8 @@
             // When meter selected, fetch previous reading, prepaid details & set bill_type
             $('#meter_id').on('change select2:select', function() {
                 var meterId = $(this).val();
+                $('#noc-banner-container').empty();
+
                 if (!meterId) {
                     $('#project_name').val('').trigger('change');
                     $('#project_name_hidden').val('');
@@ -438,7 +442,7 @@
                     $('#current_reading, #rate_per_unit').prop('required', true);
                     $('#current_peak_reading').prop('required', false);
 
-                    // AJAX fetch previous readings
+                    // AJAX fetch previous readings & meter settings
                     $.ajax({
                         url: "{{ url('facilities-management/electricity/previous-reading') }}/" +
                             meterId,
@@ -448,6 +452,46 @@
                                 .toFixed(2));
                             $('#previous_peak_reading').val(parseFloat(res
                                 .previous_peak_reading || 0).toFixed(2));
+
+                            // Auto-fill unit charges from meter
+                            if (res.meter) {
+                                $('#rate_per_unit').val(parseFloat(res.meter.unit_charge_offpeak || 0).toFixed(2));
+                                $('#rate_peak_per_unit').val(parseFloat(res.meter.unit_charge_peak || 0).toFixed(2));
+                            } else {
+                                $('#rate_per_unit').val('0.00');
+                                $('#rate_peak_per_unit').val('0.00');
+                            }
+
+                            // Rule for bKash Postpaid: Only Base Bill Amount is required
+                            if (res.meter && res.meter.payment_process === 'bKash') {
+                                $('#current_reading').prop('required', false);
+                                $('#current_reading_req_mark').hide();
+                                $('#payment_mode').val('bKash').trigger('change.select2');
+                            } else {
+                                $('#current_reading').prop('required', true);
+                                $('#current_reading_req_mark').show();
+                            }
+
+                            // Active 6-Month NOC Verification Banner
+                            if (res.active_noc) {
+                                var nocHtml = '<div class="alert alert-success d-flex align-items-center mb-3">' +
+                                    '<i class="fa fa-shield-alt fa-2x me-3"></i>' +
+                                    '<div>' +
+                                    '<div class="fw-bold">Active 6-Month NOC Verified (' + escapeHtml(res.active_noc.noc_number) + ')</div>' +
+                                    '<div class="fs-sm">Validity Window: ' + escapeHtml(res.active_noc.period_formatted) + ' | Authority: ' + escapeHtml(res.active_noc.issuing_authority) + '</div>' +
+                                    '</div>' +
+                                    '</div>';
+                                $('#noc-banner-container').html(nocHtml);
+                            } else {
+                                var nocHtml = '<div class="alert alert-warning d-flex align-items-center mb-3">' +
+                                    '<i class="fa fa-exclamation-circle fa-2x me-3"></i>' +
+                                    '<div>' +
+                                    '<div class="fw-bold">Notice: No Active 6-Month NOC Document</div>' +
+                                    '<div class="fs-sm">No active NOC found covering the current period. You can upload 6-month NOC documents from Meters Master.</div>' +
+                                    '</div>' +
+                                    '</div>';
+                                $('#noc-banner-container').html(nocHtml);
+                            }
 
                             if (res.meter && res.meter.consumer_no) {
                                 $('#payment_account_details').val('Consumer No.: ' + res.meter
@@ -489,6 +533,15 @@
                     var currPeak = parseFloat($('#current_peak_reading').val()) || 0;
                     var unitsPeak = Math.max(0, currPeak - prevPeak);
                     $('#units_peak_consumed').val(unitsPeak.toFixed(2));
+
+                    // Auto-calculate suggested base bill amount if readings entered
+                    var rateOffpeak = parseFloat($('#rate_per_unit').val()) || 0;
+                    var ratePeak = parseFloat($('#rate_peak_per_unit').val()) || 0;
+                    var calcNet = (unitsOffpeak * rateOffpeak) + (unitsPeak * ratePeak);
+
+                    if ((sourceField === 'current_reading' || sourceField === 'current_peak_reading' || sourceField === 'previous_reading') && calcNet > 0) {
+                        $('#net_amount').val(calcNet.toFixed(2));
+                    }
                 }
 
                 var finalNet = parseFloat($('#net_amount').val()) || 0;
@@ -638,6 +691,10 @@
                 function() {
                     $(this).removeClass('is-invalid');
                 });
+
+            function escapeHtml(text) {
+                return $('<div>').text(text || '').html();
+            }
 
             // Trigger meter selection handling on page load if meter is pre-selected
             if ($('#meter_id').val()) {

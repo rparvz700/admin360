@@ -36,6 +36,7 @@ use App\Http\Controllers\InvoiceManagement\VatTaxController;
 use App\Http\Controllers\VehicleMaintenanceManagement\MaintenanceReportController;
 use App\Http\Controllers\FacilitiesManagement\Electricity\RioController;
 use App\Http\Controllers\FacilitiesManagement\Electricity\ElectricityMeterController;
+use App\Http\Controllers\FacilitiesManagement\Electricity\ElectricityMeterNocController;
 use App\Http\Controllers\FacilitiesManagement\Electricity\ElectricityBillController;
 use App\Http\Controllers\FacilitiesManagement\Electricity\ElectricityReportController;
 
@@ -106,9 +107,12 @@ Route::middleware(['auth'])->group(function(){
         Route::resource('rios', RioController::class)->except(['create', 'show', 'edit', 'destroy']);
         Route::post('rios/{rio}/assign-users', [RioController::class, 'assignUsers'])->name('rios.assign-users');
 
-        // Meters Master
+        // Meters Master & NOCs
         Route::get('meters/building/{building_id}/agreement-vendor', [ElectricityMeterController::class, 'getAgreementVendor'])->name('meters.building.agreement-vendor');
         Route::resource('meters', ElectricityMeterController::class);
+        Route::get('meters/{meter}/nocs', [ElectricityMeterNocController::class, 'index'])->name('meters.nocs.index');
+        Route::post('meters/{meter}/nocs', [ElectricityMeterNocController::class, 'store'])->name('meters.nocs.store');
+        Route::delete('meters/nocs/{noc}', [ElectricityMeterNocController::class, 'destroy'])->name('meters.nocs.destroy');
 
         // Bills & Requisitions
         Route::get('bills/bulk/print', [ElectricityBillController::class, 'bulkPrint'])->name('bills.bulk-print');

@@ -30,6 +30,33 @@ class ElectricityMeterController extends Controller
                 $query->where('is_active', $request->is_active);
             }
 
+            if ($request->has('noc_status') && $request->noc_status !== 'all' && $request->noc_status !== '') {
+                $nocStatus = $request->noc_status;
+                $today = now()->startOfDay();
+                $thirtyDaysFromNow = $today->copy()->addDays(30);
+
+                if ($nocStatus === 'valid') {
+                    $query->where('meter_type', '!=', 'prepaid')
+                        ->whereHas('nocs', function ($q) use ($today, $thirtyDaysFromNow) {
+                            $q->where('period_start_date', '<=', $today)
+                              ->where('period_end_date', '>', $thirtyDaysFromNow);
+                        });
+                } elseif ($nocStatus === 'expiring') {
+                    $query->where('meter_type', '!=', 'prepaid')
+                        ->whereHas('nocs', function ($q) use ($today, $thirtyDaysFromNow) {
+                            $q->where('period_start_date', '<=', $today)
+                              ->where('period_end_date', '>=', $today)
+                              ->where('period_end_date', '<=', $thirtyDaysFromNow);
+                        });
+                } elseif ($nocStatus === 'missing') {
+                    $query->where('meter_type', '!=', 'prepaid')
+                        ->whereDoesntHave('nocs', function ($q) use ($today) {
+                            $q->where('period_start_date', '<=', $today)
+                              ->where('period_end_date', '>=', $today);
+                        });
+                }
+            }
+
             return DataTables::of($query)
                 ->editColumn('meter_number', function ($meter) {
                     return '<span class="fw-bold text-primary">' . e($meter->meter_number) . '</span>';
@@ -100,6 +127,16 @@ class ElectricityMeterController extends Controller
                         $q->whereRaw("LOWER(name) LIKE ?", ["%{$lower}%"]);
                     });
                 })
+                ->addColumn('noc_status', function ($meter) {
+                    if ($meter->meter_type === 'prepaid') {
+                        return '<span class="text-muted fs-xs">N/A (Prepaid)</span>';
+                    }
+                    $activeNoc = $meter->getActiveNocForDate();
+                    if ($activeNoc) {
+                        return '<span class="badge bg-' . $activeNoc->status_badge . '"><i class="fa fa-shield-alt me-1"></i>' . $activeNoc->status_label . '</span>';
+                    }
+                    return '<span class="badge bg-warning-light text-warning"><i class="fa fa-exclamation-triangle me-1"></i>NOC Missing</span>';
+                })
                 ->editColumn('is_active', function ($meter) {
                     return $meter->is_active
                         ? '<span class="badge bg-success-light text-success"><i class="fa fa-check me-1"></i>Active</span>'
@@ -112,11 +149,14 @@ class ElectricityMeterController extends Controller
                     $html .= '<div class="dropdown-menu dropdown-menu-end fs-sm py-1" aria-labelledby="meterActions' . $id . '">';
                     
                     $html .= '<a class="dropdown-item py-1" href="' . route('electricity.meters.edit', $id) . '"><i class="fa fa-pencil-alt text-warning me-2"></i> Edit Meter</a>';
+                    if ($meter->meter_type !== 'prepaid') {
+                        $html .= '<a class="dropdown-item py-1 open-noc-modal" href="javascript:void(0)" data-id="' . $id . '" data-number="' . e($meter->meter_number) . '"><i class="fa fa-shield-alt text-info me-2"></i> Manage 6-Mo NOCs</a>';
+                    }
                     
                     $html .= '</div></div>';
                     return $html;
                 })
-                ->rawColumns(['meter_number', 'site', 'meter_type_badge', 'is_active', 'actions'])
+                ->rawColumns(['meter_number', 'site', 'meter_type_badge', 'noc_status', 'is_active', 'actions'])
                 ->make(true);
         }
 
@@ -148,6 +188,8 @@ class ElectricityMeterController extends Controller
             'consumer_no'          => 'nullable|string|max:100',
             'due_date_day'         => 'nullable|integer|between:1,31',
             'sanctioned_load_kw'   => 'nullable|numeric|min:0',
+            'unit_charge_offpeak'  => 'nullable|numeric|min:0',
+            'unit_charge_peak'     => 'nullable|numeric|min:0',
             'meter_location_notes' => 'nullable|string|max:255',
             'is_active'            => 'boolean',
         ]);
@@ -191,6 +233,8 @@ class ElectricityMeterController extends Controller
             'consumer_no'          => 'nullable|string|max:100',
             'due_date_day'         => 'nullable|integer|between:1,31',
             'sanctioned_load_kw'   => 'nullable|numeric|min:0',
+            'unit_charge_offpeak'  => 'nullable|numeric|min:0',
+            'unit_charge_peak'     => 'nullable|numeric|min:0',
             'meter_location_notes' => 'nullable|string|max:255',
             'is_active'            => 'boolean',
         ]);

@@ -113,6 +113,19 @@
                         <input type="number" step="0.01" class="form-control" id="sanctioned_load_kw" name="sanctioned_load_kw" value="{{ old('sanctioned_load_kw', $meter->sanctioned_load_kw) }}">
                     </div>
 
+                    <!-- Unit Charges Section (For Postpaid Meters) -->
+                    <div class="col-md-4 mb-3 unit-charge-field" id="offpeak_charge_wrapper">
+                        <label class="form-label" for="unit_charge_offpeak">Off-Peak / Flat Unit Charge (৳)</label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="unit_charge_offpeak" name="unit_charge_offpeak" value="{{ old('unit_charge_offpeak', $meter->unit_charge_offpeak) }}" placeholder="e.g. 12.50">
+                        <small class="form-text text-muted">Default flat/off-peak rate per unit</small>
+                    </div>
+
+                    <div class="col-md-4 mb-3 unit-charge-field" id="peak_charge_wrapper">
+                        <label class="form-label" for="unit_charge_peak">Peak Unit Charge (৳) <span class="text-muted">(Optional)</span></label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="unit_charge_peak" name="unit_charge_peak" value="{{ old('unit_charge_peak', $meter->unit_charge_peak) }}" placeholder="e.g. 15.00">
+                        <small class="form-text text-muted">Default peak rate per unit (if applicable)</small>
+                    </div>
+
                     <!-- Location Notes -->
                     <div class="col-md-12 mb-3">
                         <label class="form-label" for="meter_location_notes">Meter Location Notes</label>
@@ -206,9 +219,23 @@
                 }
             @endphp
 
+            function toggleUnitCharges() {
+                var meterType = $('#meter_type').val();
+                if (meterType === 'postpaid_main' || meterType === 'postpaid_sub') {
+                    $('.unit-charge-field').slideDown();
+                } else {
+                    $('.unit-charge-field').slideUp();
+                }
+            }
+
+            $('#meter_type, #payment_process').on('change', function() {
+                toggleUnitCharges();
+            });
+
             var initialBuilding = $('#building_id').val();
             var initialFloors = @json($initialFloorIds);
             updateFloorOptions(initialBuilding, initialFloors);
+            toggleUnitCharges();
         });
     </script>
 @endsection

@@ -326,7 +326,7 @@
                 <td class="text-right">{{ number_format($bill->previous_reading, 2) }}</td>
                 <td class="text-right">{{ number_format($bill->current_reading, 2) }}</td>
                 <td class="text-right fw-bold">{{ number_format($bill->units_consumed, 2) }}</td>
-                <td class="text-right" rowspan="2">{{ number_format($bill->rate_per_unit, 2) }}</td>
+                <td class="text-right">{{ number_format($bill->rate_per_unit, 2) }}</td>
                 <td class="text-right" rowspan="2">{{ number_format($bill->net_amount, 2) }}</td>
                 <td class="text-right" rowspan="2">{{ number_format($bill->vat_amount, 2) }}</td>
                 <td class="text-right" rowspan="2">{{ number_format($bill->late_fee, 2) }}</td>
@@ -339,6 +339,7 @@
                 <td class="text-right">{{ number_format($bill->previous_peak_reading ?? 0, 2) }}</td>
                 <td class="text-right">{{ number_format($bill->current_peak_reading ?? 0, 2) }}</td>
                 <td class="text-right fw-bold">{{ number_format($bill->units_peak_consumed ?? 0, 2) }}</td>
+                <td class="text-right" style="border-top: none;">{{ number_format($bill->rate_peak_per_unit ?? 0, 2) }}</td>
             </tr>
             @else
             <tr>

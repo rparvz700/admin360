@@ -25,6 +25,8 @@ class ElectricityMeter extends Model
         'consumer_no',
         'due_date_day',
         'sanctioned_load_kw',
+        'unit_charge_offpeak',
+        'unit_charge_peak',
         'meter_location_notes',
         'is_active',
     ];
@@ -32,6 +34,8 @@ class ElectricityMeter extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'sanctioned_load_kw' => 'decimal:2',
+        'unit_charge_offpeak' => 'decimal:2',
+        'unit_charge_peak' => 'decimal:2',
         'due_date_day' => 'integer',
     ];
 
@@ -63,6 +67,25 @@ class ElectricityMeter extends Model
     public function latestBill()
     {
         return $this->hasOne(ElectricityBill::class, 'meter_id')->latestOfMany();
+    }
+
+    public function nocs()
+    {
+        return $this->hasMany(ElectricityMeterNoc::class, 'meter_id')->orderBy('period_start_date', 'desc');
+    }
+
+    public function latestNoc()
+    {
+        return $this->hasOne(ElectricityMeterNoc::class, 'meter_id')->latestOfMany('period_end_date');
+    }
+
+    public function getActiveNocForDate($date = null)
+    {
+        $targetDate = $date ? \Carbon\Carbon::parse($date)->startOfDay() : now()->startOfDay();
+        return $this->nocs()
+            ->where('period_start_date', '<=', $targetDate)
+            ->where('period_end_date', '>=', $targetDate)
+            ->first();
     }
 
     public function getMeterTypeLabelAttribute()

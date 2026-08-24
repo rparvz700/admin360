@@ -175,9 +175,15 @@
                                         {{ number_format($bill->units_peak_consumed ?? 0, 2) }}</td>
                                 </tr>
                                 <tr class="table-light">
-                                    <td colspan="3" class="text-end fw-bold">Unit Charge:</td>
+                                    <td colspan="3" class="text-end fw-bold">Off-Peak Unit Charge:</td>
                                     <td class="text-end fw-bold">৳ {{ number_format($bill->rate_per_unit, 2) }}</td>
                                 </tr>
+                                @if(($bill->rate_peak_per_unit ?? 0) > 0)
+                                <tr class="table-light">
+                                    <td colspan="3" class="text-end fw-bold">Peak Unit Charge:</td>
+                                    <td class="text-end fw-bold">৳ {{ number_format($bill->rate_peak_per_unit, 2) }}</td>
+                                </tr>
+                                @endif
                                 <tr class="table-light">
                                     <td colspan="3" class="text-end fw-bold">Base Bill Amount:</td>
                                     <td class="text-end fw-bold">৳ {{ number_format($bill->net_amount, 2) }}</td>

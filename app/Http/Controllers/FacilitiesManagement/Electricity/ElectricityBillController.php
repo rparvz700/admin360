@@ -193,11 +193,19 @@ class ElectricityBillController extends Controller
             }
         }
 
+        $activeNoc = $meter ? $meter->getActiveNocForDate() : null;
+
         return response()->json([
             'previous_reading' => $prevOffpeak,
             'previous_peak_reading' => $prevPeak,
             'meter' => $meter,
             'project_name' => $projectName,
+            'active_noc' => $activeNoc ? [
+                'noc_number' => $activeNoc->noc_number,
+                'period_formatted' => $activeNoc->period_start_date->format('M d, Y') . ' - ' . $activeNoc->period_end_date->format('M d, Y'),
+                'issuing_authority' => $activeNoc->issuing_authority ?: 'N/A',
+                'status_label' => $activeNoc->status_label,
+            ] : null,
             'last_prepaid_bill' => $lastPrepaidBill ? [
                 'recharge_amount' => $lastPrepaidBill->recharge_amount,
                 'recharge_date' => $lastPrepaidBill->recharge_date ? $lastPrepaidBill->recharge_date->format('Y-m-d') : ($lastPrepaidBill->created_at ? $lastPrepaidBill->created_at->format('Y-m-d') : null),
@@ -255,6 +263,15 @@ class ElectricityBillController extends Controller
         ]);
 
         $validator->after(function ($validator) use ($request) {
+            $meterId = $request->input('meter_id');
+            $meter = $meterId ? ElectricityMeter::find($meterId) : null;
+
+            if ($request->input('bill_type') === 'postpaid' && $meter && $meter->payment_process === 'bKash') {
+                // For Postpaid meters with bKash payment process, only Base Bill Amount is required
+                $validator->errors()->forget('current_reading');
+                $validator->errors()->forget('rate_per_unit');
+            }
+
             if ($request->input('bill_type') === 'prepaid') {
                 $isEdited = $request->input('is_consumption_edited') == '1' || $request->input('is_consumption_edited') === true;
                 if ($isEdited) {
@@ -287,8 +304,8 @@ class ElectricityBillController extends Controller
             $prevOffpeak = (float) ($validated['previous_reading'] ?? 0);
             $currOffpeak = (float) ($validated['current_reading'] ?? 0);
             $validated['units_consumed'] = max(0, $currOffpeak - $prevOffpeak);
-            $validated['rate_per_unit'] = (float) ($validated['rate_per_unit'] ?? 0);
-            $validated['amount_offpeak'] = 0.00;
+            $validated['rate_per_unit'] = (float) ($request->input('rate_per_unit') ?? $meter->unit_charge_offpeak ?? 0);
+            $validated['amount_offpeak'] = $validated['units_consumed'] * $validated['rate_per_unit'];
 
             // Peak calculations
             $prevPeak = (float) ($request->input('previous_peak_reading') ?? 0);
@@ -297,8 +314,8 @@ class ElectricityBillController extends Controller
             $validated['current_peak_reading'] = $currPeak;
             $validated['units_peak_consumed'] = max(0, $currPeak - $prevPeak);
             
-            $validated['rate_peak_per_unit'] = 0.00;
-            $validated['amount_peak'] = 0.00;
+            $validated['rate_peak_per_unit'] = (float) ($request->input('rate_peak_per_unit') ?? $meter->unit_charge_peak ?? 0);
+            $validated['amount_peak'] = $validated['units_peak_consumed'] * $validated['rate_peak_per_unit'];
 
             // Totals from user input
             $validated['net_amount'] = (float) ($request->input('net_amount') ?? 0);

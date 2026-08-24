@@ -320,7 +320,7 @@
                     <td class="text-center" rowspan="2">{{ $bill->meter->meter_owner ?? 'Building Owner' }}</td>
                     <td class="text-center" rowspan="2">{{ $bill->billing_month }}</td>
                     <td class="text-right">{{ number_format($bill->units_consumed, 2) }} <span style="font-size: 7px; color: #666;">(Off-Peak)</span></td>
-                    <td class="text-right" rowspan="2">{{ number_format($bill->rate_per_unit, 2) }}</td>
+                    <td class="text-right">{{ number_format($bill->rate_per_unit, 2) }}</td>
                     <td class="text-right" rowspan="2">{{ number_format($bill->net_amount, 2) }}</td>
                     <td class="text-right" rowspan="2">{{ number_format($bill->meter_charge, 2) }}</td>
                     <td class="text-right" rowspan="2">{{ number_format($bill->vat_amount, 2) }}</td>
@@ -332,6 +332,7 @@
                 </tr>
                 <tr>
                     <td class="text-right" style="border-top: none;">{{ number_format($bill->units_peak_consumed ?? 0, 2) }} <span style="font-size: 7px; color: #666;">(Peak)</span></td>
+                    <td class="text-right" style="border-top: none;">{{ number_format($bill->rate_peak_per_unit ?? 0, 2) }}</td>
                 </tr>
             @endforeach
             <tr class="fw-bold" style="background-color: #f3f4f6;">
