@@ -137,38 +137,38 @@
 
                         columns: [{
                                 data: 'DT_RowIndex',
-                                name: 'SI',
+                                name: 'id',
                                 orderable: false,
                                 searchable: false
                             },
                             {
                                 data: 'name',
-                                name: 'Name'
+                                name: 'name'
                             },
                             {
                                 data: 'email',
-                                name: 'Email'
+                                name: 'email'
                             },
                             {
                                 data: 'hr_id',
-                                name: 'HR ID'
+                                name: 'hr_id'
                             },
                             {
                                 data: 'company',
-                                name: 'Company'
+                                name: 'company'
                             },
                             {
                                 data: 'roles',
-                                name: 'Roles',
+                                name: 'roles',
                                 searchable: false
                             },
                             {
                                 data: 'status',
-                                name: 'Status'
+                                name: 'status'
                             },
                             {
                                 data: 'actions',
-                                name: 'Actions',
+                                name: 'actions',
                                 orderable: false,
                                 searchable: false
                             }
