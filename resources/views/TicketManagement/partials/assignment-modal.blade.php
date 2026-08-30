@@ -1,338 +1,323 @@
 <!-- Assignment Modal -->
 <div class="modal fade" id="assignmentModal" tabindex="-1" aria-labelledby="assignmentModalLabel" aria-hidden="true"
     data-bs-backdrop="static">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="assignmentModalLabel">
-                    <i class="fas fa-car"></i> Assign Vehicle & Driver
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Ticket Info Summary -->
-                <div class="alert alert-info mb-4" id="ticketInfoSummary">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <strong>Ticket:</strong> <span id="modalTicketNumber"></span>
-                        </div>
-                        <div class="col-md-3">
-                            <strong>Start:</strong> <span id="modalStartTime"></span>
-                        </div>
-                        <div class="col-md-3">
-                            <strong>End:</strong> <span id="modalEndTime"></span>
-                        </div>
-                        <div class="col-md-3">
-                            <strong>Passengers:</strong> <span id="modalPassengers"></span>
-                        </div>
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="block block-rounded block-transparent mb-0">
+                <div class="block-header bg-primary py-3">
+                    <h3 class="block-title text-white fs-sm fw-bold">
+                        <i class="fa fa-car-side me-1"></i> Assign Vehicle & Driver Dashboard
+                    </h3>
+                    <div class="block-options">
+                        <button type="button" class="btn-block-option text-white" data-bs-dismiss="modal" aria-label="Close">
+                            <i class="fa fa-times"></i>
+                        </button>
                     </div>
                 </div>
+                <div class="block-content p-4">
+                    <!-- Ticket Info Summary -->
+                    <div class="alert alert-info border-start border-4 border-info mb-4" id="ticketInfoSummary">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-sm-6 col-md-3">
+                                <span class="fs-xs text-uppercase text-muted d-block">Ticket #</span>
+                                <strong id="modalTicketNumber" class="fs-sm"></strong>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <span class="fs-xs text-uppercase text-muted d-block">Start Time</span>
+                                <strong id="modalStartTime" class="fs-sm"></strong>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <span class="fs-xs text-uppercase text-muted d-block">End Time</span>
+                                <strong id="modalEndTime" class="fs-sm"></strong>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <span class="fs-xs text-uppercase text-muted d-block">Passenger Count</span>
+                                <strong id="modalPassengers" class="fs-sm"></strong>
+                            </div>
+                        </div>
+                    </div>
 
-                <!-- Selection Summary -->
-                <div class="row mb-4" id="selectionSummary" style="display: none;">
-                    <div class="col-md-12">
-                        <div class="alert alert-success">
-                            <div class="row">
+                    <!-- Selection Summary -->
+                    <div class="row mb-4" id="selectionSummary" style="display: none;">
+                        <div class="col-md-12">
+                            <div class="alert alert-success border-start border-4 border-success mb-0">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <span class="fs-xs text-uppercase fw-bold text-success d-block"><i class="fa fa-car me-1"></i> Selected Vehicle:</span>
+                                        <div id="selectedVehicleInfo" class="mt-1 fs-sm"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <span class="fs-xs text-uppercase fw-bold text-success d-block"><i class="fa fa-user-tie me-1"></i> Selected Driver:</span>
+                                        <div id="selectedDriverInfo" class="mt-1 fs-sm"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs for Vehicles and Drivers -->
+                    <ul class="nav nav-tabs nav-tabs-alt mb-3" id="assignmentTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="vehicles-tab" data-bs-toggle="tab"
+                                data-bs-target="#vehicles" type="button" role="tab">
+                                <i class="fa fa-car me-1"></i> Vehicles <span class="badge bg-primary ms-1" id="vehicleCount">0</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="drivers-tab" data-bs-toggle="tab" data-bs-target="#drivers"
+                                type="button" role="tab">
+                                <i class="fa fa-user me-1"></i> Drivers <span class="badge bg-primary ms-1" id="driverCount">0</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual"
+                                type="button" role="tab">
+                                <i class="fa fa-keyboard me-1"></i> Manual / Ad-hoc Assignment
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="assignmentTabContent">
+                        <!-- Vehicles Tab -->
+                        <div class="tab-pane fade show active" id="vehicles" role="tabpanel">
+                            <div class="row g-2 mb-3">
                                 <div class="col-md-6">
-                                    <strong>Selected Vehicle:</strong>
-                                    <div id="selectedVehicleInfo" class="mt-2"></div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text"><i class="fa fa-search"></i></span>
+                                        <input type="text" class="form-control form-control-sm" id="vehicleSearch"
+                                            placeholder="Search by registration, brand, model...">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select form-select-sm" id="vehicleStatusFilter">
+                                        <option value="">All Statuses</option>
+                                        <option value="available">Available</option>
+                                        <option value="on_assignment">On Assignment</option>
+                                        <option value="in_maintenance">In Maintenance</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select form-select-sm" id="vehicleOwnershipFilter">
+                                        <option value="">All Ownerships</option>
+                                        <option value="Owned">Owned</option>
+                                        <option value="Rented">Rented</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="vehiclesGrid" class="row g-3" style="max-height: 480px; overflow-y: auto;">
+                                <div class="col-12 text-center py-5">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Drivers Tab -->
+                        <div class="tab-pane fade" id="drivers" role="tabpanel">
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-6">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text"><i class="fa fa-search"></i></span>
+                                        <input type="text" class="form-control form-control-sm" id="driverSearch"
+                                            placeholder="Search by driver name, phone...">
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <strong>Selected Driver:</strong>
-                                    <div id="selectedDriverInfo" class="mt-2"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tabs for Vehicles and Drivers -->
-                <ul class="nav nav-tabs mb-3" id="assignmentTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="vehicles-tab" data-bs-toggle="tab"
-                            data-bs-target="#vehicles" type="button" role="tab">
-                            <i class="fas fa-car"></i> Vehicles <span class="badge bg-primary ms-2"
-                                id="vehicleCount">0</span>
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="drivers-tab" data-bs-toggle="tab" data-bs-target="#drivers"
-                            type="button" role="tab">
-                            <i class="fas fa-user"></i> Drivers <span class="badge bg-primary ms-2"
-                                id="driverCount">0</span>
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual"
-                            type="button" role="tab">
-                            <i class="fas fa-keyboard"></i> Manual Assignment
-                        </button>
-                    </li>
-                </ul>
-
-                <!-- Tab Content -->
-                <div class="tab-content" id="assignmentTabContent">
-                    <!-- Vehicles Tab -->
-                    <div class="tab-pane fade show active" id="vehicles" role="tabpanel">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <input type="text" class="form-control" id="vehicleSearch"
-                                    placeholder="Search vehicles...">
-                            </div>
-                            <div class="col-md-3">
-                                <select class="form-select" id="vehicleStatusFilter">
-                                    <option value="">All Status</option>
-                                    <option value="available">Available</option>
-                                    <option value="on_assignment">On Assignment</option>
-                                    <option value="in_maintenance">In Maintenance</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <select class="form-select" id="vehicleOwnershipFilter">
-                                    <option value="">All Types</option>
-                                    <option value="Owned">Owned</option>
-                                    <option value="Rented">Rented</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div id="vehiclesGrid" class="row g-3" style="max-height: 500px; overflow-y: auto;">
-                            <!-- Vehicle cards will be loaded here -->
-                            <div class="col-12 text-center py-5">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Drivers Tab -->
-                    <div class="tab-pane fade" id="drivers" role="tabpanel">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <input type="text" class="form-control" id="driverSearch"
-                                    placeholder="Search drivers...">
-                            </div>
-                            <div class="col-md-6">
-                                <select class="form-select" id="driverStatusFilter">
-                                    <option value="">All Status</option>
-                                    <option value="available">Available</option>
-                                    <option value="on_assignment">On Assignment</option>
-                                    <option value="on_leave">On Leave</option>
-                                    <option value="sick">Sick</option>
-                                    <option value="unavailable">Unavailable</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div id="driversGrid" class="row g-3" style="max-height: 500px; overflow-y: auto;">
-                            <!-- Driver cards will be loaded here -->
-                            <div class="col-12 text-center py-5">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Manual Assignment Tab -->
-                    <div class="tab-pane fade" id="manual" role="tabpanel">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> Use this tab to manually enter ad-hoc rented vehicle and
-                            driver details that are not in the system.
-                        </div>
-
-                        <div class="row">
-                            <!-- Manual Vehicle Entry -->
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header bg-primary text-white">
-                                        <h6 class="mb-0"><i class="fas fa-car"></i> Ad-hoc Vehicle Details</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label class="form-label required">Vehicle Type</label>
-                                            <select class="form-select" id="manual_vehicle_type"
-                                                name="manual_vehicle_type">
-                                                <option value="">Select Type</option>
-                                                @foreach ($vehicleTypes as $type)
-                                                    <option value="{{ $type->id }}">{{ $type->type_name }}</option>
-                                                @endforeach
-                                            </select>
-                                            {{-- <select id="manual_vehicle_type" class="form-select">
-                                                <option value="">Select Type</option>
-                                                <option value="Sedan">Sedan</option>
-                                                <option value="SUV">SUV</option>
-                                                <option value="Van">Van</option>
-                                                <option value="Bus">Bus</option>
-                                                <option value="Microbus">Microbus</option>
-                                                <option value="Pickup">Pickup</option>
-                                            </select> --}}
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label required">Registration Number</label>
-                                            <input type="text" id="manual_registration" class="form-control"
-                                                placeholder="e.g., DHA-12345">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label required">Brand</label>
-                                            <input type="text" id="manual_brand" class="form-control"
-                                                placeholder="e.g., Toyota">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label required">Model</label>
-                                            <input type="text" id="manual_model" class="form-control"
-                                                placeholder="e.g., Corolla">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Color</label>
-                                            <input type="text" id="manual_color" class="form-control"
-                                                placeholder="e.g., White">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label required">Seating Capacity</label>
-                                            <input type="number" id="manual_seating" class="form-control"
-                                                min="1" value="4">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label required">Rental Type</label>
-                                            <select id="manual_rental_type" class="form-select">
-                                                <option value="daily">Daily Rental</option>
-                                                <option value="hourly">Hourly Rental</option>
-                                                <option value="trip">Per Trip</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Rental Cost</label>
-                                            <input type="number" id="manual_rental_cost" class="form-control"
-                                                placeholder="Amount in BDT" step="0.01">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Rental Company</label>
-                                            {{-- <input type="text" id="manual_rental_company" class="form-control"
-                                                placeholder="e.g., ABC Car Rental"> --}}
-
-                                            <select class="form-control" id="manual_rental_company"
-                                                name="manual_rental_company">
-                                                <option value="">Select Rental Company</option>
-                                                @foreach ($vendors as $vendor)
-                                                    <option value="{{ $vendor->id }}">
-                                                        {{ $vendor->name }} ({{ $vendor->vendor_code }})
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
+                                    <select class="form-select form-select-sm" id="driverStatusFilter">
+                                        <option value="">All Statuses</option>
+                                        <option value="available">Available</option>
+                                        <option value="on_assignment">On Assignment</option>
+                                        <option value="on_leave">On Leave</option>
+                                        <option value="sick">Sick</option>
+                                        <option value="unavailable">Unavailable</option>
+                                    </select>
                                 </div>
                             </div>
 
-                            <!-- Manual Driver Entry -->
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header bg-success text-white">
-                                        <h6 class="mb-0"><i class="fas fa-user"></i> Ad-hoc Driver Details</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label class="form-label required">Driver Name</label>
-                                            <input type="text" id="manual_driver_name" class="form-control"
-                                                placeholder="Full Name">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label required">Phone Number</label>
-                                            <input type="text" id="manual_driver_phone" class="form-control"
-                                                placeholder="e.g., 01711-123456">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Email</label>
-                                            <input type="email" id="manual_driver_email" class="form-control"
-                                                placeholder="driver@example.com">
-                                        </div>
-                                        {{-- <div class="mb-3">
-                                            <label class="form-label required">License Number</label>
-                                            <input type="text" id="manual_license_number" class="form-control"
-                                                placeholder="Driving License #">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">License Expiry Date</label>
-                                            <input type="date" id="manual_license_expiry" class="form-control">
-                                        </div> --}}
-                                        <div class="mb-3">
-                                            <label class="form-label">NID Number</label>
-                                            <input type="text" id="manual_nid" class="form-control"
-                                                placeholder="National ID">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Blood Group</label>
-                                            <select id="manual_blood_group" class="form-select">
-                                                <option value="">Select Blood Group</option>
-                                                <option value="A+">A+</option>
-                                                <option value="A-">A-</option>
-                                                <option value="B+">B+</option>
-                                                <option value="B-">B-</option>
-                                                <option value="O+">O+</option>
-                                                <option value="O-">O-</option>
-                                                <option value="AB+">AB+</option>
-                                                <option value="AB-">AB-</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Emergency Contact</label>
-                                            <input type="text" id="manual_emergency_contact" class="form-control"
-                                                placeholder="Emergency phone">
-                                        </div>
+                            <div id="driversGrid" class="row g-3" style="max-height: 480px; overflow-y: auto;">
+                                <div class="col-12 text-center py-5">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row mt-3">
-                            <div class="col-md-12">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h6>Additional Notes</h6>
-                                        <textarea id="manual_notes" class="form-control" rows="3"
-                                            placeholder="Any additional information about this rental..."></textarea>
+                        <!-- Manual Assignment Tab -->
+                        <div class="tab-pane fade" id="manual" role="tabpanel">
+                            <div class="alert alert-info py-2 fs-xs mb-3">
+                                <i class="fa fa-info-circle me-1"></i> Use this tab to manually enter ad-hoc rented vehicle and driver details that are not in the database.
+                            </div>
+
+                            <div class="row g-3">
+                                <!-- Manual Vehicle Entry -->
+                                <div class="col-md-6">
+                                    <div class="block block-rounded block-bordered h-100 mb-0">
+                                        <div class="block-header bg-body-light py-2">
+                                            <h4 class="block-title fs-xs fw-bold text-primary text-uppercase">
+                                                <i class="fa fa-car me-1"></i> Ad-hoc Vehicle Details
+                                            </h4>
+                                        </div>
+                                        <div class="block-content fs-sm pb-3">
+                                            <div class="mb-2">
+                                                <label class="form-label fs-xs fw-semibold">Vehicle Type <span class="text-danger">*</span></label>
+                                                <select class="form-select form-select-sm" id="manual_vehicle_type"
+                                                    name="manual_vehicle_type">
+                                                    <option value="">Select Type</option>
+                                                    @foreach ($vehicleTypes as $type)
+                                                        <option value="{{ $type->id }}">{{ $type->type_name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label fs-xs fw-semibold">Registration Number <span class="text-danger">*</span></label>
+                                                <input type="text" id="manual_registration" class="form-control form-control-sm"
+                                                    placeholder="e.g., DHA-12345">
+                                            </div>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-6">
+                                                    <label class="form-label fs-xs fw-semibold">Brand <span class="text-danger">*</span></label>
+                                                    <input type="text" id="manual_brand" class="form-control form-control-sm"
+                                                        placeholder="e.g., Toyota">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label fs-xs fw-semibold">Model <span class="text-danger">*</span></label>
+                                                    <input type="text" id="manual_model" class="form-control form-control-sm"
+                                                        placeholder="e.g., Hiace">
+                                                </div>
+                                            </div>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-6">
+                                                    <label class="form-label fs-xs fw-semibold">Color</label>
+                                                    <input type="text" id="manual_color" class="form-control form-control-sm"
+                                                        placeholder="e.g., White">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label fs-xs fw-semibold">Seating Capacity <span class="text-danger">*</span></label>
+                                                    <input type="number" id="manual_seating" class="form-control form-control-sm"
+                                                        min="1" value="4">
+                                                </div>
+                                            </div>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-6">
+                                                    <label class="form-label fs-xs fw-semibold">Rental Type <span class="text-danger">*</span></label>
+                                                    <select id="manual_rental_type" class="form-select form-select-sm">
+                                                        <option value="daily">Daily Rental</option>
+                                                        <option value="hourly">Hourly Rental</option>
+                                                        <option value="trip">Per Trip</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label fs-xs fw-semibold">Rental Cost (BDT)</label>
+                                                    <input type="number" id="manual_rental_cost" class="form-control form-control-sm"
+                                                        placeholder="Amount in BDT" step="0.01">
+                                                </div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label fs-xs fw-semibold">Rental Vendor Company</label>
+                                                <select class="form-select form-select-sm" id="manual_rental_company"
+                                                    name="manual_rental_company">
+                                                    <option value="">Select Rental Vendor</option>
+                                                    @foreach ($vendors as $vendor)
+                                                        <option value="{{ $vendor->id }}">
+                                                            {{ $vendor->name }} ({{ $vendor->vendor_code }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Manual Driver Entry -->
+                                <div class="col-md-6">
+                                    <div class="block block-rounded block-bordered h-100 mb-0">
+                                        <div class="block-header bg-body-light py-2">
+                                            <h4 class="block-title fs-xs fw-bold text-success text-uppercase">
+                                                <i class="fa fa-user-tie me-1"></i> Ad-hoc Driver Details
+                                            </h4>
+                                        </div>
+                                        <div class="block-content fs-sm pb-3">
+                                            <div class="mb-2">
+                                                <label class="form-label fs-xs fw-semibold">Driver Name <span class="text-danger">*</span></label>
+                                                <input type="text" id="manual_driver_name" class="form-control form-control-sm"
+                                                    placeholder="Full Name">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label fs-xs fw-semibold">Phone Number <span class="text-danger">*</span></label>
+                                                <input type="text" id="manual_driver_phone" class="form-control form-control-sm"
+                                                    placeholder="e.g., 01711-123456">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label fs-xs fw-semibold">Email</label>
+                                                <input type="email" id="manual_driver_email" class="form-control form-control-sm"
+                                                    placeholder="driver@example.com">
+                                            </div>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-6">
+                                                    <label class="form-label fs-xs fw-semibold">NID Number</label>
+                                                    <input type="text" id="manual_nid" class="form-control form-control-sm"
+                                                        placeholder="National ID">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label fs-xs fw-semibold">Blood Group</label>
+                                                    <select id="manual_blood_group" class="form-select form-select-sm">
+                                                        <option value="">Select</option>
+                                                        <option value="A+">A+</option>
+                                                        <option value="A-">A-</option>
+                                                        <option value="B+">B+</option>
+                                                        <option value="B-">B-</option>
+                                                        <option value="O+">O+</option>
+                                                        <option value="O-">O-</option>
+                                                        <option value="AB+">AB+</option>
+                                                        <option value="AB-">AB-</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label fs-xs fw-semibold">Emergency Contact</label>
+                                                <input type="text" id="manual_emergency_contact" class="form-control form-control-sm"
+                                                    placeholder="Emergency contact phone">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="row mt-3">
-                            <div class="col-md-12">
-                                <button type="button" class="btn btn-primary" id="validateManualEntry">
-                                    <i class="fas fa-check-circle"></i> Validate & Preview
+                            <div class="mt-3">
+                                <label class="form-label fs-xs fw-semibold">Additional Assignment Notes</label>
+                                <textarea id="manual_notes" class="form-control form-control-sm" rows="2"
+                                    placeholder="Any additional information about this ad-hoc rental..."></textarea>
+                            </div>
+
+                            <div class="mt-3 d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-primary" id="validateManualEntry">
+                                    <i class="fa fa-check-circle me-1"></i> Validate & Preview
                                 </button>
-                                <button type="button" class="btn btn-secondary" id="clearManualForm">
-                                    <i class="fas fa-eraser"></i> Clear Form
+                                <button type="button" class="btn btn-sm btn-alt-secondary" id="clearManualForm">
+                                    <i class="fa fa-eraser me-1"></i> Clear Form
                                 </button>
                             </div>
-                        </div>
 
-                        <!-- Preview Section -->
-                        <div id="manualPreviewSection" class="mt-4" style="display: none;">
-                            <div class="alert alert-success">
-                                <h6><i class="fas fa-check-circle"></i> Ready to Assign</h6>
-                                <p class="mb-0">Please review the details below and click "Confirm Assignment" to
-                                    proceed.</p>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="card border-primary">
-                                        <div class="card-header bg-primary text-white">
-                                            <strong>Vehicle Preview</strong>
-                                        </div>
-                                        <div class="card-body" id="manualVehiclePreview">
-                                            <!-- Vehicle preview will be inserted here -->
+                            <!-- Preview Section -->
+                            <div id="manualPreviewSection" class="mt-3" style="display: none;">
+                                <div class="alert alert-success py-2 fs-xs mb-2">
+                                    <strong><i class="fa fa-check-circle me-1"></i> Ready to Assign:</strong> Please review the details below and click "Confirm Assignment" to proceed.
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-body-light rounded border border-primary fs-sm">
+                                            <span class="fs-xs fw-bold text-primary text-uppercase d-block mb-1">Vehicle Preview</span>
+                                            <div id="manualVehiclePreview"></div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="card border-success">
-                                        <div class="card-header bg-success text-white">
-                                            <strong>Driver Preview</strong>
-                                        </div>
-                                        <div class="card-body" id="manualDriverPreview">
-                                            <!-- Driver preview will be inserted here -->
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-body-light rounded border border-success fs-sm">
+                                            <span class="fs-xs fw-bold text-success text-uppercase d-block mb-1">Driver Preview</span>
+                                            <div id="manualDriverPreview"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -340,12 +325,12 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmAssignment" disabled>
-                    <i class="fas fa-check"></i> Confirm Assignment
-                </button>
+                <div class="block-content block-content-full block-content-sm text-end bg-body-light rounded-bottom">
+                    <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-primary" id="confirmAssignment" disabled>
+                        <i class="fa fa-check me-1"></i> Confirm Assignment
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -354,38 +339,38 @@
 <!-- Vehicle Card Template -->
 <template id="vehicleCardTemplate">
     <div class="col-md-6 col-lg-4 vehicle-card" data-vehicle-id="" data-status="" data-ownership="">
-        <div class="card h-100 vehicle-item" style="cursor: pointer; transition: all 0.3s;">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <strong class="vehicle-registration"></strong>
-                <span class="badge vehicle-status-badge"></span>
+        <div class="block block-rounded block-bordered h-100 vehicle-item mb-0" style="cursor: pointer; transition: all 0.2s ease;">
+            <div class="block-header bg-body-light py-2 d-flex justify-content-between align-items-center">
+                <strong class="vehicle-registration fs-sm"></strong>
+                <span class="badge vehicle-status-badge fs-xs"></span>
             </div>
-            <div class="card-body">
-                <h6 class="vehicle-name mb-2"></h6>
+            <div class="block-content p-3 fs-sm">
+                <h6 class="vehicle-name fs-sm fw-bold mb-2 text-dark"></h6>
                 <div class="vehicle-details">
-                    <p class="mb-1 small">
-                        <i class="fas fa-tag"></i> <span class="vehicle-type"></span>
+                    <p class="mb-1 fs-xs text-muted">
+                        <i class="fa fa-tag text-primary me-1"></i> <span class="vehicle-type text-dark"></span>
                     </p>
-                    <p class="mb-1 small">
-                        <i class="fas fa-users"></i> <span class="vehicle-capacity"></span> seats
+                    <p class="mb-1 fs-xs text-muted">
+                        <i class="fa fa-users text-info me-1"></i> <span class="vehicle-capacity text-dark"></span> seats
                     </p>
-                    <p class="mb-1 small">
-                        <i class="fas fa-building"></i> <span class="vehicle-ownership"></span>
+                    <p class="mb-1 fs-xs text-muted">
+                        <i class="fa fa-building text-warning me-1"></i> <span class="vehicle-ownership text-dark"></span>
                     </p>
-                    <p class="mb-1 small">
-                        <i class="fas fa-paint-brush"></i> <span class="vehicle-color"></span>
+                    <p class="mb-1 fs-xs text-muted">
+                        <i class="fa fa-paint-brush text-secondary me-1"></i> <span class="vehicle-color text-dark"></span>
                     </p>
                 </div>
                 <div class="vehicle-assignment-info mt-2" style="display: none;">
                     <hr class="my-2">
-                    <div class="alert alert-warning py-2 px-2 mb-0 small">
+                    <div class="alert alert-warning py-1 px-2 mb-0 fs-xs">
                         <div><strong>Current Assignment:</strong></div>
                         <div class="assignment-ticket"></div>
                         <div class="assignment-countdown"></div>
                     </div>
                 </div>
                 <div class="vehicle-match-indicator mt-2" style="display: none;">
-                    <span class="badge bg-info">
-                        <i class="fas fa-check-circle"></i> Matches Requirements
+                    <span class="badge bg-info fs-xs">
+                        <i class="fa fa-check-circle me-1"></i> Matches Requirements
                     </span>
                 </div>
             </div>
@@ -396,34 +381,34 @@
 <!-- Driver Card Template -->
 <template id="driverCardTemplate">
     <div class="col-md-6 col-lg-4 driver-card" data-driver-id="" data-status="">
-        <div class="card h-100 driver-item" style="cursor: pointer; transition: all 0.3s;">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <strong class="driver-name"></strong>
-                <span class="badge driver-status-badge"></span>
+        <div class="block block-rounded block-bordered h-100 driver-item mb-0" style="cursor: pointer; transition: all 0.2s ease;">
+            <div class="block-header bg-body-light py-2 d-flex justify-content-between align-items-center">
+                <strong class="driver-name fs-sm"></strong>
+                <span class="badge driver-status-badge fs-xs"></span>
             </div>
-            <div class="card-body">
+            <div class="block-content p-3 fs-sm">
                 <div class="d-flex align-items-start">
                     <div class="driver-avatar me-3">
-                        <img class="driver-image rounded-circle" style="width: 50px; height: 50px; object-fit: cover;"
+                        <img class="driver-image rounded-circle" style="width: 48px; height: 48px; object-fit: cover;"
                             alt="Driver">
                     </div>
                     <div class="flex-grow-1">
                         <div class="driver-details">
-                            <p class="mb-1 small">
-                                <i class="fas fa-phone"></i> <span class="driver-phone"></span>
+                            <p class="mb-1 fs-xs text-muted">
+                                <i class="fa fa-phone text-primary me-1"></i> <span class="driver-phone text-dark"></span>
                             </p>
-                            <p class="mb-1 small">
-                                <i class="fas fa-envelope"></i> <span class="driver-office-location"></span>
+                            <p class="mb-1 fs-xs text-muted">
+                                <i class="fa fa-building text-info me-1"></i> <span class="driver-office-location text-dark"></span>
                             </p>
-                            <p class="mb-1 small">
-                                <i class="fas fa-id-badge"></i> <span class="driver-job-location"></span>
+                            <p class="mb-1 fs-xs text-muted">
+                                <i class="fa fa-id-badge text-secondary me-1"></i> <span class="driver-job-location text-dark"></span>
                             </p>
                         </div>
                     </div>
                 </div>
                 <div class="driver-assignment-info mt-2" style="display: none;">
                     <hr class="my-2">
-                    <div class="alert alert-warning py-2 px-2 mb-0 small">
+                    <div class="alert alert-warning py-1 px-2 mb-0 fs-xs">
                         <div><strong>Current Assignment:</strong></div>
                         <div class="assignment-ticket"></div>
                         <div class="assignment-countdown"></div>
@@ -431,7 +416,7 @@
                 </div>
                 <div class="driver-unavailable-info mt-2" style="display: none;">
                     <hr class="my-2">
-                    <div class="alert alert-danger py-2 px-2 mb-0 small">
+                    <div class="alert alert-danger py-1 px-2 mb-0 fs-xs">
                         <div class="unavailable-message"></div>
                     </div>
                 </div>
@@ -443,19 +428,20 @@
 <style>
     .vehicle-item.selected,
     .driver-item.selected {
-        border: 2px solid #0d6efd;
-        background-color: #e7f1ff;
+        border: 2px solid #0d6efd !important;
+        background-color: #f0f7ff !important;
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15) !important;
     }
 
     .vehicle-item:hover,
     .driver-item:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
     }
 
     .vehicle-item.unavailable,
     .driver-item.unavailable {
-        opacity: 0.6;
+        opacity: 0.55;
         cursor: not-allowed !important;
     }
 

@@ -28,6 +28,8 @@ class ElectricityMeterTemplateExport implements FromArray, WithTitle, WithEvents
         'Consumer No',
         'Due Date Day',
         'Sanctioned Load (KW)',
+        'Unit Charge Off-Peak (BDT)',
+        'Unit Charge Peak (BDT)',
         'Location Notes',
         'Active (Yes/No)',
         'Additional Floor 1',
@@ -57,6 +59,7 @@ class ElectricityMeterTemplateExport implements FromArray, WithTitle, WithEvents
         return [
             'MTR-001', 'postpaid_main', 'DESCO', 'DESCO Dhanmondi', 'BEFTN', 'Company',
             'DHK-001', 'Ground Floor', '', '123456789', 15, 50.00,
+            8.50, 11.20,
             'Main entrance panel', 'Yes', '1st Floor', '',
         ];
     }
@@ -69,6 +72,7 @@ class ElectricityMeterTemplateExport implements FromArray, WithTitle, WithEvents
         return [
             'MTR-002', 'prepaid', 'DPDC', 'DPDC Kotwali', 'bKash', 'House Owner',
             'CTG-001', '2nd Floor', 'VEN-0002', '987654321', 20, 30.00,
+            7.80, 10.50,
             'Basement meter room', 'Yes', '', '',
         ];
     }
@@ -81,6 +85,7 @@ class ElectricityMeterTemplateExport implements FromArray, WithTitle, WithEvents
         return [
             'MTR-003', 'postpaid_sub', 'DESCO', 'DESCO Dhanmondi', 'Cheque', 'Company',
             'DHK-001', '1st Floor', 'VEN-0001', '111222333', 10, 25.00,
+            8.50, 11.20,
             'Floor junction box', 'Yes', '', '',
         ];
     }
@@ -112,8 +117,8 @@ class ElectricityMeterTemplateExport implements FromArray, WithTitle, WithEvents
                 // Dropdown: Meter Type (column 2)
                 $this->applyDropdown($sheet, 2, 'postpaid_main,postpaid_sub,prepaid', 2);
 
-                // Dropdown: Active (column 14)
-                $this->applyDropdown($sheet, 14, 'Yes,No', 2);
+                // Dropdown: Active (column 16)
+                $this->applyDropdown($sheet, 16, 'Yes,No', 2);
             },
         ];
     }

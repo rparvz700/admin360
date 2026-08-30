@@ -19,11 +19,18 @@ class VehicleAssignment extends Model
         'end_datetime',
         'status',
         'notes',
+        'remarks',
+        'start_odo_meter',
+        'end_odo_meter',
+        'start_odo_image',
+        'end_odo_image',
+        'location_tracking',
     ];
 
     protected $casts = [
         'start_datetime' => 'datetime',
         'end_datetime' => 'datetime',
+        'location_tracking' => 'array',
     ];
 
     public function vehicle()

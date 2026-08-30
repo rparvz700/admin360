@@ -12,6 +12,8 @@ use App\Models\Project;
 use App\Models\VehicleType;
 use App\Models\VehicleOperationalLog;
 use Carbon\Carbon;
+use App\Services\ImageService;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -248,10 +250,25 @@ class TicketController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $startOdoMeter = $request->start_odo_meter;
+        $validated = $request->validate([
+            'start_odo_meter' => 'nullable|integer',
+            'start_odo_image' => 'nullable|file|mimes:jpeg,jpg,png,webp,heic,heif|max:10240',
+        ]);
+
+        $startOdoMeter = $validated['start_odo_meter'] ?? null;
+
+        $imagePath = null;
+        if ($request->hasFile('start_odo_image')) {
+            $imagePath = app(ImageService::class)->compress(
+                $request->file('start_odo_image'),
+                'odo_images/start'
+            );
+        }
+
         $vehicleAssignment->update([
-            'status' => 'active',
-            'start_odo_meter' => $startOdoMeter
+            'status'          => 'active',
+            'start_odo_meter' => $startOdoMeter,
+            'start_odo_image' => $imagePath,
         ]);
 
         $loggedBy = \Illuminate\Support\Facades\Auth::id() 
@@ -297,16 +314,26 @@ class TicketController extends Controller
 
         $validated = $request->validate([
             'end_odo_meter' => 'nullable|integer',
-            'remarks' => 'nullable|string',
+            'end_odo_image' => 'nullable|file|mimes:jpeg,jpg,png,webp,heic,heif|max:10240',
+            'remarks'       => 'nullable|string',
         ]);
 
-        $endOdoMeter = $validated['end_odo_meter'] ?? $request->end_odo_meter;
-        $remarks = $validated['remarks'] ?? $request->remarks;
+        $endOdoMeter = $validated['end_odo_meter'] ?? null;
+        $remarks = $validated['remarks'] ?? null;
+
+        $imagePath = null;
+        if ($request->hasFile('end_odo_image')) {
+            $imagePath = app(ImageService::class)->compress(
+                $request->file('end_odo_image'),
+                'odo_images/end'
+            );
+        }
 
         $vehicleAssignment->update([
-            'status' => 'completed',
+            'status'        => 'completed',
             'end_odo_meter' => $endOdoMeter,
-            'remarks' => $remarks,
+            'end_odo_image' => $imagePath,
+            'remarks'       => $remarks,
         ]);
 
         $loggedBy = \Illuminate\Support\Facades\Auth::id() 
@@ -392,6 +419,11 @@ class TicketController extends Controller
             'status' => $assignment->status,
             'start_datetime' => optional($assignment->start_datetime)->toDateTimeString(),
             'end_datetime' => optional($assignment->end_datetime)->toDateTimeString(),
+            'start_odo_meter' => $assignment->start_odo_meter,
+            'start_odo_image' => $assignment->start_odo_image ? Storage::disk('public')->url($assignment->start_odo_image) : null,
+            'end_odo_meter' => $assignment->end_odo_meter,
+            'end_odo_image' => $assignment->end_odo_image ? Storage::disk('public')->url($assignment->end_odo_image) : null,
+            'remarks' => $assignment->remarks,
             'tracking_count' => count($assignment->location_tracking ?? []),
             'driver' => $assignment->driver ? [
                 'id' => $assignment->driver->id,

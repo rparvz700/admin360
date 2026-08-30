@@ -11,6 +11,6 @@ Route::prefix('vehicle-support')
         Route::get('/tickets/dropdowns', [TicketController::class, 'getDropdowns']);
         Route::get('/tickets/{ticketId}', [TicketController::class, 'show']);
         Route::post('/vehicle-assignments/{vehicleAssignment}/location-tracking', [TicketController::class, 'storeLocationTracking']);
-        Route::patch('/vehicle-assignments/{vehicleAssignment}/start', [TicketController::class, 'startTrip']);
-        Route::patch('/vehicle-assignments/{vehicleAssignment}/complete', [TicketController::class, 'completeTrip']);
+        Route::post('/vehicle-assignments/{vehicleAssignment}/start', [TicketController::class, 'startTrip']);
+        Route::post('/vehicle-assignments/{vehicleAssignment}/complete', [TicketController::class, 'completeTrip']);
     });

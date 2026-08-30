@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "ext-intl": "*",
+        "intervention/image": "^3.11",
         "laravel/framework": "^11.0",
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.6",

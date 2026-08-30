@@ -55,7 +55,7 @@ class AdminTicketController extends Controller
             return DataTables::of($query)
                 // Ticket Number with link
                 ->addColumn('ticket_number_link', function ($ticket) {
-                    return '<a href="' . route('admin.tickets.show', $ticket) . '" class="text-decoration-none fw-bold">' .
+                    return '<a href="' . route('admin.tickets.show', $ticket) . '" class="text-decoration-none fw-semibold text-nowrap">' .
                            $ticket->ticket_number .
                            '</a>';
                 })

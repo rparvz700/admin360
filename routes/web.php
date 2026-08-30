@@ -224,21 +224,34 @@ Route::middleware(['auth'])->prefix('admin/tickets')->name('admin.tickets.')->gr
 });
 
 
-//openstreet proxy route
+// OpenStreetMap reverse geocode proxy route
 Route::get('/api/reverse-geocode', function (Request $request) {
     $lat = $request->lat;
     $lon = $request->lon;
 
-    $response = Http::withHeaders([
-        'User-Agent' => 'YourAppName/1.0 (contact@yourdomain.com)',
-        'Accept-Language' => 'en'
-    ])->get('https://nominatim.openstreetmap.org/reverse', [
-        'format' => 'json',
-        'lat' => $lat,
-        'lon' => $lon,
-    ]);
+    if (!$lat || !$lon) {
+        return response()->json(['error' => 'Missing coordinates'], 400);
+    }
 
-    return response()->json($response->json());
+    try {
+        $response = Http::withHeaders([
+            'User-Agent' => 'Admin360-FleetApp/2.0 (fleet@admin360.local)',
+            'Accept-Language' => 'en'
+        ])->timeout(5)->get('https://nominatim.openstreetmap.org/reverse', [
+            'format' => 'json',
+            'lat' => $lat,
+            'lon' => $lon,
+            'addressdetails' => 1,
+        ]);
+
+        if ($response->successful()) {
+            return response()->json($response->json());
+        }
+    } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::warning('Reverse geocoding error: ' . $e->getMessage());
+    }
+
+    return response()->json(['error' => 'Geocoding unavailable'], 503);
 })->name('api.reverse-geocode');
 
 Route::middleware(['auth'])->group(function () {
