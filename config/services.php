@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'mobile_api' => [
+        'token' => env('MOBILE_API_TOKEN'),
+    ],
+
 ];
