@@ -132,6 +132,12 @@ class TicketCreationTest extends TestCase
         $this->assertEquals(90.4125, $ticket->trip_location_coordinates[0]['start']['longitude']);
         $this->assertEquals(1, $ticket->trip_location_coordinates[0]['stop_order']);
 
+        $formattedLocations = $ticket->formatted_trip_locations;
+        $this->assertCount(1, $formattedLocations);
+        $this->assertEquals('Location A', $formattedLocations[0]['start']['address']);
+        $this->assertEquals(23.8103, $formattedLocations[0]['start']['latitude']);
+        $this->assertEquals(90.4125, $formattedLocations[0]['start']['longitude']);
+
         // Assert ticket updates
         $this->assertDatabaseHas('ticket_updates', [
             'ticket_id' => $ticket->id,

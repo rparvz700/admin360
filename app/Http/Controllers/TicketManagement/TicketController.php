@@ -176,8 +176,8 @@ class TicketController extends Controller
                 $endCoordinates = $this->coordinatesFromLocation($location, 'end');
 
                 $tripLocations[] = [
-                    'start' => $location['start'],
-                    'end' => $location['end'],
+                    'start' => $this->cleanAddressText($location['start'] ?? ''),
+                    'end' => $this->cleanAddressText($location['end'] ?? ''),
                     'stop_order' => $index + 1
                 ];
 
@@ -218,6 +218,16 @@ class TicketController extends Controller
         ]);
 
         return redirect()->route('tickets.show', $ticket)->with('success', 'Ticket created successfully!');
+    }
+
+    private function cleanAddressText(?string $text): string
+    {
+        if (!$text) {
+            return '';
+        }
+
+        $cleaned = preg_replace('/\s*\(Lat:\s*-?\d+(?:\.\d+)?,\s*Lng:\s*-?\d+(?:\.\d+)?\)\s*/i', '', $text);
+        return trim($cleaned);
     }
 
     private function coordinatesFromLocation(array $location, string $point): array

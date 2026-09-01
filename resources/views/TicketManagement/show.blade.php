@@ -149,18 +149,26 @@
                                         </div>
                                     </div>
 
-                                    @if ($ticket->trip_location_details)
+                                    @if ($ticket->trip_location_details || $ticket->trip_location_coordinates)
                                         <h5 class="fs-xs fw-bold text-uppercase text-muted mb-2">Trip Stoppages / Route</h5>
                                         <div class="row g-2 mb-3">
-                                            @foreach ($ticket->trip_location_details as $index => $location)
+                                            @foreach ($ticket->formatted_trip_locations as $index => $location)
                                                 <div class="col-12">
                                                     <div class="p-2 bg-body-light rounded border d-flex align-items-center justify-content-between flex-wrap gap-2">
                                                         <div class="d-flex align-items-center gap-2">
-                                                            <span class="badge bg-primary fs-xs">Stop {{ $index + 1 }}</span>
+                                                            <span class="badge bg-primary fs-xs">Stop {{ $location['stop_order'] ?? ($index + 1) }}</span>
                                                             <div>
-                                                                <span class="badge bg-success-light text-success me-1"><i class="fa fa-map-pin"></i> Start</span> {{ $location['start'] ?? 'N/A' }}
+                                                                <span class="badge bg-success-light text-success me-1"><i class="fa fa-map-pin"></i> Start</span>
+                                                                {{ $location['start']['address'] ?? 'N/A' }}
+                                                                @if (!empty($location['start']['latitude']) && !empty($location['start']['longitude']))
+                                                                    <small class="text-muted ms-1">(Lat: {{ number_format($location['start']['latitude'], 6) }}, Lng: {{ number_format($location['start']['longitude'], 6) }})</small>
+                                                                @endif
                                                                 &nbsp;&rarr;&nbsp;
-                                                                <span class="badge bg-danger-light text-danger me-1"><i class="fa fa-flag-checkered"></i> End</span> {{ $location['end'] ?? 'N/A' }}
+                                                                <span class="badge bg-danger-light text-danger me-1"><i class="fa fa-flag-checkered"></i> End</span>
+                                                                {{ $location['end']['address'] ?? 'N/A' }}
+                                                                @if (!empty($location['end']['latitude']) && !empty($location['end']['longitude']))
+                                                                    <small class="text-muted ms-1">(Lat: {{ number_format($location['end']['latitude'], 6) }}, Lng: {{ number_format($location['end']['longitude'], 6) }})</small>
+                                                                @endif
                                                             </div>
                                                         </div>
                                                     </div>

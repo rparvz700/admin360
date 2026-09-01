@@ -24,6 +24,7 @@ class Ticket extends Model
         'trip_start_datetime',
         'trip_end_datetime',
         'trip_location_details',
+        'trip_location_coordinates',
         'passenger_count',
         'trip_purpose',
         'asset_id',
@@ -45,6 +46,7 @@ class Ticket extends Model
         'assigned_at' => 'datetime',
         'completed_at' => 'datetime',
         'trip_location_details' => 'array',
+        'trip_location_coordinates' => 'array',
     ];
 
     protected static function boot()
@@ -219,5 +221,52 @@ class Ticket extends Model
     {
         return $this->hasOne(VehicleAssignment::class, 'ticket_id')->latest();
     }
-    
+
+    public function getFormattedTripLocationsAttribute(): array
+    {
+        $locations = $this->trip_location_details ?? [];
+        $coordinates = $this->trip_location_coordinates ?? [];
+
+        return collect($locations)->map(function (array $location, int $index) use ($coordinates) {
+            $coordinate = $coordinates[$index] ?? [];
+
+            $startLat = $coordinate['start']['latitude'] ?? null;
+            $startLng = $coordinate['start']['longitude'] ?? null;
+            $startAddr = $location['start'] ?? null;
+
+            if (($startLat === null || $startLng === null) && $startAddr) {
+                if (preg_match('/Lat:\s*(-?\d+(?:\.\d+)?).*Lng:\s*(-?\d+(?:\.\d+)?)/i', $startAddr, $matches)) {
+                    $startLat = (float) $matches[1];
+                    $startLng = (float) $matches[2];
+                    $startAddr = trim(preg_replace('/\s*\(Lat:\s*-?\d+(?:\.\d+)?,\s*Lng:\s*-?\d+(?:\.\d+)?\)\s*/i', '', $startAddr));
+                }
+            }
+
+            $endLat = $coordinate['end']['latitude'] ?? null;
+            $endLng = $coordinate['end']['longitude'] ?? null;
+            $endAddr = $location['end'] ?? null;
+
+            if (($endLat === null || $endLng === null) && $endAddr) {
+                if (preg_match('/Lat:\s*(-?\d+(?:\.\d+)?).*Lng:\s*(-?\d+(?:\.\d+)?)/i', $endAddr, $matches)) {
+                    $endLat = (float) $matches[1];
+                    $endLng = (float) $matches[2];
+                    $endAddr = trim(preg_replace('/\s*\(Lat:\s*-?\d+(?:\.\d+)?,\s*Lng:\s*-?\d+(?:\.\d+)?\)\s*/i', '', $endAddr));
+                }
+            }
+
+            return [
+                'stop_order' => $location['stop_order'] ?? $coordinate['stop_order'] ?? $index + 1,
+                'start' => [
+                    'address' => $startAddr,
+                    'latitude' => $startLat !== null ? (float) $startLat : null,
+                    'longitude' => $startLng !== null ? (float) $startLng : null,
+                ],
+                'end' => [
+                    'address' => $endAddr,
+                    'latitude' => $endLat !== null ? (float) $endLat : null,
+                    'longitude' => $endLng !== null ? (float) $endLng : null,
+                ],
+            ];
+        })->values()->all();
+    }
 }

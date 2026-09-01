@@ -123,8 +123,8 @@ class TicketController extends Controller
                 $endCoordinates = $this->coordinatesFromLocation($location, 'end');
 
                 $tripLocations[] = [
-                    'start' => $location['start'],
-                    'end' => $location['end'],
+                    'start' => $this->cleanAddressText($location['start'] ?? ''),
+                    'end' => $this->cleanAddressText($location['end'] ?? ''),
                     'stop_order' => $index + 1
                 ];
 
@@ -390,26 +390,7 @@ class TicketController extends Controller
 
     private function formatLocations(Ticket $ticket): array
     {
-        $locations = $ticket->trip_location_details ?? [];
-        $coordinates = $ticket->trip_location_coordinates ?? [];
-
-        return collect($locations)->map(function (array $location, int $index) use ($coordinates) {
-            $coordinate = $coordinates[$index] ?? [];
-
-            return [
-                'stop_order' => $location['stop_order'] ?? $coordinate['stop_order'] ?? $index + 1,
-                'start' => [
-                    'address' => $location['start'] ?? null,
-                    'latitude' => $coordinate['start']['latitude'] ?? null,
-                    'longitude' => $coordinate['start']['longitude'] ?? null,
-                ],
-                'end' => [
-                    'address' => $location['end'] ?? null,
-                    'latitude' => $coordinate['end']['latitude'] ?? null,
-                    'longitude' => $coordinate['end']['longitude'] ?? null,
-                ],
-            ];
-        })->values()->all();
+        return $ticket->formatted_trip_locations;
     }
 
     private function formatAssignment(VehicleAssignment $assignment): array
@@ -461,6 +442,16 @@ class TicketController extends Controller
             'battery_level' => isset($location['battery_level']) ? (float) $location['battery_level'] : null,
             'metadata' => $location['metadata'] ?? null,
         ];
+    }
+
+    private function cleanAddressText(?string $text): string
+    {
+        if (!$text) {
+            return '';
+        }
+
+        $cleaned = preg_replace('/\s*\(Lat:\s*-?\d+(?:\.\d+)?,\s*Lng:\s*-?\d+(?:\.\d+)?\)\s*/i', '', $text);
+        return trim($cleaned);
     }
 
     private function coordinatesFromLocation(array $location, string $point): array
