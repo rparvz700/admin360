@@ -43,6 +43,7 @@ class Driver extends Model
         'bill_reviewer_email',
         'bill_reviewer_hr_id',
         'bill_reviewer_company',
+        'nid',
         'emergency_contact',
         'is_manual_entry',
     ];
