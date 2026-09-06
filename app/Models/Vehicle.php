@@ -218,6 +218,7 @@ class Vehicle extends Model
             'Toyota',
             'Toyota Hilux',
             'Isuzu',
+            'Rancon',
             'Tata',
             'JAC',
             'Ashok Leyland',
@@ -241,6 +242,8 @@ class Vehicle extends Model
             'Bronze',
             'Brown',
             'Orange',
+            'Multi-Color',
+            'Pearl'
         ];
     }
 
