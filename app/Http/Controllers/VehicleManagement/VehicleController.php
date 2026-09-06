@@ -20,7 +20,13 @@ class VehicleController extends Controller
 
     public function index()
     {
-        return view('VehicleManagement.Vehicles.index');
+        $stats = [
+            'total'   => Vehicle::count(),
+            'active'  => Vehicle::where('status', 'active')->count(),
+            'owned'   => Vehicle::where('isRented', false)->count(),
+            'rented'  => Vehicle::where('isRented', true)->count(),
+        ];
+        return view('VehicleManagement.Vehicles.index', compact('stats'));
     }
 
     public function list(Request $request)
@@ -46,15 +52,27 @@ class VehicleController extends Controller
         $vehicles = $query->orderBy('id', 'desc')->skip($start)->take($length)->get();
         $data = [];
         foreach ($vehicles as $vehicle) {
+            $statusBadge = match($vehicle->status) {
+                'active'   => '<span class="badge bg-success">Active</span>',
+                'inactive' => '<span class="badge bg-warning">Inactive</span>',
+                'scrapped' => '<span class="badge bg-danger">Scrapped</span>',
+                default    => '<span class="badge bg-secondary">' . e(ucfirst($vehicle->status)) . '</span>',
+            };
+
+            $ownershipBadge = $vehicle->isRented
+                ? '<span class="badge bg-info-light text-info"><i class="fa fa-handshake me-1"></i>Rented</span>'
+                : '<span class="badge bg-primary-light text-primary"><i class="fa fa-shield-alt me-1"></i>Owned</span>';
+
             $data[] = [
                 'id' => $vehicle->id,
-                'registration_number' => $vehicle->registration_number,
-                'vehicle_type' => $vehicle->vehicleType->type_name ?? '',
-                'brand' => $vehicle->brand,
-                'model' => $vehicle->model,
-                'engine_cc' => $vehicle->engine_cc ?? '-',
-                'manufacture_year' => $vehicle->manufacture_year,
-                'status' => $vehicle->status,
+                'registration_number' => '<span class="fw-semibold text-dark"><i class="fa fa-car me-1 text-muted"></i>' . e($vehicle->registration_number) . '</span>',
+                'vehicle_type' => '<span class="badge bg-secondary">' . e($vehicle->vehicleType->type_name ?? 'N/A') . '</span>',
+                'brand' => e($vehicle->brand ?? '-'),
+                'model' => e($vehicle->model ?? '-'),
+                'engine_cc' => $vehicle->engine_cc ? number_format($vehicle->engine_cc) . ' cc' : '-',
+                'manufacture_year' => $vehicle->manufacture_year ?? '-',
+                'ownership' => $ownershipBadge,
+                'status' => $statusBadge,
                 'actions' => view('VehicleManagement.Vehicles.partials.actions', compact('vehicle'))->render(),
             ];
         }

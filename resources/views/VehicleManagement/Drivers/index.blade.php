@@ -1,46 +1,156 @@
 @extends('Partials.app', ['activeMenu' => 'drivers'])
-
-@section('title') Driver List @endsection
+@section('title') Drivers @endsection
 
 @section('styles')
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-bs5/css/dataTables.bootstrap5.min.css') }}">
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-buttons-bs5/css/buttons.bootstrap5.min.css') }}">
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-responsive-bs5/css/responsive.bootstrap5.min.css') }}">
+    <style>
+        .stat-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+    </style>
 @endsection
 
 @section('content')
-<div class="content">
-    <div class="block block-rounded">
-        @if (Session::has('success'))
-            <div class="alert alert-success alert-dismissible" role="alert">
-                <small class="mb-0">
-                    {{ Session::get('success') }}
-                </small>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-        <div class="block-header block-header-default">
-            <h3 class="block-title">Drivers</h3>
-            <a href="{{ route('drivers.create') }}" class="btn btn-primary btn-sm float-end">Add Driver</a>
-        </div>
-        <div class="block-content fs-sm data-content">
-            <div class="table-responsive">
-                <table class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive" id="drivers-table">
-                    <thead>
-                        <tr>
-                            <th class="text-center all">ID</th>
-                            <th class="all">HR ID</th>
-                            <th class="all">Name</th>
-                            <th class="all">Email</th>
-                            <th class="all">Phone</th>
-                            <th class="all">Actions</th>
-                        </tr>
-                    </thead>
-                </table>
+    <!-- Hero -->
+    <div class="bg-body-light">
+        <div class="content content-full">
+            <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center py-2">
+                <div class="flex-grow-1">
+                    <h1 class="h3 fw-bold mb-1">
+                        <i class="fa fa-users-cog me-2 text-primary"></i> Drivers
+                    </h1>
+                    <h2 class="fs-base lh-base fw-medium text-muted mb-0">
+                        Manage company and contractual drivers, personal profiles, assignments, and contact records
+                    </h2>
+                </div>
+                <nav class="flex-shrink-0 mt-3 mt-sm-0 ms-sm-3" aria-label="breadcrumb">
+                    <ol class="breadcrumb breadcrumb-alt">
+                        <li class="breadcrumb-item">
+                            <a class="link-fx" href="javascript:void(0)">Vehicle Management</a>
+                        </li>
+                        <li class="breadcrumb-item" aria-current="page">
+                            Drivers
+                        </li>
+                    </ol>
+                </nav>
             </div>
         </div>
     </div>
-</div>
+    <!-- END Hero -->
+
+    <!-- Page Content -->
+    <div class="content">
+        @if (Session::has('success'))
+            <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                <i class="fa fa-check-circle"></i>
+                <div class="flex-grow-1">{{ Session::get('success') }}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        @if (Session::has('error'))
+            <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                <i class="fa fa-exclamation-circle"></i>
+                <div class="flex-grow-1">{{ Session::get('error') }}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        <!-- Quick Stats Overview -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-xxl-3">
+                <div class="block block-rounded d-flex flex-column h-100 mb-0 border-start border-4 border-primary stat-card shadow-sm">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fs-sm fw-semibold text-uppercase text-muted">Total Drivers</div>
+                            <div class="fs-2 fw-bold text-dark">{{ $stats['total'] ?? 0 }}</div>
+                        </div>
+                        <div class="item item-circle bg-primary-light text-primary">
+                            <i class="fa fa-users fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xxl-3">
+                <div class="block block-rounded d-flex flex-column h-100 mb-0 border-start border-4 border-success stat-card shadow-sm">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fs-sm fw-semibold text-uppercase text-muted">Permanent Staff</div>
+                            <div class="fs-2 fw-bold text-success">{{ $stats['permanent'] ?? 0 }}</div>
+                        </div>
+                        <div class="item item-circle bg-success-light text-success">
+                            <i class="fa fa-user-check fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xxl-3">
+                <div class="block block-rounded d-flex flex-column h-100 mb-0 border-start border-4 border-warning stat-card shadow-sm">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fs-sm fw-semibold text-uppercase text-muted">Contractual</div>
+                            <div class="fs-2 fw-bold text-warning">{{ $stats['contractual'] ?? 0 }}</div>
+                        </div>
+                        <div class="item item-circle bg-warning-light text-warning">
+                            <i class="fa fa-file-signature fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xxl-3">
+                <div class="block block-rounded d-flex flex-column h-100 mb-0 border-start border-4 border-info stat-card shadow-sm">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fs-sm fw-semibold text-uppercase text-muted">With NID On Record</div>
+                            <div class="fs-2 fw-bold text-info">{{ $stats['with_nid'] ?? 0 }}</div>
+                        </div>
+                        <div class="item item-circle bg-info-light text-info">
+                            <i class="fa fa-id-card fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drivers Table Block -->
+        <div class="block block-rounded shadow-sm">
+            <div class="block-header block-header-default">
+                <h3 class="block-title">
+                    <i class="fa fa-list me-1 text-muted"></i> Driver Roster
+                </h3>
+                <div class="block-options">
+                    @can('create-driver')
+                        <a href="{{ route('drivers.create') }}" class="btn btn-primary btn-sm">
+                            <i class="fa fa-plus me-1"></i> Add Driver
+                        </a>
+                    @endcan
+                </div>
+            </div>
+            <div class="block-content fs-sm data-content pb-4">
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered table-striped table-vcenter js-dataTable-full table-hover js-dataTable-responsive" id="drivers-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 50px;">ID</th>
+                                <th class="text-center" style="width: 90px;">HR ID</th>
+                                <th>Driver Name & Designation</th>
+                                <th>Contact Information</th>
+                                <th class="text-center" style="width: 70px;">Blood</th>
+                                <th>Employment Contract</th>
+                                <th>Location</th>
+                                <th class="text-center" style="width: 100px;">Actions</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -51,70 +161,32 @@
     <script src="{{ asset('js/plugins/datatables-responsive-bs5/js/responsive.bootstrap5.min.js') }}"></script>
     <script src="{{ asset('js/plugins/datatables-buttons/dataTables.buttons.min.js') }}"></script>
     <script>
-        !(function() {
-            class e {
-                static initDataTables() {
-                    jQuery.extend(
-                        jQuery.fn.DataTable.ext.classes, {
-                            sWrapper: "dataTables_wrapper dt-bootstrap5",
-                            sFilterInput: "form-control form-control-sm",
-                            sLengthSelect: "form-select form-select-sm"
-                        }
-                    ),
-                    jQuery.extend(!0, jQuery.fn.DataTable.defaults, {
-                        language: {
-                            lengthMenu: "_MENU_",
-                            search: "_INPUT_",
-                            searchPlaceholder: "Search..",
-                            info: "Page <strong>_PAGE_</strong> of <strong>_PAGES_</strong>",
-                            paginate: {
-                                first: '<i class="fa fa-angle-double-left"></i>',
-                                previous: '<i class="fa fa-angle-left"></i>',
-                                next: '<i class="fa fa-angle-right"></i>',
-                                last: '<i class="fa fa-angle-double-right"></i>'
-                            },
-                        },
-                    }),
-                    jQuery.extend(
-                        !0,
-                        jQuery.fn.DataTable.Buttons.defaults, {
-                            dom: {
-                                button: {
-                                    className: "btn btn-sm btn-primary"
-                                }
-                            }
-                        }
-                    ),
-                    jQuery(".js-dataTable-responsive").DataTable({
-                        ajax: '{{ route('drivers.list') }}',
-                        processing: true,
-                        serverSide: true,
-                        pagingType: "full_numbers",
-                        pageLength: 10,
-                        lengthMenu: [
-                            [5, 10, 15, 20],
-                            [5, 10, 15, 20],
-                        ],
-                        order: [
-                            [0, 'desc']
-                        ],
-                        autoWidth: !1,
-                        responsive: !0,
-                        columns: [
-                            { data: 'id' },
-                            { data: 'hr_id' },
-                            { data: 'name' },
-                            { data: 'email' },
-                            { data: 'phone' },
-                            { data: 'actions', searchable: false, orderable: false }
-                        ],
+        $(function() {
+            var table = $('#drivers-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: '{{ route('drivers.list') }}',
+                pageLength: 15,
+                lengthMenu: [[10, 15, 25, 50, 100], [10, 15, 25, 50, 100]],
+                order: [[0, 'desc']],
+                columns: [
+                    { data: 'id', className: 'text-center' },
+                    { data: 'hr_id', className: 'text-center' },
+                    { data: 'name' },
+                    { data: 'contact' },
+                    { data: 'blood_group', className: 'text-center' },
+                    { data: 'employment' },
+                    { data: 'location' },
+                    { data: 'actions', orderable: false, searchable: false, className: 'text-center' },
+                ],
+                drawCallback: function() {
+                    // Initialize Bootstrap tooltips for action buttons
+                    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                    tooltipTriggerList.map(function(tooltipTriggerEl) {
+                        return new bootstrap.Tooltip(tooltipTriggerEl);
                     });
                 }
-                static init() {
-                    this.initDataTables();
-                }
-            }
-            One.onLoad(() => e.init());
-        })();
+            });
+        });
     </script>
 @endsection

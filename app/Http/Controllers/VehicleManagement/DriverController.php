@@ -49,9 +49,15 @@ class DriverController extends Controller
                             $emp[$field] = null;
                         }
                     }
+
+                    $hrId = (string)($emp['hr_id'] ?? '');
+                    if (strlen($hrId) > 0 && strlen($hrId) < 4) {
+                        $hrId = str_pad($hrId, 4, '0', STR_PAD_LEFT);
+                    }
+
                     \App\Models\Driver::firstOrCreate(
                         [
-                            'hr_id' => $emp['hr_id'],
+                            'hr_id' => $hrId,
                         ],
                         [
                             'name' => $emp['name'] ?? null,
@@ -93,10 +99,20 @@ class DriverController extends Controller
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
+
     public function index()
     {
-        $drivers = Driver::all();
-        return view('VehicleManagement.Drivers.index', compact('drivers'));
+        $stats = [
+            'total' => Driver::count(),
+            'permanent' => Driver::where(function($q) {
+                $q->where('employment_contract', 'like', '%permanent%')
+                  ->orWhere('employment_contract', 'like', '%regular%');
+            })->count(),
+            'contractual' => Driver::where('employment_contract', 'like', '%contract%')->count(),
+            'with_nid' => Driver::whereNotNull('nid')->where('nid', '!=', '')->count(),
+        ];
+
+        return view('VehicleManagement.Drivers.index', compact('stats'));
     }
 
     public function create()
@@ -107,14 +123,47 @@ class DriverController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'hr_id' => 'required|unique:drivers',
-            'name' => 'required',
-            'email' => 'nullable|email',
-            'phone' => 'nullable',
-            // ... add other validation rules as needed ...
+            'hr_id' => 'required|unique:drivers,hr_id',
+            'name' => 'required|string|max:255',
+            'sur_name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'nid' => 'nullable|string|max:50',
+            'emergency_contact' => 'nullable|string|max:50',
+            'blood_group' => 'nullable|string|max:10',
+            'gender' => 'nullable|string|max:20',
+            'marital_status' => 'nullable|string|max:30',
+            'date_of_birth' => 'nullable|date',
+            'joining_date' => 'nullable|date',
+            'employment_contract' => 'nullable|string|max:100',
+            'contract_renewed' => 'nullable|boolean',
+            'confirmation_date' => 'nullable|date',
+            'contract_end_date' => 'nullable|date',
+            'passport_no' => 'nullable|string|max:50',
+            'designation' => 'nullable|string|max:100',
+            'department' => 'nullable|string|max:100',
+            'division' => 'nullable|string|max:100',
+            'office_location' => 'nullable|string|max:100',
+            'subcenter' => 'nullable|string|max:100',
+            'job_location' => 'nullable|string|max:100',
+            'supervisor_name' => 'nullable|string|max:255',
+            'supervisor_email' => 'nullable|email|max:255',
+            'supervisor_hr_id' => 'nullable|string|max:50',
+            'supervisor_company' => 'nullable|string|max:255',
+            'bill_reviewer_name' => 'nullable|string|max:255',
+            'bill_reviewer_email' => 'nullable|email|max:255',
+            'bill_reviewer_hr_id' => 'nullable|string|max:50',
+            'bill_reviewer_company' => 'nullable|string|max:255',
         ]);
-        Driver::create($validated + $request->except(['_token']));
-        return redirect()->route('drivers.index')->with('success', 'Driver created successfully.');
+
+        $data = $request->except(['_token']);
+        // Normalize hr_id: if length < 4 prepend leading 0
+        if (!empty($data['hr_id']) && strlen(trim($data['hr_id'])) < 4) {
+            $data['hr_id'] = str_pad(trim($data['hr_id']), 4, '0', STR_PAD_LEFT);
+        }
+
+        Driver::create($data);
+        return redirect()->route('drivers.index')->with('success', 'Driver registered successfully.');
     }
 
     public function show($id)
@@ -133,13 +182,46 @@ class DriverController extends Controller
     {
         $validated = $request->validate([
             'hr_id' => 'required|unique:drivers,hr_id,' . $id,
-            'name' => 'required',
-            'email' => 'nullable|email',
-            'phone' => 'nullable',
-            // ... add other validation rules as needed ...
+            'name' => 'required|string|max:255',
+            'sur_name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'nid' => 'nullable|string|max:50',
+            'emergency_contact' => 'nullable|string|max:50',
+            'blood_group' => 'nullable|string|max:10',
+            'gender' => 'nullable|string|max:20',
+            'marital_status' => 'nullable|string|max:30',
+            'date_of_birth' => 'nullable|date',
+            'joining_date' => 'nullable|date',
+            'employment_contract' => 'nullable|string|max:100',
+            'contract_renewed' => 'nullable|boolean',
+            'confirmation_date' => 'nullable|date',
+            'contract_end_date' => 'nullable|date',
+            'passport_no' => 'nullable|string|max:50',
+            'designation' => 'nullable|string|max:100',
+            'department' => 'nullable|string|max:100',
+            'division' => 'nullable|string|max:100',
+            'office_location' => 'nullable|string|max:100',
+            'subcenter' => 'nullable|string|max:100',
+            'job_location' => 'nullable|string|max:100',
+            'supervisor_name' => 'nullable|string|max:255',
+            'supervisor_email' => 'nullable|email|max:255',
+            'supervisor_hr_id' => 'nullable|string|max:50',
+            'supervisor_company' => 'nullable|string|max:255',
+            'bill_reviewer_name' => 'nullable|string|max:255',
+            'bill_reviewer_email' => 'nullable|email|max:255',
+            'bill_reviewer_hr_id' => 'nullable|string|max:50',
+            'bill_reviewer_company' => 'nullable|string|max:255',
         ]);
+
         $driver = Driver::findOrFail($id);
-        $driver->update($validated + $request->except(['_token', '_method']));
+        $data = $request->except(['_token', '_method']);
+
+        if (!empty($data['hr_id']) && strlen(trim($data['hr_id'])) < 4) {
+            $data['hr_id'] = str_pad(trim($data['hr_id']), 4, '0', STR_PAD_LEFT);
+        }
+
+        $driver->update($data);
         return redirect()->route('drivers.index')->with('success', 'Driver updated successfully.');
     }
 
@@ -149,6 +231,7 @@ class DriverController extends Controller
         $driver->delete();
         return redirect()->route('drivers.index')->with('success', 'Driver deleted successfully.');
     }
+
     public function list(Request $request)
     {
         $query = Driver::query();
@@ -164,9 +247,14 @@ class DriverController extends Controller
                 $q->where('id', 'like', "%$search%")
                   ->orWhere('hr_id', 'like', "%$search%")
                   ->orWhere('name', 'like', "%$search%")
+                  ->orWhere('sur_name', 'like', "%$search%")
                   ->orWhere('email', 'like', "%$search%")
                   ->orWhere('phone', 'like', "%$search%")
-                ;
+                  ->orWhere('nid', 'like', "%$search%")
+                  ->orWhere('designation', 'like', "%$search%")
+                  ->orWhere('department', 'like', "%$search%")
+                  ->orWhere('office_location', 'like', "%$search%")
+                  ->orWhere('subcenter', 'like', "%$search%");
             });
         }
 
@@ -176,12 +264,26 @@ class DriverController extends Controller
 
         $data = [];
         foreach ($drivers as $driver) {
+            $bloodBadge = $driver->blood_group 
+                ? '<span class="badge bg-danger-light text-danger fw-bold"><i class="fa fa-tint me-1"></i>' . e($driver->blood_group) . '</span>'
+                : '<span class="text-muted fs-xs">-</span>';
+
+            $contractBadge = $driver->employment_contract
+                ? '<span class="badge bg-primary-light text-primary">' . e($driver->employment_contract) . '</span>'
+                : '<span class="text-muted fs-xs">Unspecified</span>';
+
+            $location = e($driver->office_location ?? $driver->job_location ?? $driver->subcenter ?? 'N/A');
+
             $data[] = [
                 'id' => $driver->id,
-                'hr_id' => $driver->hr_id,
-                'name' => $driver->name,
-                'email' => $driver->email,
-                'phone' => $driver->phone,
+                'hr_id' => '<span class="badge bg-secondary font-monospace"><i class="fa fa-id-badge me-1"></i>' . e($driver->hr_id) . '</span>',
+                'name' => '<div class="fw-semibold text-dark">' . e($driver->name) . ($driver->sur_name ? ' ' . e($driver->sur_name) : '') . '</div>' .
+                          ($driver->designation ? '<div class="text-muted fs-xs">' . e($driver->designation) . '</div>' : ''),
+                'contact' => '<div>' . ($driver->phone ? '<a href="tel:' . e($driver->phone) . '" class="text-dark fw-medium"><i class="fa fa-phone me-1 text-primary"></i>' . e($driver->phone) . '</a>' : '<span class="text-muted fs-xs">No Phone</span>') . '</div>' .
+                             ($driver->email ? '<div class="fs-xs text-muted"><i class="fa fa-envelope me-1"></i>' . e($driver->email) . '</div>' : ''),
+                'blood_group' => $bloodBadge,
+                'employment' => $contractBadge . ($driver->joining_date ? '<div class="text-muted fs-xs mt-1"><i class="fa fa-calendar-alt me-1"></i>' . \Carbon\Carbon::parse($driver->joining_date)->format('M Y') . '</div>' : ''),
+                'location' => '<span class="badge bg-light text-dark border">' . $location . '</span>',
                 'actions' => view('VehicleManagement.Drivers.partials.actions', compact('driver'))->render(),
             ];
         }
