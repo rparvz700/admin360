@@ -30,6 +30,7 @@
                             <th class="all">Type</th>
                             <th class="all">Brand</th>
                             <th class="all">Model</th>
+                            <th class="all">CC</th>
                             <th class="all">Year</th>
                             <th class="all">Status</th>
                             <th class="all">Actions</th>
@@ -60,6 +61,7 @@
                     { data: 'vehicle_type' },
                     { data: 'brand' },
                     { data: 'model' },
+                    { data: 'engine_cc' },
                     { data: 'manufacture_year' },
                     { data: 'status' },
                     { data: 'actions', orderable: false, searchable: false },

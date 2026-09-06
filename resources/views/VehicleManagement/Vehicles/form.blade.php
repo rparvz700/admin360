@@ -74,10 +74,14 @@
         <input type="number" class="form-control" id="seating_capacity" name="seating_capacity" value="{{ old('seating_capacity', $vehicle->seating_capacity ?? '') }}">
     </div>
     <div class="col-md-6 mb-3">
+        <label class="form-label" for="engine_cc">CC</label>
+        <input type="number" class="form-control" id="engine_cc" name="engine_cc" value="{{ old('engine_cc', $vehicle->engine_cc ?? ($vehicle->cc ?? '')) }}" placeholder="Enter CC">
+    </div>
+
+    <div class="col-md-6 mb-3">
         <label class="form-label" for="engine_number">Engine Number</label>
         <input type="text" class="form-control" id="engine_number" name="engine_number" value="{{ old('engine_number', $vehicle->engine_number ?? '') }}">
     </div>
-
     <div class="col-md-6 mb-3">
         <label class="form-label" for="chassis_number">Chassis Number</label>
         <input type="text" class="form-control" id="chassis_number" name="chassis_number" value="{{ old('chassis_number', $vehicle->chassis_number ?? '') }}">

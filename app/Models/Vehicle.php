@@ -28,12 +28,24 @@ class Vehicle extends Model
         'status',
         'reg_year',
         'engine_cc',
+        'cc',
         'vehicle_weight',
         'is_manual_entry',
         'vehicle_id',
         'cost',
         'cost_details',
     ];
+
+    public function getCcAttribute()
+    {
+        return $this->attributes['engine_cc'] ?? null;
+    }
+
+    public function setCcAttribute($value)
+    {
+        $this->attributes['engine_cc'] = $value;
+    }
+
     public function vehicleType()
     {
         return $this->belongsTo(VehicleType::class, 'vehicle_type_id');

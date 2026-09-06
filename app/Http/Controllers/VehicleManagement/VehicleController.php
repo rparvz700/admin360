@@ -37,6 +37,7 @@ class VehicleController extends Controller
                   ->orWhere('model', 'like', "%$search%")
                   ->orWhere('engine_number', 'like', "%$search%")
                   ->orWhere('chassis_number', 'like', "%$search%")
+                  ->orWhere('engine_cc', 'like', "%$search%")
                 ;
             });
         }
@@ -51,6 +52,7 @@ class VehicleController extends Controller
                 'vehicle_type' => $vehicle->vehicleType->type_name ?? '',
                 'brand' => $vehicle->brand,
                 'model' => $vehicle->model,
+                'engine_cc' => $vehicle->engine_cc ?? '-',
                 'manufacture_year' => $vehicle->manufacture_year,
                 'status' => $vehicle->status,
                 'actions' => view('VehicleManagement.Vehicles.partials.actions', compact('vehicle'))->render(),
@@ -80,6 +82,8 @@ class VehicleController extends Controller
             'manufacture_year' => 'nullable|digits:4|integer',
             'color' => 'nullable',
             'seating_capacity' => 'nullable|integer',
+            'engine_cc' => 'nullable|integer',
+            'cc' => 'nullable|integer',
             'engine_number' => 'nullable|unique:vehicles,engine_number',
             'chassis_number' => 'nullable|unique:vehicles,chassis_number',
             'use_purpose' => 'nullable',
@@ -89,6 +93,10 @@ class VehicleController extends Controller
             'purchase_date' => 'nullable|date',
             'status' => 'required',
         ]);
+        if (isset($validated['cc']) && !isset($validated['engine_cc'])) {
+            $validated['engine_cc'] = $validated['cc'];
+        }
+        unset($validated['cc']);
         Vehicle::create($validated);
         return redirect()->route('vehicles.index')->with('success', 'Vehicle created successfully.');
     }
@@ -117,6 +125,8 @@ class VehicleController extends Controller
             'manufacture_year' => 'nullable|digits:4|integer',
             'color' => 'nullable',
             'seating_capacity' => 'nullable|integer',
+            'engine_cc' => 'nullable|integer',
+            'cc' => 'nullable|integer',
             'engine_number' => 'nullable|unique:vehicles,engine_number,' . $id,
             'chassis_number' => 'nullable|unique:vehicles,chassis_number,' . $id,
             'use_purpose' => 'nullable',
@@ -126,6 +136,10 @@ class VehicleController extends Controller
             'purchase_date' => 'nullable|date',
             'status' => 'required',
         ]);
+        if (isset($validated['cc']) && !isset($validated['engine_cc'])) {
+            $validated['engine_cc'] = $validated['cc'];
+        }
+        unset($validated['cc']);
         $vehicle->update($validated);
         return redirect()->route('vehicles.index')->with('success', 'Vehicle updated successfully.');
     }

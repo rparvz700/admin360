@@ -15,6 +15,7 @@
                     <tr><th>Type</th><td>{{ $vehicle->vehicleType->type_name ?? '' }}</td></tr>
                     <tr><th>Brand</th><td>{{ $vehicle->brand }}</td></tr>
                     <tr><th>Model</th><td>{{ $vehicle->model }}</td></tr>
+                    <tr><th>CC</th><td>{{ $vehicle->engine_cc ?? '-' }}</td></tr>
                     <tr><th>Year</th><td>{{ $vehicle->manufacture_year }}</td></tr>
                     <tr><th>Color</th><td>{{ $vehicle->color }}</td></tr>
                     <tr><th>Seating Capacity</th><td>{{ $vehicle->seating_capacity }}</td></tr>
