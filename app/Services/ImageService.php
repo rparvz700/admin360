@@ -5,7 +5,7 @@ namespace App\Services;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\Laravel\Facades\Image;
+use Intervention\Image\ImageManager;
 use Intervention\Image\Interfaces\ImageInterface;
 
 class ImageService
@@ -44,7 +44,7 @@ class ImageService
         $quality ??= $this->quality;
 
         // Read image via Intervention Image
-        $image = Image::read($file->getRealPath());
+        $image = ImageManager::gd()->read($file->getRealPath());
 
         // Scale down only if larger than max dimension (never upscale)
         $image = $this->scaleDown($image, $maxDimension);
