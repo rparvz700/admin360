@@ -83,6 +83,7 @@ class RoleController extends Controller
             'Generic Document Management' => [],
             'Ticket Management' => [],
             'Invoice Management' => [],
+            'Analytics & Reports' => [],
             'Other Permissions' => [],
         ];
 
@@ -135,6 +136,14 @@ class RoleController extends Controller
             'create-invoice' => 'Invoice Management', 'edit-invoice' => 'Invoice Management', 'delete-invoice' => 'Invoice Management',
             'create-vendor' => 'Invoice Management', 'edit-vendor' => 'Invoice Management', 'delete-vendor' => 'Invoice Management',
             'create-vat-tax' => 'Invoice Management', 'edit-vat-tax' => 'Invoice Management', 'delete-vat-tax' => 'Invoice Management',
+
+            // Analytics & Reports
+            'npv-calculation' => 'Analytics & Reports',
+            'npv-report' => 'Analytics & Reports',
+            'view-reports' => 'Analytics & Reports',
+            'export-reports' => 'Analytics & Reports',
+            'manage-report-templates' => 'Analytics & Reports',
+            'manage-data-dictionary' => 'Analytics & Reports',
         ];
 
         foreach ($permissions as $permission) {

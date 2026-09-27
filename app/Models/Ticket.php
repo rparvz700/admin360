@@ -21,6 +21,7 @@ class Ticket extends Model
         'priority',
         'status',
         'vehicle_type_id',
+        'trip_category',
         'trip_start_datetime',
         'trip_end_datetime',
         'trip_location_details',

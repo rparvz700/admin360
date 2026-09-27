@@ -35,10 +35,14 @@
                                             <span id="dt-priority" class="badge">N/A</span>
                                         </div>
                                         <div class="col-sm-6">
+                                            <span class="text-muted d-block fs-xs text-uppercase">Trip Category</span>
+                                            <strong id="dt-category" class="text-dark">N/A</strong>
+                                        </div>
+                                        <div class="col-sm-6">
                                             <span class="text-muted d-block fs-xs text-uppercase">Passenger Count</span>
                                             <strong id="dt-passengers">N/A</strong>
                                         </div>
-                                        <div class="col-sm-6">
+                                        <div class="col-12">
                                             <span class="text-muted d-block fs-xs text-uppercase">Trip Purpose</span>
                                             <span id="dt-purpose" class="text-dark">N/A</span>
                                         </div>

@@ -119,6 +119,7 @@ class VehicleAssignmentController extends Controller
                 'start_datetime' => $ticket->trip_start_datetime,
                 'end_datetime' => $ticket->trip_end_datetime,
                 'passenger_count' => $ticket->passenger_count,
+                'trip_category' => $ticket->trip_category ?? 'N/A',
                 'vehicle_type' => $ticket->vehicleType->type_name ?? 'N/A',
                 'assigned_vehicle_id' => $ticket->assigned_vehicle_id,
                 'assigned_driver_id' => $ticket->assigned_driver_id,

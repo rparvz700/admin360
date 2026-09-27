@@ -127,19 +127,23 @@
                                 </div>
                                 <div class="block-content fs-sm pb-3">
                                     <div class="row g-3 mb-3">
-                                        <div class="col-sm-6 col-md-3">
+                                        <div class="col-sm-6 col-md-4">
                                             <span class="text-muted d-block fs-xs text-uppercase">Vehicle Type</span>
                                             <strong>{{ $ticket->vehicleType->type_name ?? 'N/A' }}</strong>
                                         </div>
-                                        <div class="col-sm-6 col-md-3">
+                                        <div class="col-sm-6 col-md-4">
+                                            <span class="text-muted d-block fs-xs text-uppercase">Trip Category</span>
+                                            <strong>{{ $ticket->trip_category ?? 'N/A' }}</strong>
+                                        </div>
+                                        <div class="col-sm-6 col-md-4">
                                             <span class="text-muted d-block fs-xs text-uppercase">Passengers</span>
                                             <strong>{{ $ticket->passenger_count }} Person(s)</strong>
                                         </div>
-                                        <div class="col-sm-6 col-md-3">
+                                        <div class="col-sm-6 col-md-6">
                                             <span class="text-muted d-block fs-xs text-uppercase">Trip Start</span>
                                             <strong>{{ $ticket->trip_start_datetime ? $ticket->trip_start_datetime->format('M d, Y h:i A') : 'N/A' }}</strong>
                                         </div>
-                                        <div class="col-sm-6 col-md-3">
+                                        <div class="col-sm-6 col-md-6">
                                             <span class="text-muted d-block fs-xs text-uppercase">Trip End</span>
                                             <strong>{{ $ticket->trip_end_datetime ? $ticket->trip_end_datetime->format('M d, Y h:i A') : 'N/A' }}</strong>
                                         </div>

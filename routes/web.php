@@ -357,3 +357,24 @@ Route::prefix('maintenance')->name('maintenance.')->middleware(['auth'])->group(
     });
 });
 
+// ==========================================
+// Custom Report Builder & Data Dictionary Routes
+// ==========================================
+Route::middleware(['auth'])->prefix('reports')->name('reports.')->group(function () {
+    Route::get('hub', [\App\Http\Controllers\ReportManagement\ReportController::class, 'hub'])->name('hub');
+    Route::get('builder', [\App\Http\Controllers\ReportManagement\ReportController::class, 'builder'])->name('builder');
+    Route::post('preview', [\App\Http\Controllers\ReportManagement\ReportController::class, 'preview'])->name('preview');
+    Route::post('export', [\App\Http\Controllers\ReportManagement\ReportController::class, 'export'])->name('export');
+    Route::post('save-template', [\App\Http\Controllers\ReportManagement\ReportController::class, 'saveTemplate'])->name('save-template');
+    Route::delete('delete-template/{id}', [\App\Http\Controllers\ReportManagement\ReportController::class, 'deleteTemplate'])->name('delete-template');
+
+    // Data Dictionary Admin
+    Route::get('dictionary', [\App\Http\Controllers\ReportManagement\ReportController::class, 'dictionary'])->name('dictionary');
+    Route::get('dictionary-list', [\App\Http\Controllers\ReportManagement\ReportController::class, 'dictionaryList'])->name('dictionary.list');
+    Route::post('dictionary/{id}', [\App\Http\Controllers\ReportManagement\ReportController::class, 'updateDictionaryField'])->name('dictionary.update');
+    Route::post('sync-dictionary', [\App\Http\Controllers\ReportManagement\ReportController::class, 'syncDictionary'])->name('dictionary.sync');
+    Route::post('joins/save', [\App\Http\Controllers\ReportManagement\ReportController::class, 'saveJoin'])->name('joins.save');
+    Route::delete('joins/{id}', [\App\Http\Controllers\ReportManagement\ReportController::class, 'deleteJoin'])->name('joins.delete');
+});
+
+
