@@ -23,7 +23,14 @@ class NpvCalculationResult
         public float $totalDepositRefunds,     // Total refundable security deposit
         public float $absorbableAdvanceTotal,  // Initial absorbable security deposit / advance
         public float $nonAbsorbableDepositTotal,// Initial non-absorbable security deposit
-        public array $cashFlows                // Array of MonthlyCashFlow DTOs
+        public array $cashFlows,               // Array of MonthlyCashFlow DTOs
+        public bool $hasIfrs16Schedule = false,
+        public ?float $initialLeaseLiability = null,
+        public ?float $initialRouAsset = null,
+        public ?float $totalFinanceExpense = null,
+        public ?float $totalLeasePayments = null,
+        public ?float $totalDepreciation = null,
+        public ?float $monthlyDepreciation = null
     ) {}
 
     public function toArray(): array
@@ -68,6 +75,19 @@ class NpvCalculationResult
             'total_deposit_refunds' => round($this->totalDepositRefunds, 2),
             'absorbable_advance_total' => round($this->absorbableAdvanceTotal, 2),
             'non_absorbable_deposit_total' => round($this->nonAbsorbableDepositTotal, 2),
+            'has_ifrs16_schedule' => $this->hasIfrs16Schedule,
+            'ifrs16' => $this->hasIfrs16Schedule ? [
+                'opening_lease_obligation' => round($this->initialLeaseLiability ?? 0, 2),
+                'lease_payment' => round($this->totalLeasePayments ?? 0, 2),
+                'closing_lease_obligation' => 0.0,
+                'finance_expense' => round($this->totalFinanceExpense ?? 0, 2),
+                'ppe_opening_balance' => round($this->initialRouAsset ?? 0, 2),
+                'depreciation_charged' => round($this->totalDepreciation ?? 0, 2),
+                'wdv' => 0.0,
+                'initial_lease_liability' => round($this->initialLeaseLiability ?? 0, 2),
+                'initial_rou_asset' => round($this->initialRouAsset ?? 0, 2),
+                'monthly_depreciation' => round($this->monthlyDepreciation ?? 0, 2),
+            ] : null,
             'audit' => [
                 'base_rent' => round($latestRentBase->base_rent ?? 0, 2),
                 'is_at_source' => (bool) ($latestRentBase->is_at_source ?? false),
@@ -124,6 +144,15 @@ class NpvCalculationResult
                 'increment_uplift_pct' => round($cf->incrementUpliftPct, 2),
                 'is_deferred' => $cf->isDeferred,
                 'arrears_amount' => round($cf->arrearsAmount, 2),
+                'opening_lease_obligation' => $cf->openingLeaseObligation !== null ? round($cf->openingLeaseObligation, 2) : null,
+                'lease_payment' => $cf->leasePayment !== null ? round($cf->leasePayment, 2) : null,
+                'closing_lease_obligation' => $cf->closingLeaseObligation !== null ? round($cf->closingLeaseObligation, 2) : null,
+                'finance_expense' => $cf->financeExpense !== null ? round($cf->financeExpense, 2) : null,
+                'ppe_opening_balance' => $cf->rouOpeningBalance !== null ? round($cf->rouOpeningBalance, 2) : null,
+                'rou_opening_balance' => $cf->rouOpeningBalance !== null ? round($cf->rouOpeningBalance, 2) : null,
+                'depreciation_charged' => $cf->depreciationCharged !== null ? round($cf->depreciationCharged, 2) : null,
+                'wdv' => $cf->rouWdv !== null ? round($cf->rouWdv, 2) : null,
+                'rou_wdv' => $cf->rouWdv !== null ? round($cf->rouWdv, 2) : null,
             ], $this->cashFlows),
         ];
     }

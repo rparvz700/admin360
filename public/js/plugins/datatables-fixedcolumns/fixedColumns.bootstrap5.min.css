@@ -1,0 +1,74 @@
+/*! Bootstrap 5 integration for DataTables FixedColumns
+ * © SpryMedia Ltd - datatables.net/license
+ */
+table.dataTable thead tr>.dtfc-fixed-left,
+table.dataTable thead tr>.dtfc-fixed-right,
+table.dataTable tfoot tr>.dtfc-fixed-left,
+table.dataTable tfoot tr>.dtfc-fixed-right {
+    top: 0;
+    bottom: 0;
+    z-index: 8 !important;
+    background-color: #f1f5f9 !important;
+}
+
+table.dataTable tbody tr>.dtfc-fixed-left,
+table.dataTable tbody tr>.dtfc-fixed-right {
+    z-index: 5 !important;
+    background-color: #ffffff;
+}
+
+table.dataTable.table-striped>tbody>tr:nth-of-type(odd)>.dtfc-fixed-left,
+table.dataTable.table-striped>tbody>tr:nth-of-type(odd)>.dtfc-fixed-right {
+    background-color: #ffffff !important;
+}
+
+table.dataTable.table-striped>tbody>tr:nth-of-type(even)>.dtfc-fixed-left,
+table.dataTable.table-striped>tbody>tr:nth-of-type(even)>.dtfc-fixed-right {
+    background-color: #f8fafc !important;
+}
+
+table.dataTable.table-hover>tbody>tr:hover>.dtfc-fixed-left,
+table.dataTable.table-hover>tbody>tr:hover>.dtfc-fixed-right {
+    background-color: #edf2f7 !important;
+}
+
+div.dtfc-left-top-blocker,
+div.dtfc-right-top-blocker {
+    background-color: #f1f5f9 !important;
+}
+
+div.dtfc-left-bottom-blocker,
+div.dtfc-right-bottom-blocker {
+    background-color: #cbd5e1 !important;
+}
+
+div.dtfc-right-top-blocker,
+div.dtfc-left-top-blocker {
+    margin-top: 6px;
+    border-bottom: 0px solid #ddd !important;
+}
+
+table.dataTable.table-bordered.dtfc-has-left {
+    border-left: none;
+}
+
+div.dataTables_scroll.dtfc-has-left table.table-bordered {
+    border-left: none;
+}
+
+div.dataTables_scrollBody {
+    border-left: 1px solid #cbd5e1 !important;
+}
+
+div.dataTables_scrollFootInner table.table-bordered tr th:first-child,
+div.dataTables_scrollHeadInner table.table-bordered tr th:first-child {
+    border-left: 1px solid #cbd5e1 !important;
+}
+
+/* Subtle border / shadow after the 2nd fixed column */
+table.dataTable thead tr>th.dtfc-fixed-left:nth-child(2),
+table.dataTable tbody tr>td.dtfc-fixed-left:nth-child(2),
+table.dataTable tfoot tr>td.dtfc-fixed-left:nth-child(2) {
+    border-right: 2px solid #cbd5e1 !important;
+    box-shadow: 3px 0 6px -2px rgba(15, 23, 42, 0.08) !important;
+}

@@ -157,6 +157,7 @@ Route::middleware(['auth'])->group(function(){
         Route::get('/report/data', [NpvAnalysisController::class, 'reportData'])->name('report.data');
         Route::get('/report/{agreementId}/detail', [NpvAnalysisController::class, 'agreementDetail'])->name('report.detail');
         Route::post('/report/refresh-cache', [NpvAnalysisController::class, 'refreshReportCache'])->name('report.refresh-cache');
+        Route::post('/agreements/{agreement}/update-interest-rate', [NpvAnalysisController::class, 'updateInterestRate'])->name('update-interest-rate');
     });
 
     // Finance Settings Routes (Discount Rate management)
@@ -353,7 +354,5 @@ Route::prefix('maintenance')->name('maintenance.')->middleware(['auth'])->group(
         Route::get('/monthly-expenses', [MaintenanceReportController::class, 'monthlyExpenses'])->name('monthly-expenses');
         Route::get('/parts-history', [MaintenanceReportController::class, 'partsHistory'])->name('parts-history');
         Route::get('/service-due', [MaintenanceReportController::class, 'serviceDue'])->name('service-due');
-        Route::get('/vendor-comparison', [MaintenanceReportController::class, 'vendorComparison'])->name('vendor-comparison');
     });
 });
-
