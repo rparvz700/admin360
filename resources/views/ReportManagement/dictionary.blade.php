@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-buttons-bs5/css/buttons.bootstrap5.min.css') }}">
     <link rel="stylesheet" href="{{ asset('js/plugins/datatables-responsive-bs5/css/responsive.bootstrap5.min.css') }}">
     <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('js/plugins/sweetalert2/sweetalert2.min.css') }}">
     <style>
         .select2-container--default .select2-selection--single {
             height: 31px;
@@ -390,6 +391,7 @@
 
     <!-- Select2 Plugin -->
     <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ asset('js/plugins/sweetalert2/sweetalert2.all.min.js') }}"></script>
 
 <script>
 $(document).ready(function() {

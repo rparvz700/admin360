@@ -7,6 +7,7 @@
 @section('styles')
 <link rel="stylesheet" href="{{ asset('js/plugins/flatpickr/flatpickr.min.css') }}">
 <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">
+<link rel="stylesheet" href="{{ asset('js/plugins/sweetalert2/sweetalert2.min.css') }}">
 <style>
     /* ============================================================
        TOP-NOTCH REPORT BUILDER STUDIO STYLING
@@ -956,6 +957,7 @@
 @section('scripts')
 <script src="{{ asset('js/plugins/flatpickr/flatpickr.min.js') }}"></script>
 <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>
+<script src="{{ asset('js/plugins/sweetalert2/sweetalert2.all.min.js') }}"></script>
 <script>
 $(document).ready(function() {
 

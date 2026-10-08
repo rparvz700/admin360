@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\DataDictionary;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -67,6 +68,7 @@ class ReportTemplate extends Model
     protected $appends = [
         'tables_summary',
         'columns_summary',
+        'date_columns_summary',
     ];
 
     /**
@@ -95,5 +97,55 @@ class ReportTemplate extends Model
             $cols[] = $f['alias'] ?? $f['column'] ?? '';
         }
         return array_values(array_filter($cols));
+    }
+
+    /**
+     * Summary list of filterable date columns across this template's fields and tables.
+     */
+    public function getDateColumnsSummaryAttribute(): array
+    {
+        $config = $this->query_config ?? [];
+        $selectedFields = $config['selected_fields'] ?? [];
+        $dateCols = [];
+
+        // 1. Check selected fields
+        foreach ($selectedFields as $f) {
+            $type = strtolower($f['data_type'] ?? '');
+            $col  = strtolower($f['column'] ?? '');
+            $alias = $f['alias'] ?? $f['column'] ?? '';
+            if (in_array($type, ['date', 'datetime', 'timestamp'], true) || str_contains($col, 'date') || str_contains($col, '_at')) {
+                $key = "{$f['table']}.{$f['column']}";
+                $dateCols[$key] = [
+                    'table'  => $f['table'],
+                    'column' => $f['column'],
+                    'label'  => $alias,
+                    'type'   => $type ?: 'date',
+                ];
+            }
+        }
+
+        // 2. If none from selected fields, check referenced tables in data dictionary
+        if (empty($dateCols)) {
+            $tables = array_unique(array_filter(array_column($selectedFields, 'table')));
+            if (!empty($tables)) {
+                $dictCols = DataDictionary::whereIn('table_name', $tables)
+                    ->whereIn('data_type', ['date', 'datetime', 'timestamp'])
+                    ->where('is_filterable', true)
+                    ->orderBy('sort_order')
+                    ->get();
+
+                foreach ($dictCols as $dc) {
+                    $key = "{$dc->table_name}.{$dc->column_name}";
+                    $dateCols[$key] = [
+                        'table'  => $dc->table_name,
+                        'column' => $dc->column_name,
+                        'label'  => "{$dc->display_name} (" . \Illuminate\Support\Str::headline($dc->table_name) . ")",
+                        'type'   => $dc->data_type,
+                    ];
+                }
+            }
+        }
+
+        return array_values($dateCols);
     }
 }

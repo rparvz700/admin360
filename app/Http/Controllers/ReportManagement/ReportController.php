@@ -154,11 +154,86 @@ class ReportController extends Controller
             $headers = $compiled['headers'];
             $sql     = $compiled['sql'];
 
-            // Preview is capped at 50 rows for snappy UI response
-            $rows = (clone $query)->limit(50)->get();
+            $isDataTable = $request->has('draw');
 
-            // Total count for stats badge
-            $totalCount = (clone $query)->count();
+            if ($isDataTable) {
+                // 1. Calculate unfiltered base record count using count subquery
+                try {
+                    $countRow = DB::selectOne("SELECT COUNT(*) as agg_count FROM ({$query->toSql()}) as count_base", $query->getBindings());
+                    $totalCount = (int) ($countRow->agg_count ?? 0);
+                } catch (\Throwable $ce) {
+                    $totalCount = (clone $query)->count();
+                }
+
+                // 2. Global search across columns if search[value] is present
+                $searchVal = trim($request->input('search.value', ''));
+                if ($searchVal !== '') {
+                    $query->where(function ($subQ) use ($searchVal, $headers) {
+                        foreach ($headers as $h) {
+                            if (empty($h['aggregate'])) {
+                                $subQ->orWhereRaw("CAST({$h['table']}.{$h['column']} AS TEXT) ILIKE ?", ["%{$searchVal}%"]);
+                            }
+                        }
+                    });
+                }
+
+                // 3. Calculate filtered record count
+                $filteredCount = $totalCount;
+                if ($searchVal !== '') {
+                    try {
+                        $filteredRow = DB::selectOne("SELECT COUNT(*) as agg_count FROM ({$query->toSql()}) as count_filtered", $query->getBindings());
+                        $filteredCount = (int) ($filteredRow->agg_count ?? 0);
+                    } catch (\Throwable $ce) {
+                        $filteredCount = (clone $query)->count();
+                    }
+                }
+
+                // 4. Server-side column sorting
+                $orderColIdx = $request->input('order.0.column');
+                $orderDir    = strtolower($request->input('order.0.dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+                if ($orderColIdx !== null) {
+                    // Column 0 in DataTables is index '#'
+                    $dataIdx = ((int) $orderColIdx) - 1;
+                    if ($dataIdx >= 0 && isset($headers[$dataIdx])) {
+                        $target = $headers[$dataIdx];
+                        if (!empty($target['aggregate'])) {
+                            $query->reorder($target['key'], $orderDir);
+                        } else {
+                            $query->reorder("{$target['table']}.{$target['column']}", $orderDir);
+                        }
+                    }
+                }
+
+                // 5. Server-side pagination
+                $start  = max(0, (int) $request->input('start', 0));
+                $length = (int) $request->input('length', 25);
+                if ($length > 0) {
+                    $query->skip($start)->take($length);
+                }
+
+                $rows = $query->get();
+
+                return response()->json([
+                    'draw'            => (int) $request->input('draw', 1),
+                    'recordsTotal'    => $totalCount,
+                    'recordsFiltered' => $filteredCount,
+                    'data'            => $rows,
+                    'headers'         => $headers,
+                    'base_table'      => $compiled['base_table'],
+                    'sql'             => $sql,
+                    'success'         => true,
+                ]);
+            }
+
+            // Non-DataTables preview (used by Report Builder Sandbox)
+            try {
+                $countRow = DB::selectOne("SELECT COUNT(*) as agg_count FROM ({$query->toSql()}) as count_base", $query->getBindings());
+                $totalCount = (int) ($countRow->agg_count ?? 0);
+            } catch (\Throwable $ce) {
+                $totalCount = (clone $query)->count();
+            }
+
+            $rows = (clone $query)->limit(50)->get();
 
             return response()->json([
                 'success'       => true,
@@ -196,6 +271,33 @@ class ReportController extends Controller
             $headers  = $compiled['headers'];
             $format   = strtolower($request->input('export_format', 'csv'));
             $filename = ($template ? Str::slug($template->name) : 'report') . '_' . date('Ymd_His');
+
+            // Apply active table search filter if present
+            $searchVal = trim($request->input('search_value', $request->input('search.value', '')));
+            if ($searchVal !== '') {
+                $query->where(function ($subQ) use ($searchVal, $headers) {
+                    foreach ($headers as $h) {
+                        if (empty($h['aggregate'])) {
+                            $subQ->orWhereRaw("CAST({$h['table']}.{$h['column']} AS TEXT) ILIKE ?", ["%{$searchVal}%"]);
+                        }
+                    }
+                });
+            }
+
+            // Apply active column sorting if present
+            $sortColIdx = $request->input('export_sort_column', $request->input('order.0.column'));
+            $sortDir    = strtolower($request->input('export_sort_direction', $request->input('order.0.dir', 'asc'))) === 'desc' ? 'desc' : 'asc';
+            if ($sortColIdx !== null && $sortColIdx !== '') {
+                $dataIdx = ((int) $sortColIdx) - 1;
+                if ($dataIdx >= 0 && isset($headers[$dataIdx])) {
+                    $target = $headers[$dataIdx];
+                    if (!empty($target['aggregate'])) {
+                        $query->reorder($target['key'], $sortDir);
+                    } else {
+                        $query->reorder("{$target['table']}.{$target['column']}", $sortDir);
+                    }
+                }
+            }
 
             if ($format === 'excel' || $format === 'xlsx') {
                 return Excel::download(
@@ -542,13 +644,18 @@ class ReportController extends Controller
         $dateTo   = $request->input('runtime_date_to');
         $dateCol  = $request->input('runtime_date_column');
 
-        // If no explicit date column is specified, try to find one from the template
+        // If no explicit date column is specified, try to find one from template or date_columns_summary
         if (($dateFrom || $dateTo) && empty($dateCol)) {
             $existingDateCol = $this->findExistingDateFilterColumn($config['filters'] ?? []);
             if ($existingDateCol) {
                 $dateCol = $existingDateCol;
             } else {
                 $dateCol = $this->findFirstDateSelectedField($config['selected_fields'] ?? []);
+            }
+
+            if (empty($dateCol) && !empty($template->date_columns_summary)) {
+                $firstSummary = $template->date_columns_summary[0];
+                $dateCol = "{$firstSummary['table']}.{$firstSummary['column']}";
             }
         }
 
@@ -557,6 +664,22 @@ class ReportController extends Controller
             if (count($parts) === 2) {
                 $table = $parts[0];
                 $col   = $parts[1];
+
+                // Check if column is datetime or timestamp to correctly handle end-of-day boundary
+                $dict = DataDictionary::where('table_name', $table)->where('column_name', $col)->first();
+                $isTimestamp = $dict && in_array(strtolower($dict->data_type), ['datetime', 'timestamp'], true);
+
+                $formattedFrom = $dateFrom;
+                $formattedTo   = $dateTo;
+
+                if ($isTimestamp) {
+                    if ($formattedFrom && strlen($formattedFrom) === 10) {
+                        $formattedFrom = "{$formattedFrom} 00:00:00";
+                    }
+                    if ($formattedTo && strlen($formattedTo) === 10) {
+                        $formattedTo = "{$formattedTo} 23:59:59";
+                    }
+                }
 
                 if (!isset($config['filters']) || !is_array($config['filters'])) {
                     $config['filters'] = ['logical_operator' => 'AND', 'conditions' => []];
@@ -569,15 +692,15 @@ class ReportController extends Controller
                 $foundExisting = false;
                 foreach ($config['filters']['conditions'] as &$cond) {
                     if (isset($cond['table'], $cond['column']) && $cond['table'] === $table && $cond['column'] === $col) {
-                        if ($dateFrom && $dateTo) {
+                        if ($formattedFrom && $formattedTo) {
                             $cond['operator'] = 'between';
-                            $cond['value'] = "{$dateFrom},{$dateTo}";
-                        } elseif ($dateFrom) {
+                            $cond['value'] = "{$formattedFrom},{$formattedTo}";
+                        } elseif ($formattedFrom) {
                             $cond['operator'] = '>=';
-                            $cond['value'] = $dateFrom;
-                        } elseif ($dateTo) {
+                            $cond['value'] = $formattedFrom;
+                        } elseif ($formattedTo) {
                             $cond['operator'] = '<=';
-                            $cond['value'] = $dateTo;
+                            $cond['value'] = $formattedTo;
                         }
                         $foundExisting = true;
                         break;
@@ -586,26 +709,26 @@ class ReportController extends Controller
                 unset($cond);
 
                 if (!$foundExisting) {
-                    if ($dateFrom && $dateTo) {
+                    if ($formattedFrom && $formattedTo) {
                         $config['filters']['conditions'][] = [
                             'table'    => $table,
                             'column'   => $col,
                             'operator' => 'between',
-                            'value'    => "{$dateFrom},{$dateTo}",
+                            'value'    => "{$formattedFrom},{$formattedTo}",
                         ];
-                    } elseif ($dateFrom) {
+                    } elseif ($formattedFrom) {
                         $config['filters']['conditions'][] = [
                             'table'    => $table,
                             'column'   => $col,
                             'operator' => '>=',
-                            'value'    => $dateFrom,
+                            'value'    => $formattedFrom,
                         ];
-                    } elseif ($dateTo) {
+                    } elseif ($formattedTo) {
                         $config['filters']['conditions'][] = [
                             'table'    => $table,
                             'column'   => $col,
                             'operator' => '<=',
-                            'value'    => $dateTo,
+                            'value'    => $formattedTo,
                         ];
                     }
                 }

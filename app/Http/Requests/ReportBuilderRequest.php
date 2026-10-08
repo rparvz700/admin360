@@ -34,6 +34,15 @@ class ReportBuilderRequest extends FormRequest
             'runtime_date_from'            => 'nullable|string|max:50',
             'runtime_date_to'              => 'nullable|string|max:50',
             'runtime_date_column'          => 'nullable|string|max:255',
+            'draw'                         => 'nullable|integer',
+            'start'                        => 'nullable|integer',
+            'length'                       => 'nullable|integer',
+            'search'                       => 'nullable|array',
+            'order'                        => 'nullable|array',
+            'export_format'                => 'nullable|string|in:csv,excel,xlsx',
+            'search_value'                 => 'nullable|string|max:255',
+            'export_sort_column'           => 'nullable|string|max:50',
+            'export_sort_direction'        => 'nullable|string|in:asc,desc,ASC,DESC',
         ];
     }
 
