@@ -67,6 +67,21 @@
                                 @if($vehicle->color)
                                     &bull; Color: <span class="badge bg-light text-dark border">{{ $vehicle->color }}</span>
                                 @endif
+                                @php
+                                    $vehicleDocs = $vehicle->documents ?? collect();
+                                    $vDocCount = $vehicleDocs->count();
+                                    $vExpiredCount = $vehicleDocs->filter(fn($d) => !empty($d->expiry_date) && \Carbon\Carbon::parse($d->expiry_date)->startOfDay()->isPast())->count();
+                                @endphp
+                                @if($vDocCount > 0)
+                                    &bull; <a href="#attached-documents-section" class="badge {{ $vExpiredCount > 0 ? 'bg-danger-light text-danger' : 'bg-primary-light text-primary' }} text-decoration-none">
+                                        <i class="fa fa-folder-open me-1"></i> {{ $vDocCount }} {{ Str::plural('Document', $vDocCount) }}
+                                        @if($vExpiredCount > 0) ({{ $vExpiredCount }} Expired) @endif
+                                    </a>
+                                @else
+                                    &bull; <a href="#attached-documents-section" class="badge bg-light text-muted border text-decoration-none">
+                                        <i class="fa fa-folder-open me-1"></i> 0 Documents
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -264,6 +279,17 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- 5. Attached Documents & Compliance -->
+        <div class="mt-4">
+            @include('components.documentable-documents', [
+                'model' => $vehicle,
+                'documentableType' => 'vehicle',
+                'documentableId' => $vehicle->id,
+                'documents' => $vehicle->documents,
+                'title' => '5. Attached Vehicle Documents & Compliance',
+            ])
         </div>
     </div>
 @endsection

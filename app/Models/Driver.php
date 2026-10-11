@@ -50,6 +50,11 @@ class Driver extends Model
 
 
     // New relationships
+    public function documents()
+    {
+        return $this->morphMany(GenericDocument::class, 'documentable');
+    }
+
     public function assignments()
     {
         return $this->hasMany(VehicleAssignment::class);

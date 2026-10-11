@@ -121,7 +121,13 @@ class VehicleController extends Controller
 
     public function show($id)
     {
-        $vehicle = Vehicle::with('vehicleType')->findOrFail($id);
+        $vehicle = Vehicle::with([
+            'vehicleType',
+            'documents' => function ($query) {
+                $query->with(['category', 'attributeValues.attribute'])->latest();
+            }
+        ])->findOrFail($id);
+
         return view('VehicleManagement.Vehicles.show', compact('vehicle'));
     }
 

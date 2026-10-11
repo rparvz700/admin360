@@ -168,7 +168,12 @@ class DriverController extends Controller
 
     public function show($id)
     {
-        $driver = Driver::findOrFail($id);
+        $driver = Driver::with([
+            'documents' => function ($query) {
+                $query->with(['category', 'attributeValues.attribute'])->latest();
+            }
+        ])->findOrFail($id);
+
         return view('VehicleManagement.Drivers.show', compact('driver'));
     }
 

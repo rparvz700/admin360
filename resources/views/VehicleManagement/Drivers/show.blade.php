@@ -71,6 +71,21 @@
                                 @if($driver->office_location || $driver->job_location)
                                     &bull; <i class="fa fa-map-marker-alt me-1 text-muted"></i>{{ $driver->office_location ?? $driver->job_location }}
                                 @endif
+                                @php
+                                    $driverDocs = $driver->documents ?? collect();
+                                    $dDocCount = $driverDocs->count();
+                                    $dExpiredCount = $driverDocs->filter(fn($d) => !empty($d->expiry_date) && \Carbon\Carbon::parse($d->expiry_date)->startOfDay()->isPast())->count();
+                                @endphp
+                                @if($dDocCount > 0)
+                                    &bull; <a href="#attached-documents-section" class="badge {{ $dExpiredCount > 0 ? 'bg-danger-light text-danger' : 'bg-primary-light text-primary' }} text-decoration-none">
+                                        <i class="fa fa-folder-open me-1"></i> {{ $dDocCount }} {{ Str::plural('Document', $dDocCount) }}
+                                        @if($dExpiredCount > 0) ({{ $dExpiredCount }} Expired) @endif
+                                    </a>
+                                @else
+                                    &bull; <a href="#attached-documents-section" class="badge bg-light text-muted border text-decoration-none">
+                                        <i class="fa fa-folder-open me-1"></i> 0 Documents
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -381,6 +396,17 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- 5. Attached Documents & Certifications -->
+        <div class="mt-4">
+            @include('components.documentable-documents', [
+                'model' => $driver,
+                'documentableType' => 'driver',
+                'documentableId' => $driver->id,
+                'documents' => $driver->documents,
+                'title' => '5. Attached Driver Documents & Certifications',
+            ])
         </div>
     </div>
 @endsection

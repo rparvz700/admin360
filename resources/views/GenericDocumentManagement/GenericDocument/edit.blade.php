@@ -48,19 +48,26 @@
         <div class="block block-rounded">
             <div class="block-header block-header-default">
                 <h3 class="block-title">Edit Generic Document</h3>
-                <a href="{{ route('generic-documents.index') }}" class="btn btn-sm btn-secondary">Back to List</a>
+                @if(request('return_url'))
+                    <a href="{{ request('return_url') }}" class="btn btn-sm btn-secondary"><i class="fa fa-arrow-left me-1"></i> Back</a>
+                @else
+                    <a href="{{ route('generic-documents.index') }}" class="btn btn-sm btn-secondary">Back to List</a>
+                @endif
             </div>
             <div class="block-content">
                 <form action="{{ route('generic-documents.update', $doc->id) }}" method="POST" enctype="multipart/form-data" autocomplete="off">
                     @csrf
                     @method('PUT')
+                    @if(request('return_url'))
+                        <input type="hidden" name="return_url" value="{{ request('return_url') }}">
+                    @endif
                     <div class="row">
                         <div class="col-md-8">
                             @include('GenericDocumentManagement.GenericDocument.form', ['doc' => $doc, 'documentables' => $documentables, 'categories' => $categories])
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary">Update</button>
-                    <a href="{{ route('generic-documents.index') }}" class="btn btn-secondary">Cancel</a>
+                    <a href="{{ request('return_url') ?: route('generic-documents.index') }}" class="btn btn-secondary">Cancel</a>
                 </form>
             </div>
         </div>

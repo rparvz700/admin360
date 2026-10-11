@@ -494,16 +494,27 @@ class GenericDocumentController extends Controller
             }
         }
 
+        if ($request->filled('return_url')) {
+            return redirect($request->input('return_url'))
+                ->with('success', 'Document updated successfully.');
+        }
+
         return redirect()
             ->route('generic-documents.index')
             ->with('success', 'Generic document updated successfully.');
     }
 
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $doc = GenericDocument::findOrFail($id);
         $doc->delete();
+
+        if ($request->filled('return_url')) {
+            return redirect($request->input('return_url'))
+                ->with('success', 'Document deleted successfully.');
+        }
+
         return redirect()->route('generic-documents.index')->with('success', 'Generic document deleted successfully.');
     }
 }
