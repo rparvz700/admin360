@@ -75,6 +75,91 @@ class RentBase extends Model
     }
 
     /**
+     * Get details about the current effective rent for a given billing month (defaults to current month).
+     * Calculates which increment tier/period the month belongs to.
+     *
+     * @param string|null $billingMonth Format: "YYYY-MM" (e.g. "2026-10")
+     * @return array
+     */
+    public function getCurrentRentDetails(?string $billingMonth = null): array
+    {
+        $billingMonth = $billingMonth ?: now()->format('Y-m');
+        $monthDate = \Carbon\Carbon::parse($billingMonth . '-01');
+        $monthStart = $monthDate->copy()->startOfMonth();
+        $monthEnd   = $monthDate->copy()->endOfMonth();
+        $baseRent   = (float) $this->base_rent;
+
+        $increments = $this->relationLoaded('increments')
+            ? $this->increments->sortBy('increment_start_date')->values()
+            : $this->increments()->orderBy('increment_start_date')->get();
+
+        $runningTotal = $baseRent;
+        $activeIncrement = null;
+        $activeTierNumber = 0;
+        $tierCounter = 0;
+        $fallbackRent = null;
+        $lastEndedTier = 0;
+        $effectiveRent = $baseRent;
+
+        foreach ($increments as $inc) {
+            $tierCounter++;
+            $incAmt = (float) ($inc->increment_amount ?? 0);
+            $runningTotal += $incAmt;
+            $incTotal = (!is_null($inc->incremented_amount) && (float) $inc->incremented_amount > 0)
+                ? (float) $inc->incremented_amount
+                : $runningTotal;
+
+            $startDate = $inc->increment_start_date ? \Carbon\Carbon::parse($inc->increment_start_date)->startOfDay() : null;
+            $endDate   = $inc->increment_end_date ? \Carbon\Carbon::parse($inc->increment_end_date)->endOfDay() : null;
+
+            if ($startDate && $monthEnd->gte($startDate)) {
+                if (is_null($endDate) || $monthStart->lte($endDate)) {
+                    $activeIncrement = $inc;
+                    $activeTierNumber = $tierCounter;
+                    $effectiveRent = $incTotal;
+                } elseif ($monthStart->gt($endDate)) {
+                    $fallbackRent = $incTotal;
+                    $lastEndedTier = $tierCounter;
+                }
+            }
+        }
+
+        if ($activeIncrement) {
+            $currentRent = $effectiveRent;
+            $startFormatted = $activeIncrement->increment_start_date ? \Carbon\Carbon::parse($activeIncrement->increment_start_date)->format('d M Y') : 'N/A';
+            $endFormatted = $activeIncrement->increment_end_date ? \Carbon\Carbon::parse($activeIncrement->increment_end_date)->format('d M Y') : 'Ongoing';
+            $periodLabel = "Increment Tier #{$activeTierNumber} ({$startFormatted} - {$endFormatted})";
+            $status = 'incremented';
+        } elseif (!is_null($fallbackRent)) {
+            $currentRent = $fallbackRent;
+            $periodLabel = "Post-Increment (After Tier #{$lastEndedTier})";
+            $status = 'post_increment';
+        } else {
+            $currentRent = $baseRent;
+            $periodLabel = "Base Rent Period (Initial)";
+            $status = 'base';
+        }
+
+        $vat = (float) $this->vat;
+        $tax = (float) $this->tax;
+
+        return [
+            'current_rent'     => $currentRent,
+            'base_rent'        => $baseRent,
+            'billing_month'    => $billingMonth,
+            'month_label'      => $monthDate->format('F Y'),
+            'period_label'     => $periodLabel,
+            'status'           => $status,
+            'active_increment' => $activeIncrement,
+            'is_incremented'   => $currentRent > $baseRent,
+            'increment_diff'   => max(0, $currentRent - $baseRent),
+            'vat'              => $vat,
+            'tax'              => $tax,
+            'subtotal'         => $currentRent + $vat + $tax,
+        ];
+    }
+
+    /**
      * Get the effective rent for a billing month, considering active increments.
      *
      * @param string $billingMonth Format: "YYYY-MM" (e.g. "2026-08")
@@ -82,46 +167,15 @@ class RentBase extends Model
      */
     public function getEffectiveRentForMonth(string $billingMonth): array
     {
-        $monthStart = \Carbon\Carbon::parse($billingMonth . '-01');
-        $monthEnd   = $monthStart->copy()->endOfMonth();
-        $baseRent   = (float) $this->base_rent;
-
-        $activeIncrement = $this->increments()
-            ->where('increment_start_date', '<=', $monthEnd)
-            ->where(function ($q) use ($monthStart) {
-                $q->whereNull('increment_end_date')
-                  ->orWhere('increment_end_date', '>=', $monthStart);
-            })
-            ->orderByDesc('increment_start_date')
-            ->first();
-
-        if ($activeIncrement && $activeIncrement->incremented_amount) {
-            $effectiveRent   = (float) $activeIncrement->incremented_amount;
-            $incrementAmount = $effectiveRent - $baseRent;
-        } else {
-            $lastIncrement = $this->increments()
-                ->orderByDesc('increment_start_date')
-                ->first();
-
-            if ($lastIncrement && $lastIncrement->increment_end_date && $monthStart->gt(\Carbon\Carbon::parse($lastIncrement->increment_end_date))) {
-                $effectiveRent   = (float) ($lastIncrement->incremented_amount ?? ($baseRent + ($lastIncrement->increment_amount ?? 0)));
-                $incrementAmount = $effectiveRent - $baseRent;
-            } else {
-                $effectiveRent   = $baseRent;
-                $incrementAmount = 0.0;
-            }
-        }
-
-        $vat = (float) $this->vat;
-        $tax = (float) $this->tax;
+        $details = $this->getCurrentRentDetails($billingMonth);
 
         return [
-            'base_rent'        => $baseRent,
-            'increment_amount' => max(0, $incrementAmount),
-            'effective_rent'   => $effectiveRent,
-            'vat'              => $vat,
-            'tax'              => $tax,
-            'subtotal'         => $effectiveRent + $vat + $tax,
+            'base_rent'        => $details['base_rent'],
+            'increment_amount' => $details['increment_diff'],
+            'effective_rent'   => $details['current_rent'],
+            'vat'              => $details['vat'],
+            'tax'              => $details['tax'],
+            'subtotal'         => $details['subtotal'],
         ];
     }
 

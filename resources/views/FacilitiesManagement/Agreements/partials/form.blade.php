@@ -96,6 +96,20 @@
             @enderror
         </div>
 
+        <div class="col-lg-4 col-md-6">
+            <label class="form-label fw-semibold" for="npv_interest_rate">NPV Interest Rate (%)</label>
+            <div class="input-group">
+                <input type="number" step="0.0001" min="0" max="100" class="form-control @error('npv_interest_rate') is-invalid @enderror"
+                    id="npv_interest_rate" name="npv_interest_rate" placeholder="e.g. 12.00"
+                    value="{{ old('npv_interest_rate', $agreement->npv_interest_rate ?? '') }}">
+                <span class="input-group-text">%</span>
+            </div>
+            <div class="form-text fs-3xs">Annual discount rate for Net Present Value (NPV) calculation.</div>
+            @error('npv_interest_rate')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
         <!-- Row 3: Remarks -->
         <div class="col-12">
             <label class="form-label fw-semibold" for="remarks">Remarks</label>

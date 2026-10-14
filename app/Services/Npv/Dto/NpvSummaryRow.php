@@ -12,12 +12,13 @@ class NpvSummaryRow
         public string $paymentStartDate,
         public string $expiryDate,
         public int $totalMonths,
-        public float $totalNPV,
+        public ?float $totalNPV,
         public float $totalUndiscountedOutflow,
         public float $totalGrossRent,
         public float $totalAdvanceDeductions,
         public float $totalDepositRefunds,
-        public float $annualDiscountRate,
+        public ?float $annualDiscountRate,
+        public bool $hasInterestRate = true,
         public ?string $fromDate = null,
         public ?string $toDate = null
     ) {
@@ -43,6 +44,7 @@ class NpvSummaryRow
             'total_advance_deductions' => $this->totalAdvanceDeductions,
             'total_deposit_refunds' => $this->totalDepositRefunds,
             'annual_discount_rate' => $this->annualDiscountRate,
+            'has_interest_rate' => $this->hasInterestRate,
         ];
     }
 }

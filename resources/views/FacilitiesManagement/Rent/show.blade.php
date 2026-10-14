@@ -71,6 +71,25 @@
                                             <th>Base Rent</th>
                                             <td>{{ number_format($base->base_rent ?? 0, 2) }}</td>
                                         </tr>
+                                        @php
+                                            $rentDetails = $currentRentDetails ?? $base->getCurrentRentDetails();
+                                        @endphp
+                                        <tr>
+                                            <th>Current Rent <span class="text-muted fw-normal">({{ $rentDetails['month_label'] }})</span></th>
+                                            <td>
+                                                <span class="fw-bold text-primary">
+                                                    ৳ {{ number_format($rentDetails['current_rent'], 2) }}
+                                                </span>
+                                                @if($rentDetails['is_incremented'])
+                                                    <span class="badge bg-success-light text-success ms-1" title="Increment applied">
+                                                        <i class="fa fa-arrow-up me-1"></i>+{{ number_format($rentDetails['increment_diff'], 2) }}
+                                                    </span>
+                                                @endif
+                                                <div class="text-muted fs-xs mt-1">
+                                                    <i class="fa fa-calendar-check me-1"></i>{{ $rentDetails['period_label'] }}
+                                                </div>
+                                            </td>
+                                        </tr>
                                         <tr>
                                             <th>VAT</th>
                                             <td>{{ number_format($base->vat ?? 0, 2) }}</td>
@@ -216,15 +235,26 @@
                             <table class="table table-bordered table-striped table-vcenter fs-sm">
                                 <thead class="table-light">
                                     <tr>
-                                        <th style="width: 15%;">Start Date</th>
-                                        <th style="width: 15%;">End Date</th>
-                                        <th style="width: 15%;">Amount</th>
-                                        <th style="width: 15%;">Percentage</th>
+                                        <th style="width: 14%;">Start Date</th>
+                                        <th style="width: 14%;">End Date</th>
+                                        <th style="width: 14%;">Amount</th>
+                                        <th style="width: 12%;">Percentage</th>
+                                        <th style="width: 18%;">Total Amount After Increment</th>
                                         <th>Method Description</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @php
+                                        $runningRentTotal = (float) ($base->base_rent ?? 0);
+                                    @endphp
                                     @forelse ($base->increments as $inc)
+                                        @php
+                                            $incAmt = (float) ($inc->increment_amount ?? 0);
+                                            $runningRentTotal += $incAmt;
+                                            $totalAfterIncrement = (!is_null($inc->incremented_amount) && (float) $inc->incremented_amount > 0)
+                                                ? (float) $inc->incremented_amount
+                                                : $runningRentTotal;
+                                        @endphp
                                         <tr>
                                             <td>{{ $inc->increment_start_date ? \Carbon\Carbon::parse($inc->increment_start_date)->format('Y-m-d') : 'N/A' }}
                                             </td>
@@ -232,11 +262,12 @@
                                             </td>
                                             <td>{{ number_format($inc->increment_amount ?? 0, 2) }}</td>
                                             <td>{{ number_format($inc->increment_percentage ?? 0, 2) }}%</td>
+                                            <td class="fw-semibold text-success">{{ number_format($totalAfterIncrement, 2) }}</td>
                                             <td>{{ $inc->method_description ?? 'N/A' }}</td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="text-center text-muted py-3">No rent increments
+                                            <td colspan="6" class="text-center text-muted py-3">No rent increments
                                                 defined.</td>
                                         </tr>
                                     @endforelse

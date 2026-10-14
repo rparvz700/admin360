@@ -1,11 +1,11 @@
 @extends('Partials.app', ['activeMenu' => 'facilities.npv.report'])
 
 @section('title')
-    NPV Portfolio Summary Report - {{ config('app.name') }}
+    Net Present Value (NPV) Valuation Report - {{ config('app.name') }}
 @endsection
 
 @section('page_title')
-    Net Present Value (NPV) Portfolio Summary Report
+    Net Present Value (NPV) Valuation Report
 @endsection
 
 @section('styles')
@@ -23,10 +23,10 @@
                 <div class="npv-report-eyebrow">
                     <i class="fa fa-chart-bar me-1"></i> Facilities Management &bull; Financial Analytics
                 </div>
-                <h2 class="npv-report-title">NPV Portfolio Summary Report</h2>
+                <h2 class="npv-report-title">Net Present Value (NPV) Valuation Report</h2>
                 <p class="npv-report-sub">
-                    Aggregated valuation, net present value ranking, and cash outflow metrics across all active lease
-                    agreements.
+                    Aggregated valuation, variable agreement interest rates, and discounted present values across active
+                    lease agreements.
                 </p>
             </div>
             <div class="d-flex gap-2">
@@ -38,12 +38,8 @@
                     </button>
                 </form>
                 {{-- <a href="{{ route('facilities.npv.index') }}" class="btn btn-alt-primary btn-sm">
-                    <i class="fa fa-calculator me-1"></i> Single Agreement Workbench
+                    <i class="fa fa-calculator me-1"></i> Calculation Workbench
                 </a> --}}
-                <a href="{{ route('admin.finance-settings.index') }}" class="btn btn-alt-secondary btn-sm"
-                    title="Configure Annual Discount Rate">
-                    <i class="fa fa-cog me-1"></i> Rate Settings ({{ number_format($annualDiscountRate, 2) }}%)
-                </a>
             </div>
         </div>
 
@@ -64,39 +60,43 @@
         <div class="npv-summary-strip">
             <div class="row g-0">
                 <div class="col-6 col-lg-3 summary-metric-item hero-metric ps-4 ps-md-5"
-                    title="Total Portfolio NPV: Sum of discounted monthly net cash outflows across all {{ $totalAgreements }} active agreements">
+                    title="Total Portfolio NPV: Sum of discounted monthly net cash outflows across agreements with configured interest rates">
                     <div class="metric-label" title="Total Portfolio NPV"><i class="fa fa-coins me-1 text-primary"></i>
                         Total Portfolio NPV</div>
-                    <div class="metric-value text-npv-primary" title="৳ {{ number_format($portfolioTotalNPV, 2) }}">৳
+                    <div class="metric-value text-npv-primary" id="kpiPortfolioTotalNPV"
+                        title="৳ {{ number_format($portfolioTotalNPV, 2) }}">৳
                         {{ number_format($portfolioTotalNPV, 2) }}</div>
-                    <div class="metric-subtext" title="Discounted Present Value Sum across all active agreements">
-                        Discounted Net Outflows</div>
+                    <div class="metric-subtext" id="kpiCalculatedSubtext"
+                        title="Discounted Present Value Sum across agreements with configured rate">
+                        {{ $calculatedCount }} of {{ $totalAgreements }} leases calculated</div>
                 </div>
                 <div class="col-6 col-lg-3 summary-metric-item ps-4 ps-md-5"
                     title="Total Nominal Outflow: Undiscounted total cash outflow across all active agreements">
                     <div class="metric-label" title="Total Nominal Outflow"><i
                             class="fa fa-money-bill-wave me-1 text-warning"></i> Total Nominal Outflow</div>
-                    <div class="metric-value text-npv-warning" title="৳ {{ number_format($portfolioTotalOutflow, 2) }}">৳
+                    <div class="metric-value text-npv-warning" id="kpiPortfolioTotalOutflow"
+                        title="৳ {{ number_format($portfolioTotalOutflow, 2) }}">৳
                         {{ number_format($portfolioTotalOutflow, 2) }}</div>
-                    <div class="metric-subtext" title="Undiscounted gross cash outflow total">
+                    <div class="metric-subtext" title="Undiscounted gross cash outflow total across all active agreements">
                         Undiscounted Cash Total</div>
                 </div>
                 <div class="col-6 col-lg-3 summary-metric-item ps-4 ps-md-5"
-                    title="Active Agreements: {{ $totalAgreements }} active agreements at {{ number_format($annualDiscountRate, 2) }}% annual discount rate">
+                    title="Active Agreements: {{ $totalAgreements }} active agreements ({{ $calculatedCount }} with rate configured)">
                     <div class="metric-label" title="Active Agreements"><i class="fa fa-file-contract me-1 text-info"></i>
                         Active Agreements</div>
                     <div class="metric-value text-npv-info" title="{{ $totalAgreements }} active leases">
                         {{ $totalAgreements }} <span class="fs-xs font-normal">leases</span></div>
-                    <div class="metric-subtext" title="Annual Discount Rate: {{ number_format($annualDiscountRate, 2) }}%">
-                        Rate: {{ number_format($annualDiscountRate, 2) }}% annual</div>
+                    <div class="metric-subtext" id="kpiLeasesSubtext" title="Configured interest rate count">
+                        {{ $calculatedCount }} with rate ({{ $totalAgreements - $calculatedCount }} pending)</div>
                 </div>
                 <div class="col-6 col-lg-3 summary-metric-item ps-4 ps-md-5"
-                    title="Average Lease NPV: Portfolio average Net Present Value per agreement">
+                    title="Average Lease NPV: Portfolio average Net Present Value per calculated agreement">
                     <div class="metric-label" title="Average Lease NPV"><i class="fa fa-chart-line me-1 text-success"></i>
                         Average Lease NPV</div>
-                    <div class="metric-value text-npv-success" title="৳ {{ number_format($averageNPV, 2) }}">৳
+                    <div class="metric-value text-npv-success" id="kpiAverageNPV"
+                        title="৳ {{ number_format($averageNPV, 2) }}">৳
                         {{ number_format($averageNPV, 2) }}</div>
-                    <div class="metric-subtext" title="Per Agreement Average NPV">
+                    <div class="metric-subtext" title="Per Agreement Average NPV (for agreements with rate)">
                         Per Agreement Average</div>
                 </div>
             </div>
@@ -109,8 +109,8 @@
                     <h3 class="block-title fs-sm font-semibold mb-0">
                         <i class="fa fa-table me-1 text-primary"></i> Agreement NPV Summary Listing
                     </h3>
-                    <div class="fs-2xs text-muted">Sorted by Total NPV descending by default. Click header arrows to
-                        reorder.</div>
+                    <div class="fs-2xs text-muted">Sorted by Total NPV descending by default. Click "Set Rate" to configure
+                        interest rate for any agreement.</div>
                 </div>
             </div>
             <div class="block-content block-content-full p-3">
@@ -122,15 +122,16 @@
                                 <th class="text-center" style="width: 35px;">#</th>
                                 <th>Agreement Ref</th>
                                 <th class="d-none">Site / Building</th>
-                                <th>Vendor / Landlord</th>
+                                <th>Vendor</th>
                                 <th class="d-none">Payment Start Date</th>
                                 <th class="d-none">Expiry Date</th>
                                 <th class="text-center" style="width: 140px;">Lease Period</th>
                                 <th class="text-center" style="width: 60px;">Months</th>
-                                <th class="text-end" style="width: 150px;">Total Gross Rent (৳)</th>
+                                <th class="text-end" style="width: 140px;">Total Gross Rent (৳)</th>
+                                <th class="text-center" style="width: 130px;">Interest Rate (%)</th>
                                 <th class="text-end text-primary font-bold" style="width: 160px;">Total NPV Value (৳)</th>
-                                <th class="text-end" style="width: 150px;">Nominal Outflow (৳)</th>
-                                <th class="text-center" style="width: 70px;">Actions</th>
+                                <th class="text-end" style="width: 140px;">Nominal Outflow (৳)</th>
+                                <th class="text-center" style="width: 90px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -147,7 +148,7 @@
                                             ? \Carbon\Carbon::parse($pExpiry)->format('d M Y')
                                             : 'N/A';
                                 @endphp
-                                <tr>
+                                <tr id="row-agreement-{{ $row->agreementId }}">
                                     <td class="text-center text-muted npv-num-cell fs-2xs">{{ $index + 1 }}</td>
                                     <td>
                                         <div>
@@ -171,8 +172,38 @@
                                     </td>
                                     <td class="text-center npv-num-cell">{{ $row->totalMonths }}</td>
                                     <td class="text-end npv-num-cell">{{ number_format($row->totalGrossRent, 2) }}</td>
-                                    <td class="text-end" data-order="{{ $row->totalNPV }}">
-                                        <span class="npv-value-cell">৳ {{ number_format($row->totalNPV, 2) }}</span>
+                                    <td class="text-center rate-cell"
+                                        data-order="{{ $row->hasInterestRate ? $row->annualDiscountRate : -1 }}">
+                                        @if ($row->hasInterestRate && $row->annualDiscountRate !== null)
+                                            <span
+                                                class="badge bg-primary-light text-white fw-semibold fs-2xs px-2 py-1 rate-display-badge">
+                                                {{ number_format($row->annualDiscountRate, 2) }}%
+                                            </span>
+                                            <button type="button"
+                                                class="btn btn-xs btn-link text-primary p-0 ms-1 set-rate-trigger-btn"
+                                                data-id="{{ $row->agreementId }}" data-ref="{{ $row->agreementRefNo }}"
+                                                data-current-rate="{{ $row->annualDiscountRate }}"
+                                                title="Edit NPV interest rate">
+                                                <i class="fa fa-pen fs-3xs"></i>
+                                            </button>
+                                        @else
+                                            <button type="button"
+                                                class="btn btn-xs btn-outline-warning text-dark py-0 px-2 set-rate-trigger-btn"
+                                                data-id="{{ $row->agreementId }}" data-ref="{{ $row->agreementRefNo }}"
+                                                data-current-rate="" title="Set NPV interest rate for this agreement">
+                                                <i class="fa fa-plus me-1"></i>Set Rate
+                                            </button>
+                                        @endif
+                                    </td>
+                                    <td class="text-end npv-cell"
+                                        data-order="{{ $row->hasInterestRate && $row->totalNPV !== null ? $row->totalNPV : -1 }}">
+                                        @if ($row->hasInterestRate && $row->totalNPV !== null)
+                                            <span class="npv-value-cell font-bold text-primary">৳
+                                                {{ number_format($row->totalNPV, 2) }}</span>
+                                        @else
+                                            <span class="badge bg-light text-muted border fst-italic fs-3xs">Rate not
+                                                set</span>
+                                        @endif
                                     </td>
                                     <td class="text-end npv-num-cell text-muted"
                                         data-order="{{ $row->totalUndiscountedOutflow }}">
@@ -181,14 +212,16 @@
                                     <td class="text-center">
                                         <div class="btn-group btn-group-sm">
                                             {{--
-                                            <button type="button" class="btn btn-xs btn-alt-primary view-detail-btn px-2 py-1"
-                                                data-id="{{ $row->agreementId }}"
-                                                data-ref="{{ $row->agreementRefNo }}"
-                                                data-vendor="{{ $row->vendorName }}"
-                                                data-site="{{ $row->siteName }}"
-                                                title="View detailed breakdown">
-                                                <i class="fa fa-eye"></i>
-                                            </button>
+                                            @if ($row->hasInterestRate && $row->totalNPV !== null)
+                                                <button type="button" class="btn btn-xs btn-alt-primary view-detail-btn px-2 py-1"
+                                                    data-id="{{ $row->agreementId }}"
+                                                    data-ref="{{ $row->agreementRefNo }}"
+                                                    data-vendor="{{ $row->vendorName }}"
+                                                    data-site="{{ $row->siteName }}"
+                                                    title="View detailed breakdown">
+                                                    <i class="fa fa-eye"></i>
+                                                </button>
+                                            @endif
                                             --}}
                                             <a href="{{ route('facilities.npv.index', ['agreement_id' => $row->agreementId]) }}"
                                                 class="btn btn-xs btn-alt-secondary px-2 py-1"
@@ -205,9 +238,10 @@
                                 <td colspan="8" class="text-end font-bold text-muted fs-2xs">PORTFOLIO TOTALS:</td>
                                 <td class="text-end npv-num-cell font-bold">৳
                                     {{ number_format($portfolioTotalGrossRent, 2) }}</td>
-                                <td class="text-end npv-num-cell text-primary font-bold">৳
+                                <td class="text-center font-bold text-muted fs-3xs">-</td>
+                                <td class="text-end npv-num-cell text-primary font-bold" id="footPortfolioTotalNPV">৳
                                     {{ number_format($portfolioTotalNPV, 2) }}</td>
-                                <td class="text-end npv-num-cell text-muted font-bold">৳
+                                <td class="text-end npv-num-cell text-muted font-bold" id="footPortfolioTotalOutflow">৳
                                     {{ number_format($portfolioTotalOutflow, 2) }}</td>
                                 <td></td>
                             </tr>
@@ -220,6 +254,64 @@
 
     <!-- Include Detail Modal Partial -->
     @include('FacilitiesManagement.Npv.partials.detail_modal')
+
+    <!-- Set NPV Interest Rate Modal -->
+    <div class="modal fade" id="setInterestRateModal" tabindex="-1" aria-labelledby="setInterestRateModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form id="setInterestRateForm">
+                    @csrf
+                    <div class="modal-header bg-body-light py-2">
+                        <h5 class="modal-title fs-sm font-semibold" id="setInterestRateModalLabel">
+                            <i class="fa fa-percentage text-primary me-1"></i> Configure NPV Interest Rate
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <div class="alert alert-info py-2 px-3 fs-xs mb-3">
+                            <i class="fa fa-info-circle me-1"></i>
+                            Configuring annual discount rate for: <strong id="modalSetRateRefNo"
+                                class="text-dark"></strong>
+                        </div>
+
+                        <div id="setRateAlertBox" class="alert alert-danger d-none py-2 px-3 fs-xs mb-3"></div>
+
+                        <input type="hidden" id="modalSetRateAgreementId" name="agreement_id" value="">
+
+                        <div class="mb-3">
+                            <label class="form-label fs-xs fw-semibold" for="modalInterestRateInput">
+                                Annual Discount Rate (%) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input type="number" step="0.01" min="0.01" max="100"
+                                    class="form-control form-control-sm" id="modalInterestRateInput" name="interest_rate"
+                                    placeholder="e.g. 12.00">
+                                <span class="input-group-text fs-xs">%</span>
+                            </div>
+                            <div class="form-text fs-3xs text-muted">
+                                If cleared, NPV calculation is disabled for this agreement.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-body-light py-2 d-flex justify-content-between">
+                        <div>
+                            <button type="button" class="btn btn-sm btn-alt-danger" id="btnClearRateBtn">
+                                <i class="fa fa-trash-alt me-1"></i> Clear Rate
+                            </button>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-alt-secondary"
+                                data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-sm btn-primary" id="btnSaveInterestRate">
+                                <i class="fa fa-save me-1"></i> Save & Recalculate
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -231,7 +323,7 @@
 
     <script>
         $(document).ready(function() {
-            // Initialize DataTables with Default Sorting on Total NPV (Column 9) Descending
+            // Initialize DataTables with Default Sorting on Total NPV (Column 10) Descending
             var table = $('#npvSummaryTable').DataTable({
                 pageLength: 25,
                 lengthMenu: [
@@ -239,7 +331,7 @@
                     [10, 25, 50, 100, "All"]
                 ],
                 order: [
-                    [9, 'desc']
+                    [10, 'desc']
                 ], // Value-wise sorting by Total NPV Value (descending)
                 responsive: true,
                 autoWidth: false,
@@ -257,9 +349,9 @@
                     className: 'btn btn-xs btn-alt-success',
                     title: 'NPV_Portfolio_Summary_Report_' + new Date().toISOString().slice(0, 10),
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 7, 8, 9,
-                            10
-                        ], // Excludes UI-combined columns 6 & 11
+                        columns: [0, 1, 2, 3, 4, 5, 7, 8, 9, 10,
+                            11
+                        ], // Excludes UI-combined col 6 and action col 12
                         format: {
                             header: function(data, columnIdx) {
                                 const customHeaders = {
@@ -271,8 +363,9 @@
                                     5: 'Expiry Date',
                                     7: 'Duration (Months)',
                                     8: 'Total Gross Rent',
-                                    9: 'Total NPV Value',
-                                    10: 'Nominal Outflow'
+                                    9: 'Interest Rate (%)',
+                                    10: 'Total NPV Value',
+                                    11: 'Nominal Outflow'
                                 };
                                 return customHeaders[columnIdx] || data.replace(/<[^>]+>/g, '')
                                     .replace(/৳/g, '').trim();
@@ -348,13 +441,10 @@
 
                 detailModal.show();
 
-                // Fetch detail breakdown via AJAX
+                // Fetch detail breakdown via AJAX (uses agreement's configured interest rate)
                 $.ajax({
                     url: "/facilities/npv/report/" + agrId + "/detail",
                     type: "GET",
-                    data: {
-                        annual_discount_rate: "{{ $annualDiscountRate }}"
-                    },
                     success: function(response) {
                         $('#modalLoadingSpinner').addClass('d-none');
 
@@ -420,9 +510,11 @@
                                     .sd_start_date));
 
                                 if (audit.sd_clauses && audit.sd_clauses.length > 0) {
-                                    const activeClauses = audit.sd_clauses.filter(c => c.absorb_amount > 0 || c.frequency > 0);
+                                    const activeClauses = audit.sd_clauses.filter(c => c
+                                        .absorb_amount > 0 || c.frequency > 0);
                                     if (activeClauses.length > 1) {
-                                        $('#modalAuditSdBadge').text(activeClauses.length + ' Clauses').removeClass('d-none');
+                                        $('#modalAuditSdBadge').text(activeClauses.length +
+                                            ' Clauses').removeClass('d-none');
                                     } else {
                                         $('#modalAuditSdBadge').addClass('d-none');
                                     }
@@ -446,9 +538,13 @@
                                         activeClauses.forEach(function(c, idx) {
                                             let amt = c.absorb_amount || 0;
                                             let freq = c.frequency || 0;
-                                            let monthly = (amt > 0 && freq > 0) ? (amt / freq) : 0;
-                                            let startStr = c.start_date ? formatDateStr(c.start_date) : 'Auto/Seq';
-                                            let endStr = c.end_date ? formatDateStr(c.end_date) : (freq > 0 ? freq + ' mos' : 'N/A');
+                                            let monthly = (amt > 0 && freq > 0) ? (amt /
+                                                freq) : 0;
+                                            let startStr = c.start_date ? formatDateStr(
+                                                c.start_date) : 'Auto/Seq';
+                                            let endStr = c.end_date ? formatDateStr(c
+                                                .end_date) : (freq > 0 ? freq +
+                                                ' mos' : 'N/A');
 
                                             sdHtml += `
                                                 <tr>
@@ -603,12 +699,17 @@
                                             ` <span class="badge npv-inc-badge ${badgeClass}" title="${tooltipText}"><i class="fa fa-arrow-up"></i> ${ord}</span>`;
                                     }
 
-                                    let rowClass = cf.is_deferred ? 'table-light text-muted opacity-75' : (cf.arrears_amount > 0 ? 'table-warning-light' : '');
+                                    let rowClass = cf.is_deferred ?
+                                        'table-light text-muted opacity-75' : (cf
+                                            .arrears_amount > 0 ?
+                                            'table-warning-light' : '');
                                     let statusBadge = '';
                                     if (cf.is_deferred) {
-                                        statusBadge = ' <span class="badge bg-secondary ms-1 fs-3xs" title="Deferred Payment Period"><i class="fa fa-clock"></i> Deferred</span>';
+                                        statusBadge =
+                                            ' <span class="badge bg-secondary ms-1 fs-3xs" title="Deferred Payment Period"><i class="fa fa-clock"></i> Deferred</span>';
                                     } else if (cf.arrears_amount > 0) {
-                                        statusBadge = ` <span class="badge bg-warning text-dark ms-1 fs-3xs" title="Includes ৳ ${cf.arrears_amount.toLocaleString('en-US', {minimumFractionDigits: 2})} arrears"><i class="fa fa-hand-holding-usd"></i> Arrears Paid</span>`;
+                                        statusBadge =
+                                            ` <span class="badge bg-warning text-dark ms-1 fs-3xs" title="Includes ৳ ${cf.arrears_amount.toLocaleString('en-US', {minimumFractionDigits: 2})} arrears"><i class="fa fa-hand-holding-usd"></i> Arrears Paid</span>`;
                                     }
 
                                     rowsHtml += `
@@ -651,6 +752,163 @@
                     }
                 });
             });
+
+            // Set NPV Interest Rate Modal Handler
+            const setRateModal = new bootstrap.Modal(document.getElementById('setInterestRateModal'));
+
+            $(document).on('click', '.set-rate-trigger-btn', function() {
+                const agrId = $(this).data('id');
+                const refNo = $(this).data('ref');
+                const currentRate = $(this).data('current-rate');
+
+                $('#modalSetRateAgreementId').val(agrId);
+                $('#modalSetRateRefNo').text(refNo);
+                $('#modalInterestRateInput').val(currentRate !== '' && currentRate !== null &&
+                    currentRate !== undefined ? currentRate : '');
+                $('#setRateAlertBox').addClass('d-none').text('');
+
+                if (!currentRate) {
+                    $('#btnClearRateBtn').addClass('d-none');
+                } else {
+                    $('#btnClearRateBtn').removeClass('d-none');
+                }
+
+                setRateModal.show();
+            });
+
+            // Clear Rate button
+            $('#btnClearRateBtn').on('click', function() {
+                if (confirm(
+                        'Are you sure you want to clear the NPV interest rate for this agreement? NPV will not be calculated.'
+                    )) {
+                    submitRateUpdate(null);
+                }
+            });
+
+            // Form submit
+            $('#setInterestRateForm').on('submit', function(e) {
+                e.preventDefault();
+                const rateVal = $('#modalInterestRateInput').val();
+                if (!rateVal || parseFloat(rateVal) <= 0) {
+                    $('#setRateAlertBox').removeClass('d-none').text(
+                        'Please enter a valid interest rate greater than 0, or click Clear Rate.');
+                    return;
+                }
+                submitRateUpdate(rateVal);
+            });
+
+            function submitRateUpdate(rate) {
+                const agrId = $('#modalSetRateAgreementId').val();
+                const btn = $('#btnSaveInterestRate');
+                const originalText = btn.html();
+
+                btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-1"></i> Saving...');
+                $('#setRateAlertBox').addClass('d-none');
+
+                $.ajax({
+                    url: '/facilities/npv/agreements/' + agrId + '/update-interest-rate',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        interest_rate: rate
+                    },
+                    success: function(response) {
+                        btn.prop('disabled', false).html(originalText);
+                        if (response.success && response.data) {
+                            const data = response.data;
+                            setRateModal.hide();
+
+                            // Update Row in Table
+                            const rowElem = $(`#row-agreement-${agrId}`);
+                            if (rowElem.length) {
+                                // Update Rate Cell (Col 9)
+                                let rateHtml = '';
+                                if (data.has_interest_rate) {
+                                    rateHtml = `
+                                        <span class="badge bg-primary-light text-white fw-semibold fs-2xs px-2 py-1 rate-display-badge">
+                                            ${data.interest_rate_formatted}
+                                        </span>
+                                        <button type="button" class="btn btn-xs btn-link text-primary p-0 ms-1 set-rate-trigger-btn"
+                                            data-id="${agrId}"
+                                            data-ref="${data.agreement_ref_no}"
+                                            data-current-rate="${data.interest_rate}"
+                                            title="Edit NPV interest rate">
+                                            <i class="fa fa-pen fs-3xs"></i>
+                                        </button>
+                                    `;
+                                } else {
+                                    rateHtml = `
+                                        <button type="button" class="btn btn-xs btn-outline-warning text-dark py-0 px-2 set-rate-trigger-btn"
+                                            data-id="${agrId}"
+                                            data-ref="${data.agreement_ref_no}"
+                                            data-current-rate=""
+                                            title="Set NPV interest rate for this agreement">
+                                            <i class="fa fa-plus me-1"></i>Set Rate
+                                        </button>
+                                    `;
+                                }
+
+                                // Update NPV Cell (Col 10)
+                                let npvHtml = '';
+                                if (data.has_interest_rate && data.total_npv !== null) {
+                                    npvHtml =
+                                        `<span class="npv-value-cell font-bold text-primary">${data.total_npv_formatted}</span>`;
+                                } else {
+                                    npvHtml =
+                                        `<span class="badge bg-light text-muted border fst-italic fs-3xs">Rate not set</span>`;
+                                }
+
+                                const rateCell = rowElem.find('.rate-cell');
+                                rateCell.html(rateHtml).attr('data-order', data.has_interest_rate ? data
+                                    .interest_rate : -1);
+
+                                const npvCell = rowElem.find('.npv-cell');
+                                npvCell.html(npvHtml).attr('data-order', data.has_interest_rate && data
+                                    .total_npv !== null ? data.total_npv : -1);
+
+                                // Update Actions Cell
+                                let actionsHtml = `
+                                    <div class="btn-group btn-group-sm">
+                                        {{-- View option commented out
+                                        <button type="button" class="btn btn-xs btn-alt-primary view-detail-btn px-2 py-1">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                        --}}
+                                        <a href="/facilities/npv?agreement_id=${agrId}"
+                                            class="btn btn-xs btn-alt-secondary px-2 py-1"
+                                            title="Open in Calculation Workbench">
+                                            <i class="fa fa-external-link-alt"></i>
+                                        </a>
+                                    </div>
+                                `;
+                                rowElem.find('td:last').html(actionsHtml);
+
+                                // Invalidate DataTables cache for row so sorting respects new values
+                                table.row(rowElem).invalidate();
+                            }
+
+                            // Update KPI Cards
+                            $('#kpiPortfolioTotalNPV').text(data.portfolio_total_npv).attr('title', data
+                                .portfolio_total_npv);
+                            $('#kpiCalculatedSubtext').text(
+                                `${data.calculated_count} of ${data.total_agreements} leases calculated`
+                            );
+                            $('#kpiLeasesSubtext').text(
+                                `${data.calculated_count} with rate (${data.total_agreements - data.calculated_count} pending)`
+                            );
+                            $('#kpiAverageNPV').text(data.average_npv).attr('title', data.average_npv);
+                            $('#footPortfolioTotalNPV').text(data.portfolio_total_npv);
+                            $('#footPortfolioTotalOutflow').text(data.portfolio_total_outflow);
+                        }
+                    },
+                    error: function(xhr) {
+                        btn.prop('disabled', false).html(originalText);
+                        const errMsg = xhr.responseJSON ? xhr.responseJSON.message :
+                            'Error updating interest rate.';
+                        $('#setRateAlertBox').removeClass('d-none').text(errMsg);
+                    }
+                });
+            }
         });
     </script>
 @endsection

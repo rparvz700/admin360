@@ -21,9 +21,14 @@ class Agreement extends Model
         'payment_start_date',
         'expiry_date',
         'status',
+        'npv_interest_rate',
         'remarks',
         'created_at',
         'updated_at',
+    ];
+
+    protected $casts = [
+        'npv_interest_rate' => 'float',
     ];
 
     public function getPaymentStartDateAttribute($value)

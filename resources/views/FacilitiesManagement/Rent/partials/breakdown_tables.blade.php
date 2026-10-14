@@ -135,14 +135,24 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php
+                            $runningBreakdownTotal = (float) ($rent->base_rent ?? 0);
+                        @endphp
                         @forelse ($rent->increments as $inc)
+                            @php
+                                $incAmt = (float) ($inc->increment_amount ?? 0);
+                                $runningBreakdownTotal += $incAmt;
+                                $newBaseRent = (!is_null($inc->incremented_amount) && (float) $inc->incremented_amount > 0)
+                                    ? (float) $inc->incremented_amount
+                                    : $runningBreakdownTotal;
+                            @endphp
                             <tr>
                                 <td>{{ $inc->increment_start_date ? \Carbon\Carbon::parse($inc->increment_start_date)->format('d M Y') : 'N/A' }}</td>
                                 <td>{{ $inc->increment_end_date ? \Carbon\Carbon::parse($inc->increment_end_date)->format('d M Y') : 'N/A' }}</td>
                                 <td class="text-end fw-semibold text-info">{{ number_format($inc->increment_percentage ?? 0, 2) }}%</td>
                                 <td class="text-end">৳ {{ number_format($inc->increment_amount ?? 0, 2) }}</td>
                                 <td class="text-end fw-bold text-success">
-                                    ৳ {{ number_format($inc->incremented_amount ?? (($rent->base_rent ?? 0) + ($inc->increment_amount ?? 0)), 2) }}
+                                    ৳ {{ number_format($newBaseRent, 2) }}
                                 </td>
                                 <td>{{ $inc->method_description ?? 'Standard Escalation' }}</td>
                             </tr>

@@ -26,6 +26,14 @@ class MonthlyCashFlow
         public ?string $incrementEffectiveFrom = null, // Start date (Y-m-d) of the cycle in force
         public float $incrementUpliftPct = 0.0, // Compounded uplift over base rent, in %
         public bool $isDeferred = false, // True if month is in deferred payment period
-        public float $arrearsAmount = 0.0 // Cumulative arrears included in this month (first payment month)
+        public float $arrearsAmount = 0.0, // Cumulative arrears included in this month (first payment month)
+        // IFRS 16 Lease Obligation Amortization & PPE Movement fields (Applicable when NPV >= 1,000,000)
+        public ?float $openingLeaseObligation = null, // Opening lease obligation
+        public ?float $leasePayment = null,          // Lease payment (principal reduction)
+        public ?float $closingLeaseObligation = null, // Closing lease obligation
+        public ?float $financeExpense = null,         // Finance expense
+        public ?float $rouOpeningBalance = null,      // PPE Opening balance
+        public ?float $depreciationCharged = null,    // Depreciation charged
+        public ?float $rouWdv = null                 // WDV
     ) {}
 }

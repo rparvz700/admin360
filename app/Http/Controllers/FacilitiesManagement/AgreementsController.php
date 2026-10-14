@@ -70,6 +70,7 @@ class AgreementsController extends Controller
         $validated = $request->validate([
             'agreement_ref_no' => 'required|string|max:255',
             'vendor_id' => 'nullable|exists:vendors,id',
+            'npv_interest_rate' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $paymentStart = $request->payment_start_date ?? $request->from_date;
@@ -81,6 +82,7 @@ class AgreementsController extends Controller
             'agreement_date' => $request->agreement_date,
             'status' => $request->status,
             'remarks' => $request->remarks,
+            'npv_interest_rate' => $request->filled('npv_interest_rate') ? (float) $request->npv_interest_rate : null,
         ];
 
         if (\Schema::hasColumn('agreements', 'payment_start_date')) {
@@ -120,6 +122,7 @@ class AgreementsController extends Controller
         $validated = $request->validate([
             'agreement_ref_no' => 'required|string|max:255',
             'vendor_id' => 'nullable|exists:vendors,id',
+            'npv_interest_rate' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $paymentStart = $request->payment_start_date ?? $request->from_date;
@@ -131,6 +134,7 @@ class AgreementsController extends Controller
             'agreement_date' => $request->agreement_date,
             'status' => $request->status,
             'remarks' => $request->remarks,
+            'npv_interest_rate' => $request->filled('npv_interest_rate') ? (float) $request->npv_interest_rate : null,
         ];
 
         if (\Schema::hasColumn('agreements', 'payment_start_date')) {

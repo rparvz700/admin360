@@ -259,7 +259,8 @@ class RentController extends Controller
     public function show($id)
     {
         $base = RentBase::with(['components', 'increments', 'securityDeposits', 'invoice.vendor'])->findOrFail($id);
-        return view('FacilitiesManagement.Rent.show', compact('base'));
+        $currentRentDetails = $base->getCurrentRentDetails();
+        return view('FacilitiesManagement.Rent.show', compact('base', 'currentRentDetails'));
     }
 
     public function getHistory($id)

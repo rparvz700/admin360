@@ -50,5 +50,20 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
         );
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('agreements') && !\Illuminate\Support\Facades\Schema::hasColumn('agreements', 'npv_interest_rate')) {
+                \Illuminate\Support\Facades\Schema::table('agreements', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    $table->decimal('npv_interest_rate', 5, 2)->nullable();
+                });
+            }
+        } catch (\Throwable $e) {
+            // Fail silently if DB is not ready/migrated yet
+        }
+
+        // Clear stale cached routes if present
+        if (file_exists(base_path('bootstrap/cache/routes-v7.php'))) {
+            @unlink(base_path('bootstrap/cache/routes-v7.php'));
+        }
     }
 }

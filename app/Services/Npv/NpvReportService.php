@@ -30,56 +30,13 @@ class NpvReportService
      */
     public function generateSummaryForAll(float $annualDiscountRate = 0.0, bool $forceRefresh = false): array
     {
-        $rate = $annualDiscountRate > 0
-            ? $annualDiscountRate
-            : FinanceSetting::getValue('npv_annual_discount_rate', 12.16);
-
         $this->ensureTableExists();
 
         if ($forceRefresh) {
-            $this->clearCacheForRate($rate);
+            $this->clearCache();
         }
 
-        // Check active agreement IDs against cached summary IDs for this discount_rate
-        $activeAgreementIds = Agreement::where('status', 1)->pluck('id')->toArray();
-
-        // Invalidate stale cache records created before new NPV engine logic
-        $staleCutoff = '2026-08-20 14:10:00';
-        NpvAgreementSummary::where('discount_rate', $rate)
-            ->where('calculated_at', '<', $staleCutoff)
-            ->delete();
-
-        $cachedAgreementIds = NpvAgreementSummary::where('discount_rate', $rate)->pluck('agreement_id')->toArray();
-
-        $missingIds = array_diff($activeAgreementIds, $cachedAgreementIds);
-
-        // Fetch cached summary rows if available
-        if (!$forceRefresh && empty($missingIds) && count($cachedAgreementIds) === count($activeAgreementIds)) {
-            $cachedRows = NpvAgreementSummary::where('discount_rate', $rate)
-                ->whereIn('agreement_id', $activeAgreementIds)
-                ->orderBy('total_npv', 'desc')
-                ->get();
-
-            return $cachedRows->map(fn($row) => new NpvSummaryRow(
-                agreementId: $row->agreement_id,
-                agreementRefNo: $row->agreement_ref_no,
-                vendorName: $row->vendor_name ?? 'N/A',
-                siteName: $row->site_name ?? 'N/A',
-                paymentStartDate: $row->payment_start_date ?? ($row->from_date ?? 'N/A'),
-                expiryDate: $row->expiry_date ?? ($row->to_date ?? 'N/A'),
-                totalMonths: $row->total_months,
-                totalNPV: (float) $row->total_npv,
-                totalUndiscountedOutflow: (float) $row->total_undiscounted_outflow,
-                totalGrossRent: (float) $row->total_gross_rent,
-                totalAdvanceDeductions: (float) $row->total_advance_deductions,
-                totalDepositRefunds: (float) $row->total_deposit_refunds,
-                annualDiscountRate: (float) $row->discount_rate,
-                fromDate: $row->payment_start_date ?? ($row->from_date ?? 'N/A'),
-                toDate: $row->expiry_date ?? ($row->to_date ?? 'N/A')
-            ))->all();
-        }
-
-        // Calculate and persist summaries in bulk for this rate
+        // Fetch all active agreements
         $agreements = Agreement::with([
             'vendor',
             'floors.building',
@@ -91,23 +48,71 @@ class NpvReportService
         ->orderBy('id', 'desc')
         ->get();
 
+        $activeAgreementIds = $agreements->pluck('id')->toArray();
+
+        // Invalidate stale cache records created before new NPV engine logic
+        $staleCutoff = '2026-08-20 14:10:00';
+        NpvAgreementSummary::where('calculated_at', '<', $staleCutoff)->delete();
+
+        // Fetch existing cached records
+        $cachedRecords = NpvAgreementSummary::whereIn('agreement_id', $activeAgreementIds)
+            ->get()
+            ->keyBy('agreement_id');
+
         $rows = [];
         $upsertData = [];
         $now = now();
         $hasPaymentStartCol = Schema::hasColumn('npv_agreement_summaries', 'payment_start_date');
 
         foreach ($agreements as $agr) {
+            // Check agreement's individual NPV interest rate (or override parameter if explicitly provided)
+            $agrConfiguredRate = (!is_null($agr->npv_interest_rate) && (float) $agr->npv_interest_rate > 0)
+                ? (float) $agr->npv_interest_rate
+                : null;
+
+            $effectiveRate = ($annualDiscountRate > 0) ? $annualDiscountRate : $agrConfiguredRate;
+            $hasRate = ($effectiveRate !== null && $effectiveRate > 0);
+            $cachedKeyRate = $hasRate ? round($effectiveRate, 2) : 0.00;
+
+            // Check if valid cache entry exists
+            if (!$forceRefresh && $cachedRecords->has($agr->id)) {
+                $cachedRow = $cachedRecords->get($agr->id);
+                // Validate that cached discount_rate matches the agreement's current effective rate
+                if (abs((float) $cachedRow->discount_rate - $cachedKeyRate) < 0.001) {
+                    $rows[] = new NpvSummaryRow(
+                        agreementId: $cachedRow->agreement_id,
+                        agreementRefNo: $cachedRow->agreement_ref_no,
+                        vendorName: $cachedRow->vendor_name ?? 'N/A',
+                        siteName: $cachedRow->site_name ?? 'N/A',
+                        paymentStartDate: $cachedRow->payment_start_date ?? ($cachedRow->from_date ?? 'N/A'),
+                        expiryDate: $cachedRow->expiry_date ?? ($cachedRow->to_date ?? 'N/A'),
+                        totalMonths: (int) $cachedRow->total_months,
+                        totalNPV: $hasRate ? (float) $cachedRow->total_npv : null,
+                        totalUndiscountedOutflow: (float) $cachedRow->total_undiscounted_outflow,
+                        totalGrossRent: (float) $cachedRow->total_gross_rent,
+                        totalAdvanceDeductions: (float) $cachedRow->total_advance_deductions,
+                        totalDepositRefunds: (float) $cachedRow->total_deposit_refunds,
+                        annualDiscountRate: $hasRate ? (float) $cachedRow->discount_rate : null,
+                        hasInterestRate: $hasRate,
+                        fromDate: $cachedRow->payment_start_date ?? ($cachedRow->from_date ?? 'N/A'),
+                        toDate: $cachedRow->expiry_date ?? ($cachedRow->to_date ?? 'N/A')
+                    );
+                    continue;
+                }
+            }
+
+            // Calculate for this agreement
             $baseDate = $agr->payment_start_date 
                 ?? ($agr->from_date ?? ($agr->agreement_date ?: now()->startOfMonth()->format('Y-m-d')));
 
             $input = new NpvCalculationInput(
                 agreementId: $agr->id,
                 baseDate: $baseDate,
-                annualDiscountRate: $rate
+                annualDiscountRate: $hasRate ? $effectiveRate : 0.0
             );
 
             try {
-                $result = $this->npvService->calculateForAgreement($agr, $input);
+                $result = $this->npvService->calculateForAgreement($agr, $input, allowZeroRate: true);
                 $firstFloor = $agr->floors->first();
                 $siteName = $firstFloor?->building?->site_name
                     ?? ($firstFloor?->building?->code ?? 'N/A');
@@ -115,14 +120,16 @@ class NpvReportService
                 $paymentStartVal = $agr->payment_start_date ?? ($agr->from_date ?? 'N/A');
                 $expiryVal = $agr->expiry_date ?? ($agr->to_date ?? 'N/A');
 
+                $calculatedNpv = $hasRate ? round($result->totalNPV, 2) : null;
+
                 $summaryData = [
                     'agreement_id' => $agr->id,
-                    'discount_rate' => $rate,
+                    'discount_rate' => $cachedKeyRate,
                     'agreement_ref_no' => $agr->agreement_ref_no ?? ('AGR-' . $agr->id),
                     'vendor_name' => $agr->vendor->name ?? 'N/A',
                     'site_name' => $siteName,
                     'total_months' => $result->totalMonths,
-                    'total_npv' => round($result->totalNPV, 2),
+                    'total_npv' => $calculatedNpv ?? 0.00,
                     'total_undiscounted_outflow' => round($result->totalUndiscountedOutflow, 2),
                     'total_gross_rent' => round($result->totalGrossRent, 2),
                     'total_advance_deductions' => round($result->totalAdvanceDeductions, 2),
@@ -153,12 +160,13 @@ class NpvReportService
                     paymentStartDate: $paymentStartVal,
                     expiryDate: $expiryVal,
                     totalMonths: $summaryData['total_months'],
-                    totalNPV: $summaryData['total_npv'],
+                    totalNPV: $calculatedNpv,
                     totalUndiscountedOutflow: $summaryData['total_undiscounted_outflow'],
                     totalGrossRent: $summaryData['total_gross_rent'],
                     totalAdvanceDeductions: $summaryData['total_advance_deductions'],
                     totalDepositRefunds: $summaryData['total_deposit_refunds'],
-                    annualDiscountRate: $summaryData['discount_rate'],
+                    annualDiscountRate: $hasRate ? $effectiveRate : null,
+                    hasInterestRate: $hasRate,
                     fromDate: $paymentStartVal,
                     toDate: $expiryVal
                 );
@@ -196,8 +204,20 @@ class NpvReportService
             NpvAgreementSummary::upsert($upsertData, ['agreement_id', 'discount_rate'], $updateCols);
         }
 
-        // Sort descending by Total NPV
-        usort($rows, fn($a, $b) => $b->totalNPV <=> $a->totalNPV);
+        // Sort: agreements with configured interest rate sorted by Total NPV descending;
+        // agreements without rate placed at the end sorted by total gross rent.
+        usort($rows, function ($a, $b) {
+            if ($a->hasInterestRate && !$b->hasInterestRate) {
+                return -1;
+            }
+            if (!$a->hasInterestRate && $b->hasInterestRate) {
+                return 1;
+            }
+            if ($a->hasInterestRate && $b->hasInterestRate) {
+                return ($b->totalNPV ?? 0) <=> ($a->totalNPV ?? 0);
+            }
+            return ($b->totalGrossRent ?? 0) <=> ($a->totalGrossRent ?? 0);
+        });
 
         return $rows;
     }
@@ -205,7 +225,7 @@ class NpvReportService
     /**
      * Fetch full calculation result for an agreement (for AJAX detail modal).
      */
-    public function getDetailBreakdown(int $agreementId, float $annualDiscountRate = 0.0): NpvCalculationResult
+    public function getDetailBreakdown(int $agreementId, ?float $annualDiscountRate = null): NpvCalculationResult
     {
         $agreement = Agreement::with([
             'vendor',
@@ -215,9 +235,13 @@ class NpvReportService
             'securityDeposits' => fn($q) => $q->orderBy('id', 'desc'),
         ])->findOrFail($agreementId);
 
-        $rate = $annualDiscountRate > 0
+        $rate = ($annualDiscountRate !== null && $annualDiscountRate > 0)
             ? $annualDiscountRate
-            : FinanceSetting::getValue('npv_annual_discount_rate', 12.16);
+            : ((!is_null($agreement->npv_interest_rate) && (float) $agreement->npv_interest_rate > 0) ? (float) $agreement->npv_interest_rate : null);
+
+        if ($rate === null || $rate <= 0) {
+            throw new \InvalidArgumentException("Agreement '{$agreement->agreement_ref_no}' does not have an NPV interest rate configured. Please configure an interest rate first.");
+        }
 
         $baseDate = $agreement->payment_start_date 
             ?? ($agreement->from_date ?? ($agreement->agreement_date ?: now()->startOfMonth()->format('Y-m-d')));
@@ -252,13 +276,19 @@ class NpvReportService
     /**
      * Helper to ensure table exists in database.
      */
-    private function ensureTableExists(): void
+    public function ensureTableExists(): void
     {
+        if (Schema::hasTable('agreements') && !Schema::hasColumn('agreements', 'npv_interest_rate')) {
+            Schema::table('agreements', function (Blueprint $table) {
+                $table->decimal('npv_interest_rate', 5, 2)->nullable()->after('status');
+            });
+        }
+
         if (!Schema::hasTable('npv_agreement_summaries')) {
             Schema::create('npv_agreement_summaries', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('agreement_id');
-                $table->decimal('discount_rate', 5, 2);
+                $table->decimal('discount_rate', 5, 2)->default(0.00);
                 $table->string('agreement_ref_no');
                 $table->string('vendor_name')->nullable();
                 $table->string('site_name')->nullable();

@@ -34,22 +34,35 @@ class NpvAnalysisController extends Controller
         $selectedAgreementId = $request->get('agreement_id');
         $selectedAgreement = $selectedAgreementId ? $agreements->firstWhere('id', $selectedAgreementId) : null;
 
+        $hasConfiguredRate = $selectedAgreement 
+            && !is_null($selectedAgreement->npv_interest_rate) 
+            && (float) $selectedAgreement->npv_interest_rate > 0;
+
         // Default base date to selected agreement's payment_start_date, or start of current month
         $defaultBaseDate = $request->get('base_date') 
             ?: (($selectedAgreement?->payment_start_date ?? $selectedAgreement?->from_date) ?: now()->startOfMonth()->format('Y-m-d'));
 
         $initialResult = null;
+        $rateNotConfigured = false;
+        $currentRate = null;
 
-        if ($selectedAgreementId) {
-            try {
-                $input = new NpvCalculationInput(
-                    agreementId: (int) $selectedAgreementId,
-                    baseDate: $defaultBaseDate,
-                    annualDiscountRate: (float) $request->get('annual_discount_rate', $defaultRate)
-                );
-                $initialResult = $this->npvService->calculate($input);
-            } catch (\Exception $e) {
-                // Return view with error message if any issue
+        if ($selectedAgreement) {
+            if ($hasConfiguredRate) {
+                $currentRate = (float) $request->get('annual_discount_rate', $selectedAgreement->npv_interest_rate);
+                try {
+                    $input = new NpvCalculationInput(
+                        agreementId: (int) $selectedAgreement->id,
+                        baseDate: $defaultBaseDate,
+                        annualDiscountRate: $currentRate
+                    );
+                    $initialResult = $this->npvService->calculate($input);
+                } catch (\Exception $e) {
+                    // Return view with error message if any issue
+                }
+            } else {
+                // If agreement has no interest rate, do not calculate NPV values on npv index page!
+                $rateNotConfigured = true;
+                $initialResult = null;
             }
         }
 
@@ -59,6 +72,10 @@ class NpvAnalysisController extends Controller
             'vatTax',
             'defaultBaseDate',
             'selectedAgreementId',
+            'selectedAgreement',
+            'hasConfiguredRate',
+            'currentRate',
+            'rateNotConfigured',
             'initialResult'
         ));
     }
@@ -68,16 +85,35 @@ class NpvAnalysisController extends Controller
         $request->validate([
             'agreement_id' => 'required|exists:agreements,id',
             'base_date' => 'required|date',
-            'annual_discount_rate' => 'required|numeric|min:0|max:100',
+            'annual_discount_rate' => 'nullable|numeric|min:0|max:100',
             'custom_tax_rate' => 'nullable|numeric|min:0|max:100',
             'custom_vat_rate' => 'nullable|numeric|min:0|max:100',
         ]);
 
+        $agreement = Agreement::findOrFail($request->input('agreement_id'));
+        $hasConfiguredRate = !is_null($agreement->npv_interest_rate) && (float) $agreement->npv_interest_rate > 0;
+
+        if (!$hasConfiguredRate && (!$request->filled('annual_discount_rate') || (float) $request->input('annual_discount_rate') <= 0)) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Agreement does not have an NPV interest rate configured. Please set the interest rate in the Net Present Value (NPV) Valuation Report page.',
+                ], 422);
+            }
+
+            return redirect()->route('facilities.npv.index', ['agreement_id' => $agreement->id])
+                ->with('error', 'Cannot calculate NPV: Agreement "' . $agreement->agreement_ref_no . '" has no interest rate set. Please set the interest rate in the Net Present Value (NPV) Valuation Report page.');
+        }
+
+        $rateToUse = $request->filled('annual_discount_rate') && (float) $request->input('annual_discount_rate') > 0
+            ? (float) $request->input('annual_discount_rate')
+            : (float) $agreement->npv_interest_rate;
+
         try {
             $input = new NpvCalculationInput(
-                agreementId: (int) $request->input('agreement_id'),
+                agreementId: (int) $agreement->id,
                 baseDate: $request->input('base_date'),
-                annualDiscountRate: (float) $request->input('annual_discount_rate'),
+                annualDiscountRate: $rateToUse,
                 customTaxRate: $request->filled('custom_tax_rate') ? (float) $request->input('custom_tax_rate') : null,
                 customVatRate: $request->filled('custom_vat_rate') ? (float) $request->input('custom_vat_rate') : null,
             );
@@ -114,13 +150,24 @@ class NpvAnalysisController extends Controller
         $request->validate([
             'agreement_id' => 'required|exists:agreements,id',
             'base_date' => 'required|date',
-            'annual_discount_rate' => 'required|numeric|min:0|max:100',
+            'annual_discount_rate' => 'nullable|numeric|min:0|max:100',
         ]);
 
+        $agreement = Agreement::findOrFail($request->input('agreement_id'));
+        $hasConfiguredRate = !is_null($agreement->npv_interest_rate) && (float) $agreement->npv_interest_rate > 0;
+
+        if (!$hasConfiguredRate && (!$request->filled('annual_discount_rate') || (float) $request->input('annual_discount_rate') <= 0)) {
+            return back()->with('error', 'Cannot export NPV calculation: This agreement does not have an NPV interest rate configured.');
+        }
+
+        $rateToUse = $request->filled('annual_discount_rate') && (float) $request->input('annual_discount_rate') > 0
+            ? (float) $request->input('annual_discount_rate')
+            : (float) $agreement->npv_interest_rate;
+
         $input = new NpvCalculationInput(
-            agreementId: (int) $request->input('agreement_id'),
+            agreementId: (int) $agreement->id,
             baseDate: $request->input('base_date'),
-            annualDiscountRate: (float) $request->input('annual_discount_rate')
+            annualDiscountRate: $rateToUse
         );
 
         $result = $this->npvService->calculate($input);
@@ -143,10 +190,20 @@ class NpvAnalysisController extends Controller
             fputcsv($handle, ['Total Undiscounted Net Outflow', number_format($result->totalUndiscountedOutflow, 2)]);
             fputcsv($handle, ['Total Advance Deductions', number_format($result->totalAdvanceDeductions, 2)]);
             fputcsv($handle, ['Total Security Deposit Refunds', number_format($result->totalDepositRefunds, 2)]);
+            if ($result->hasIfrs16Schedule) {
+                fputcsv($handle, ['IFRS 16 Schedule', 'Applicable (NPV >= 1,000,000 BDT)']);
+                fputcsv($handle, ['Opening Lease Obligation', number_format($result->initialLeaseLiability, 2)]);
+                fputcsv($handle, ['Lease Payment', number_format($result->totalLeasePayments, 2)]);
+                fputcsv($handle, ['Closing Lease Obligation', '0.00']);
+                fputcsv($handle, ['Finance Expense', number_format($result->totalFinanceExpense, 2)]);
+                fputcsv($handle, ['PPE Opening Balance', number_format($result->initialRouAsset, 2)]);
+                fputcsv($handle, ['Depreciation Charged', number_format($result->totalDepreciation, 2)]);
+                fputcsv($handle, ['WDV', '0.00']);
+            }
             fputcsv($handle, []);
 
             // Data Table Headers
-            fputcsv($handle, [
+            $headers = [
                 'Period #',
                 'Billing Month',
                 'Month Label',
@@ -161,11 +218,25 @@ class NpvAnalysisController extends Controller
                 'Discount Factor',
                 'Present Value (NPV) (Tk)',
                 'Cumulative PV (Tk)',
-            ]);
+            ];
+
+            if ($result->hasIfrs16Schedule) {
+                $headers = array_merge($headers, [
+                    'Opening Lease Obligation (Tk)',
+                    'Lease Payment (Tk)',
+                    'Closing Lease Obligation (Tk)',
+                    'Finance Expense (Tk)',
+                    'PPE Opening Balance (Tk)',
+                    'Depreciation Charged (Tk)',
+                    'WDV (Tk)',
+                ]);
+            }
+
+            fputcsv($handle, $headers);
 
             // Data Rows
             foreach ($result->cashFlows as $cf) {
-                fputcsv($handle, [
+                $row = [
                     $cf->periodIndex,
                     $cf->billingMonth,
                     $cf->monthLabel,
@@ -180,7 +251,19 @@ class NpvAnalysisController extends Controller
                     number_format($cf->discountFactor, 6, '.', ''),
                     number_format($cf->presentValue, 2, '.', ''),
                     number_format($cf->cumulativePV, 2, '.', ''),
-                ]);
+                ];
+
+                if ($result->hasIfrs16Schedule) {
+                    $row[] = $cf->openingLeaseObligation !== null ? number_format($cf->openingLeaseObligation, 2, '.', '') : '';
+                    $row[] = $cf->leasePayment !== null ? number_format($cf->leasePayment, 2, '.', '') : '';
+                    $row[] = $cf->closingLeaseObligation !== null ? number_format($cf->closingLeaseObligation, 2, '.', '') : '';
+                    $row[] = $cf->financeExpense !== null ? number_format($cf->financeExpense, 2, '.', '') : '';
+                    $row[] = $cf->rouOpeningBalance !== null ? number_format($cf->rouOpeningBalance, 2, '.', '') : '';
+                    $row[] = $cf->depreciationCharged !== null ? number_format($cf->depreciationCharged, 2, '.', '') : '';
+                    $row[] = $cf->rouWdv !== null ? number_format($cf->rouWdv, 2, '.', '') : '';
+                }
+
+                fputcsv($handle, $row);
             }
 
             fclose($handle);
@@ -195,24 +278,22 @@ class NpvAnalysisController extends Controller
      */
     public function report(Request $request)
     {
-        $defaultRate = FinanceSetting::getValue('npv_annual_discount_rate', 12.16);
-        $annualDiscountRate = (float) $request->get('annual_discount_rate', $defaultRate);
-
-        // Fetch summary rows (leveraging fast caching + eager loading)
-        $summaryRows = $this->reportService->generateSummaryForAll($annualDiscountRate);
+        // Fetch summary rows (each agreement uses its individual npv_interest_rate)
+        $summaryRows = $this->reportService->generateSummaryForAll();
 
         // Aggregate KPI Metrics
         $totalAgreements = count($summaryRows);
-        $portfolioTotalNPV = array_sum(array_column(array_map(fn($r) => $r->toArray(), $summaryRows), 'total_npv'));
-        $portfolioTotalOutflow = array_sum(array_column(array_map(fn($r) => $r->toArray(), $summaryRows), 'total_undiscounted_outflow'));
-        $portfolioTotalGrossRent = array_sum(array_column(array_map(fn($r) => $r->toArray(), $summaryRows), 'total_gross_rent'));
-        $averageNPV = $totalAgreements > 0 ? ($portfolioTotalNPV / $totalAgreements) : 0;
+        $calculatedRows = array_filter($summaryRows, fn($r) => $r->hasInterestRate && $r->totalNPV !== null);
+        $portfolioTotalNPV = array_sum(array_map(fn($r) => $r->totalNPV, $calculatedRows));
+        $portfolioTotalOutflow = array_sum(array_map(fn($r) => $r->totalUndiscountedOutflow, $summaryRows));
+        $portfolioTotalGrossRent = array_sum(array_map(fn($r) => $r->totalGrossRent, $summaryRows));
+        $calculatedCount = count($calculatedRows);
+        $averageNPV = $calculatedCount > 0 ? ($portfolioTotalNPV / $calculatedCount) : 0;
 
         return view('FacilitiesManagement.Npv.report', compact(
             'summaryRows',
-            'defaultRate',
-            'annualDiscountRate',
             'totalAgreements',
+            'calculatedCount',
             'portfolioTotalNPV',
             'portfolioTotalOutflow',
             'portfolioTotalGrossRent',
@@ -225,18 +306,20 @@ class NpvAnalysisController extends Controller
      */
     public function reportData(Request $request)
     {
-        $defaultRate = FinanceSetting::getValue('npv_annual_discount_rate', 12.16);
-        $annualDiscountRate = (float) $request->get('annual_discount_rate', $defaultRate);
-
-        $summaryRows = $this->reportService->generateSummaryForAll($annualDiscountRate);
+        $summaryRows = $this->reportService->generateSummaryForAll();
         $data = array_map(fn($r) => $r->toArray(), $summaryRows);
+
+        $calculatedRows = array_filter($summaryRows, fn($r) => $r->hasInterestRate && $r->totalNPV !== null);
+        $portfolioTotalNPV = array_sum(array_map(fn($r) => $r->totalNPV, $calculatedRows));
+        $portfolioTotalOutflow = array_sum(array_map(fn($r) => $r->totalUndiscountedOutflow, $summaryRows));
 
         return response()->json([
             'success' => true,
             'data' => $data,
-            'total_npv' => array_sum(array_column($data, 'total_npv')),
-            'total_outflow' => array_sum(array_column($data, 'total_undiscounted_outflow')),
+            'total_npv' => $portfolioTotalNPV,
+            'total_outflow' => $portfolioTotalOutflow,
             'count' => count($data),
+            'calculated_count' => count($calculatedRows),
         ]);
     }
 
@@ -245,10 +328,8 @@ class NpvAnalysisController extends Controller
      */
     public function agreementDetail(Request $request, int $agreementId)
     {
-        $defaultRate = FinanceSetting::getValue('npv_annual_discount_rate', 12.16);
-        $annualDiscountRate = (float) $request->get('annual_discount_rate', $defaultRate);
-
         try {
+            $annualDiscountRate = $request->filled('annual_discount_rate') ? (float) $request->get('annual_discount_rate') : null;
             $result = $this->reportService->getDetailBreakdown($agreementId, $annualDiscountRate);
 
             return response()->json([
@@ -268,9 +349,60 @@ class NpvAnalysisController extends Controller
      */
     public function refreshReportCache(Request $request)
     {
-        $defaultRate = FinanceSetting::getValue('npv_annual_discount_rate', 12.16);
-        $this->reportService->generateSummaryForAll($defaultRate, forceRefresh: true);
+        $this->reportService->generateSummaryForAll(forceRefresh: true);
 
-        return back()->with('success', 'NPV Report cache has been successfully cleared and recalculated!');
+        return back()->with('success', 'NPV Valuation Report cache has been successfully cleared and recalculated!');
+    }
+
+    /**
+     * Update NPV Interest Rate for an individual agreement and recalculate valuation.
+     */
+    public function updateInterestRate(Request $request, Agreement $agreement)
+    {
+        $request->validate([
+            'interest_rate' => 'nullable|numeric|min:0|max:100',
+        ]);
+
+        $rate = $request->filled('interest_rate') && (float) $request->input('interest_rate') > 0
+            ? round((float) $request->input('interest_rate'), 4)
+            : null;
+
+        $agreement->update(['npv_interest_rate' => $rate]);
+
+        // Invalidate cached summary for this agreement
+        \App\Models\NpvAgreementSummary::where('agreement_id', $agreement->id)->delete();
+
+        // Recalculate summary row
+        $summaryRows = $this->reportService->generateSummaryForAll(forceRefresh: false);
+        $updatedRow = collect($summaryRows)->firstWhere('agreementId', $agreement->id);
+
+        // Recompute portfolio totals
+        $calculatedRows = array_filter($summaryRows, fn($r) => $r->hasInterestRate && $r->totalNPV !== null);
+        $portfolioTotalNPV = array_sum(array_map(fn($r) => $r->totalNPV, $calculatedRows));
+        $portfolioTotalOutflow = array_sum(array_map(fn($r) => $r->totalUndiscountedOutflow, $summaryRows));
+        $portfolioTotalGrossRent = array_sum(array_map(fn($r) => $r->totalGrossRent, $summaryRows));
+        $calculatedCount = count($calculatedRows);
+        $averageNPV = $calculatedCount > 0 ? ($portfolioTotalNPV / $calculatedCount) : 0;
+
+        return response()->json([
+            'success' => true,
+            'message' => $rate !== null 
+                ? "NPV Interest Rate updated to {$rate}% for agreement {$agreement->agreement_ref_no}."
+                : "NPV Interest Rate cleared for agreement {$agreement->agreement_ref_no}.",
+            'data' => [
+                'agreement_id' => $agreement->id,
+                'agreement_ref_no' => $agreement->agreement_ref_no,
+                'has_interest_rate' => $rate !== null,
+                'interest_rate' => $rate,
+                'interest_rate_formatted' => $rate !== null ? number_format($rate, 2) . '%' : 'Not Set',
+                'total_npv' => $updatedRow?->totalNPV,
+                'total_npv_formatted' => $updatedRow?->totalNPV !== null ? '৳ ' . number_format($updatedRow->totalNPV, 2) : 'Rate not set',
+                'portfolio_total_npv' => '৳ ' . number_format($portfolioTotalNPV, 2),
+                'portfolio_total_outflow' => '৳ ' . number_format($portfolioTotalOutflow, 2),
+                'average_npv' => '৳ ' . number_format($averageNPV, 2),
+                'calculated_count' => $calculatedCount,
+                'total_agreements' => count($summaryRows),
+            ],
+        ]);
     }
 }
