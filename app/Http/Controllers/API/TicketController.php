@@ -96,6 +96,7 @@ class TicketController extends Controller
             'company_id' => 'nullable|integer',
             'project_name' => 'nullable|string|max:255',
             'vehicle_type_id' => 'required|exists:vehicle_types,id',
+            'trip_category' => 'nullable|string|in:Site visit,Maintainance,Maintenance,Schedule Work',
             'trip_start_datetime' => 'required|date|after:now',
             'trip_end_datetime' => 'required|date|after:trip_start_datetime',
             'passenger_count' => 'required|integer|min:1',
@@ -193,11 +194,18 @@ class TicketController extends Controller
         $vehicleTypes = VehicleType::select('id', 'type_name as name')
             ->get();
 
+        $tripCategories = [
+            ['id' => 'Site visit', 'name' => 'Site visit'],
+            ['id' => 'Maintainance', 'name' => 'Maintainance'],
+            ['id' => 'Schedule Work', 'name' => 'Schedule Work'],
+        ];
+
         return response()->json([
             'success' => true,
             'companies' => $companies,
             'projects' => $projects,
             'vehicle_types' => $vehicleTypes,
+            'trip_categories' => $tripCategories,
         ]);
     }
 
@@ -379,6 +387,7 @@ class TicketController extends Controller
             'trip_start_datetime' => optional($ticket->trip_start_datetime)->toDateTimeString(),
             'trip_end_datetime' => optional($ticket->trip_end_datetime)->toDateTimeString(),
             'passenger_count' => $ticket->passenger_count,
+            'trip_category' => $ticket->trip_category,
             'trip_purpose' => $ticket->trip_purpose,
             'locations' => $this->formatLocations($ticket),
             'assignment_status' => $assignment ? $assignment->status : 'vehicle_not_assigned',

@@ -245,6 +245,9 @@ class TicketCreationTest extends TestCase
                 'vehicle_types' => [
                     '*' => ['id', 'name']
                 ],
+                'trip_categories' => [
+                    '*' => ['id', 'name']
+                ],
             ]);
 
         $data = $response->json();
@@ -263,5 +266,59 @@ class TicketCreationTest extends TestCase
         $companies = collect($data['companies']);
         $this->assertTrue($companies->contains('name', 'SComm'));
         $this->assertTrue($companies->contains('name', 'STL'));
+
+        // Assert trip categories are returned
+        $tripCategories = collect($data['trip_categories']);
+        $this->assertTrue($tripCategories->contains('name', 'Site visit'));
+        $this->assertTrue($tripCategories->contains('name', 'Maintainance'));
+        $this->assertTrue($tripCategories->contains('name', 'Schedule Work'));
+    }
+
+    public function test_ticket_creation_with_trip_category(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'category_tester@example.com',
+        ]);
+
+        $vehicleType = VehicleType::create([
+            'type_name' => 'Sedan',
+        ]);
+
+        $payload = [
+            'email' => 'category_tester@example.com',
+            'ticket_type' => 'vehicle_support',
+            'title' => 'Trip for Scheduled Maintenance',
+            'description' => 'Vehicle inspection and maintenance check.',
+            'priority' => 'high',
+            'vehicle_type_id' => $vehicleType->id,
+            'trip_category' => 'Maintainance',
+            'trip_start_datetime' => now()->addHours(2)->toDateTimeString(),
+            'trip_end_datetime' => now()->addHours(5)->toDateTimeString(),
+            'passenger_count' => 2,
+            'trip_purpose' => 'Routine Service Check',
+            'trip_locations' => [
+                [
+                    'start' => 'Headquarters',
+                    'end' => 'Workshop',
+                ]
+            ],
+        ];
+
+        $response = $this->withToken($this->token)
+            ->postJson('/api/vehicle-support/tickets/create', $payload);
+
+        $response->assertStatus(201)
+            ->assertJson([
+                'success' => true,
+                'ticket' => [
+                    'trip_category' => 'Maintainance',
+                ],
+            ]);
+
+        $this->assertDatabaseHas('tickets', [
+            'user_id' => $user->id,
+            'trip_category' => 'Maintainance',
+            'trip_purpose' => 'Routine Service Check',
+        ]);
     }
 }

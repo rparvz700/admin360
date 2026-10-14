@@ -124,6 +124,7 @@ class TicketController extends Controller
         if ($request->ticket_type === 'vehicle_support') {
             $rules += [
                 'vehicle_type_id' => 'required|exists:vehicle_types,id',
+                'trip_category' => 'required|string|in:Site visit,Maintainance,Maintenance,Schedule Work',
                 'trip_start_datetime' => 'required|date|after:now',
                 'trip_end_datetime' => 'required|date|after:trip_start_datetime',
                 'passenger_count' => 'required|integer|min:1',

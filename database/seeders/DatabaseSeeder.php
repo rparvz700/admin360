@@ -21,8 +21,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
+            PermissionSeeder::class,
             VehicleSeeder::class,
             DriverSeeder::class,
+            DataDictionarySeeder::class,
         ]);
     }
 }

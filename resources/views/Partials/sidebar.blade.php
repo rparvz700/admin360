@@ -527,6 +527,48 @@
                                         </a>
                                     </li>
 
+                                    {{-- ----------------------Report Builder & Analytics------------------- --}}
+                                    @canany(['view-reports', 'manage-report-templates', 'manage-data-dictionary'])
+                                        <li class="nav-main-heading">Analytics & Reports</li>
+                                        <li class="nav-main-item {{ (isset($activeMenu) && in_array($activeMenu, ['reports-hub', 'report-builder', 'data-dictionary'])) || request()->routeIs('reports.*') ? 'open' : '' }}">
+                                            <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
+                                                <i class="nav-main-link-icon fa fa-chart-pie"></i>
+                                                <span class="nav-main-link-name">Custom Reports</span>
+                                            </a>
+                                            <ul class="nav-main-submenu">
+                                                @canany(['view-reports'])
+                                                    <li class="nav-main-item">
+                                                        <a class="nav-main-link {{ (isset($activeMenu) && $activeMenu == 'reports-hub') || request()->routeIs('reports.hub') ? 'active' : '' }}"
+                                                            href="{{ route('reports.hub') }}">
+                                                            <i class="nav-main-link-icon fa fa-table-list"></i>
+                                                            <span class="nav-main-link-name">Reports Hub</span>
+                                                        </a>
+                                                    </li>
+                                                @endcanany
+
+                                                @canany(['manage-report-templates'])
+                                                    <li class="nav-main-item">
+                                                        <a class="nav-main-link {{ (isset($activeMenu) && $activeMenu == 'report-builder') || request()->routeIs('reports.builder') ? 'active' : '' }}"
+                                                            href="{{ route('reports.builder') }}">
+                                                            <i class="nav-main-link-icon fa fa-sliders"></i>
+                                                            <span class="nav-main-link-name">Report Builder</span>
+                                                        </a>
+                                                    </li>
+                                                @endcanany
+
+                                                @canany(['manage-data-dictionary'])
+                                                    <li class="nav-main-item">
+                                                        <a class="nav-main-link {{ (isset($activeMenu) && $activeMenu == 'data-dictionary') || request()->routeIs('reports.dictionary') ? 'active' : '' }}"
+                                                            href="{{ route('reports.dictionary') }}">
+                                                            <i class="nav-main-link-icon fa fa-book"></i>
+                                                            <span class="nav-main-link-name">Data Dictionary</span>
+                                                        </a>
+                                                    </li>
+                                                @endcanany
+                                            </ul>
+                                        </li>
+                                    @endcanany
+
                                     {{-- ----------------------Settings------------------- --}}
                                     @canany(['create-role', 'edit-role', 'delete-role', 'create-user', 'edit-user',
                                         'delete-user'])

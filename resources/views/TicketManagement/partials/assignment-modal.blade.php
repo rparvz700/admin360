@@ -18,7 +18,7 @@
                     <!-- Ticket Info Summary -->
                     <div class="alert alert-info border-start border-4 border-info mb-4" id="ticketInfoSummary">
                         <div class="row g-2 align-items-center">
-                            <div class="col-sm-6 col-md-3">
+                            <div class="col-sm-6 col-md-2">
                                 <span class="fs-xs text-uppercase text-muted d-block">Ticket #</span>
                                 <strong id="modalTicketNumber" class="fs-sm"></strong>
                             </div>
@@ -30,7 +30,11 @@
                                 <span class="fs-xs text-uppercase text-muted d-block">End Time</span>
                                 <strong id="modalEndTime" class="fs-sm"></strong>
                             </div>
-                            <div class="col-sm-6 col-md-3">
+                            <div class="col-sm-6 col-md-2">
+                                <span class="fs-xs text-uppercase text-muted d-block">Trip Category</span>
+                                <strong id="modalTripCategory" class="fs-sm"></strong>
+                            </div>
+                            <div class="col-sm-6 col-md-2">
                                 <span class="fs-xs text-uppercase text-muted d-block">Passenger Count</span>
                                 <strong id="modalPassengers" class="fs-sm"></strong>
                             </div>
@@ -569,6 +573,7 @@
             $('#modalTicketNumber').text(ticket.ticket_number);
             $('#modalStartTime').text(moment(ticket.start_datetime).format('MMM D, Y HH:mm'));
             $('#modalEndTime').text(moment(ticket.end_datetime).format('MMM D, Y HH:mm'));
+            $('#modalTripCategory').text(ticket.trip_category || 'N/A');
             $('#modalPassengers').text(ticket.passenger_count);
         }
 

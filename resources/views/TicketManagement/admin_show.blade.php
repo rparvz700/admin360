@@ -270,19 +270,23 @@
                                 </div>
                                 <div class="block-content fs-sm pb-3">
                                     <div class="row g-3 mb-3">
-                                        <div class="col-sm-6 col-md-3">
+                                        <div class="col-sm-6 col-md-4">
                                             <span class="text-muted d-block fs-xs text-uppercase">Vehicle Type</span>
                                             <strong>{{ $ticket->vehicleType->type_name ?? 'N/A' }}</strong>
                                         </div>
-                                        <div class="col-sm-6 col-md-3">
+                                        <div class="col-sm-6 col-md-4">
+                                            <span class="text-muted d-block fs-xs text-uppercase">Trip Category</span>
+                                            <strong>{{ $ticket->trip_category ?? 'N/A' }}</strong>
+                                        </div>
+                                        <div class="col-sm-6 col-md-4">
                                             <span class="text-muted d-block fs-xs text-uppercase">Passengers</span>
                                             <strong>{{ $ticket->passenger_count }} Person(s)</strong>
                                         </div>
-                                        <div class="col-sm-6 col-md-3">
+                                        <div class="col-sm-6 col-md-6">
                                             <span class="text-muted d-block fs-xs text-uppercase">Start Time</span>
                                             <strong>{{ $ticket->trip_start_datetime ? $ticket->trip_start_datetime->format('M d, Y h:i A') : 'N/A' }}</strong>
                                         </div>
-                                        <div class="col-sm-6 col-md-3">
+                                        <div class="col-sm-6 col-md-6">
                                             <span class="text-muted d-block fs-xs text-uppercase">End Time</span>
                                             <strong>{{ $ticket->trip_end_datetime ? $ticket->trip_end_datetime->format('M d, Y h:i A') : 'N/A' }}</strong>
                                         </div>
@@ -867,6 +871,9 @@
             }
             try {
                 document.getElementById('dt-ticket-no').textContent = tripDetailsData.ticketNo || 'N/A';
+                if (document.getElementById('dt-category')) {
+                    document.getElementById('dt-category').textContent = tripDetailsData.category || 'N/A';
+                }
                 document.getElementById('dt-purpose').textContent = tripDetailsData.purpose || 'N/A';
                 document.getElementById('dt-passengers').textContent = tripDetailsData.passengers || 'N/A';
                 
@@ -1085,6 +1092,7 @@
     <script>
         tripDetailsData = {
             ticketNo: @json($ticket->ticket_number),
+            category: @json($ticket->trip_category ?? 'N/A'),
             purpose: @json($ticket->trip_purpose ?? 'N/A'),
             passengers: @json($ticket->passenger_count ?? 'N/A'),
             priority: @json($ticket->priority ?? 'medium'),

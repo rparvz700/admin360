@@ -122,7 +122,13 @@ class PermissionSeeder extends Seeder
             // 'delete-vat-tax',
 
             'npv-calculation',
-            'npv-report'
+            'npv-report',
+
+            // Custom Report Builder & Data Dictionary
+            'view-reports',
+            'export-reports',
+            'manage-report-templates',
+            'manage-data-dictionary',
          ];
 
          foreach ($permissions as $permission) {

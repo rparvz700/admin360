@@ -227,7 +227,7 @@
                             <i class="fa fa-car me-1"></i> Vehicle Support Details
                         </h2>
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label fw-semibold">Vehicle Type <span class="text-danger">*</span></label>
                                 <select name="vehicle_type_id"
                                     class="form-select @error('vehicle_type_id') is-invalid @enderror">
@@ -243,7 +243,20 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Trip Category <span class="text-danger">*</span></label>
+                                <select name="trip_category" id="trip_category"
+                                    class="form-select @error('trip_category') is-invalid @enderror">
+                                    <option value="">Select Trip Category</option>
+                                    <option value="Site visit" {{ old('trip_category') == 'Site visit' ? 'selected' : '' }}>Site visit</option>
+                                    <option value="Maintainance" {{ old('trip_category') == 'Maintainance' ? 'selected' : '' }}>Maintainance</option>
+                                    <option value="Schedule Work" {{ old('trip_category') == 'Schedule Work' ? 'selected' : '' }}>Schedule Work</option>
+                                </select>
+                                @error('trip_category')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-4">
                                 <label class="form-label fw-semibold">Passenger Count <span class="text-danger">*</span></label>
                                 <input type="number" name="passenger_count"
                                     class="form-control @error('passenger_count') is-invalid @enderror"
@@ -996,6 +1009,7 @@
                 fields.style.display = 'block';
 
                 fields.querySelector('select[name="vehicle_type_id"]').setAttribute('required', 'required');
+                fields.querySelector('select[name="trip_category"]').setAttribute('required', 'required');
                 fields.querySelector('input[name="passenger_count"]').setAttribute('required', 'required');
                 fields.querySelector('input[name="trip_start_datetime"]').setAttribute('required', 'required');
                 fields.querySelector('input[name="trip_end_datetime"]').setAttribute('required', 'required');
