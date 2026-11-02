@@ -37,6 +37,9 @@
                         <i class="fa fa-sync-alt me-1"></i> Refresh Data
                     </button>
                 </form>
+                <a href="{{ route('facilities.npv.summary') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="fa fa-table me-1"></i> Summary Schedule
+                </a>
                 {{-- <a href="{{ route('facilities.npv.index') }}" class="btn btn-alt-primary btn-sm">
                     <i class="fa fa-calculator me-1"></i> Calculation Workbench
                 </a> --}}
@@ -64,8 +67,8 @@
                     <div class="metric-label" title="Total Portfolio NPV"><i class="fa fa-coins me-1 text-primary"></i>
                         Total Portfolio NPV</div>
                     <div class="metric-value text-npv-primary" id="kpiPortfolioTotalNPV"
-                        title="৳ {{ number_format($portfolioTotalNPV, 2) }}">৳
-                        {{ number_format($portfolioTotalNPV, 2) }}</div>
+                        title="৳ {{ number_format($portfolioTotalNPV, 0) }}">৳
+                        {{ number_format($portfolioTotalNPV, 0) }}</div>
                     <div class="metric-subtext" id="kpiCalculatedSubtext"
                         title="Discounted Present Value Sum across agreements with configured rate">
                         {{ $calculatedCount }} of {{ $totalAgreements }} leases calculated</div>
@@ -75,8 +78,8 @@
                     <div class="metric-label" title="Total Nominal Outflow"><i
                             class="fa fa-money-bill-wave me-1 text-warning"></i> Total Nominal Outflow</div>
                     <div class="metric-value text-npv-warning" id="kpiPortfolioTotalOutflow"
-                        title="৳ {{ number_format($portfolioTotalOutflow, 2) }}">৳
-                        {{ number_format($portfolioTotalOutflow, 2) }}</div>
+                        title="৳ {{ number_format($portfolioTotalOutflow, 0) }}">৳
+                        {{ number_format($portfolioTotalOutflow, 0) }}</div>
                     <div class="metric-subtext" title="Undiscounted gross cash outflow total across all active agreements">
                         Undiscounted Cash Total</div>
                 </div>
@@ -94,8 +97,8 @@
                     <div class="metric-label" title="Average Lease NPV"><i class="fa fa-chart-line me-1 text-success"></i>
                         Average Lease NPV</div>
                     <div class="metric-value text-npv-success" id="kpiAverageNPV"
-                        title="৳ {{ number_format($averageNPV, 2) }}">৳
-                        {{ number_format($averageNPV, 2) }}</div>
+                        title="৳ {{ number_format($averageNPV, 0) }}">৳
+                        {{ number_format($averageNPV, 0) }}</div>
                     <div class="metric-subtext" title="Per Agreement Average NPV (for agreements with rate)">
                         Per Agreement Average</div>
                 </div>
@@ -171,7 +174,7 @@
                                         <div class="fs-3xs text-muted opacity-75">{{ $formattedTo }}</div>
                                     </td>
                                     <td class="text-center npv-num-cell">{{ $row->totalMonths }}</td>
-                                    <td class="text-end npv-num-cell">{{ number_format($row->totalGrossRent, 2) }}</td>
+                                    <td class="text-end npv-num-cell">{{ number_format($row->totalGrossRent, 0) }}</td>
                                     <td class="text-center rate-cell"
                                         data-order="{{ $row->hasInterestRate ? $row->annualDiscountRate : -1 }}">
                                         @if ($row->hasInterestRate && $row->annualDiscountRate !== null)
@@ -199,7 +202,7 @@
                                         data-order="{{ $row->hasInterestRate && $row->totalNPV !== null ? $row->totalNPV : -1 }}">
                                         @if ($row->hasInterestRate && $row->totalNPV !== null)
                                             <span class="npv-value-cell font-bold text-primary">৳
-                                                {{ number_format($row->totalNPV, 2) }}</span>
+                                                {{ number_format($row->totalNPV, 0) }}</span>
                                         @else
                                             <span class="badge bg-light text-muted border fst-italic fs-3xs">Rate not
                                                 set</span>
@@ -207,7 +210,7 @@
                                     </td>
                                     <td class="text-end npv-num-cell text-muted"
                                         data-order="{{ $row->totalUndiscountedOutflow }}">
-                                        ৳ {{ number_format($row->totalUndiscountedOutflow, 2) }}
+                                        ৳ {{ number_format($row->totalUndiscountedOutflow, 0) }}
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group btn-group-sm">
@@ -237,12 +240,12 @@
                             <tr>
                                 <td colspan="8" class="text-end font-bold text-muted fs-2xs">PORTFOLIO TOTALS:</td>
                                 <td class="text-end npv-num-cell font-bold">৳
-                                    {{ number_format($portfolioTotalGrossRent, 2) }}</td>
+                                    {{ number_format($portfolioTotalGrossRent, 0) }}</td>
                                 <td class="text-center font-bold text-muted fs-3xs">-</td>
                                 <td class="text-end npv-num-cell text-primary font-bold" id="footPortfolioTotalNPV">৳
-                                    {{ number_format($portfolioTotalNPV, 2) }}</td>
+                                    {{ number_format($portfolioTotalNPV, 0) }}</td>
                                 <td class="text-end npv-num-cell text-muted font-bold" id="footPortfolioTotalOutflow">৳
-                                    {{ number_format($portfolioTotalOutflow, 2) }}</td>
+                                    {{ number_format($portfolioTotalOutflow, 0) }}</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -454,13 +457,13 @@
                             // Fill summary strip metrics (matching Workbench format)
                             $('#modalTotalNPV').text('৳ ' + res.total_npv.toLocaleString(
                                 'en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
                                 }));
                             $('#modalTotalOutflow').text('৳ ' + res.total_undiscounted_outflow
                                 .toLocaleString('en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
                                 }));
                             $('#modalTotalMonths').text(res.total_months);
                             $('#modalDateRange').text(formatDateStr(res.base_date) + ' to ' +
@@ -474,36 +477,36 @@
                                 const audit = res.audit;
                                 $('#modalAuditBaseRent').text(audit.base_rent.toLocaleString(
                                     'en-US', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0
                                     }));
                                 $('#modalAuditTaxSource').text(audit.is_at_source ? 'YES (1)' :
                                     'NO (0)');
                                 $('#modalAuditVat').text(audit.vat.toLocaleString('en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
                                 }));
                                 $('#modalAuditTax').text(audit.tax.toLocaleString('en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
                                 }));
                                 $('#modalAuditStartDate').text(formatDateStr(res.base_date));
                                 $('#modalAuditEndDate').text(formatDateStr(res.expiry_date));
 
                                 $('#modalAuditSdTotal').text(audit.sd_total.toLocaleString(
                                     'en-US', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0
                                     }));
                                 $('#modalAuditSdAbsorbable').text(audit.sd_absorbable
                                     .toLocaleString('en-US', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0
                                     }));
                                 $('#modalAuditSdNonAbsorbable').text(audit.sd_non_absorbable
                                     .toLocaleString('en-US', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0
                                     }));
                                 $('#modalAuditSdFrequency').text(audit.sd_frequency || 'N/A');
                                 $('#modalAuditSdStartDate').text(formatDateStr(audit
@@ -549,9 +552,9 @@
                                             sdHtml += `
                                                 <tr>
                                                     <td>Clause #${idx + 1}</td>
-                                                    <td class="text-end">৳ ${amt.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                                                    <td class="text-end">৳ ${amt.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
                                                     <td class="text-center">${freq} mos</td>
-                                                    <td class="text-end text-info fw-semibold">৳ ${monthly.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                                                    <td class="text-end text-info fw-semibold">৳ ${monthly.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
                                                     <td class="text-center fs-3xs">${startStr} - ${endStr}</td>
                                                 </tr>`;
                                         });
@@ -585,10 +588,10 @@
                                             <tr>
                                                 <td><strong>${comp.type}</strong></td>
                                                 <td class="text-end">${comp.area.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-                                                <td class="text-end">৳ ${comp.rent.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-                                                <td class="text-end">৳ ${vatVal.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-                                                <td class="text-end">৳ ${taxVal.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-                                                <td class="text-end font-bold">৳ ${comp.total.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                                                <td class="text-end">৳ ${comp.rent.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
+                                                <td class="text-end">৳ ${vatVal.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
+                                                <td class="text-end">৳ ${taxVal.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
+                                                <td class="text-end font-bold">৳ ${comp.total.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
                                             </tr>`;
                                     });
                                     compHtml += `</tbody></table></div>`;
@@ -597,7 +600,8 @@
                                     $('#modalAuditComponentsBox').html(
                                         '<em class="text-muted">No component breakdown rows. Using base_rent fallback: ৳ ' +
                                         audit.base_rent.toLocaleString('en-US', {
-                                            minimumFractionDigits: 2
+                                            minimumFractionDigits: 0,
+                                            maximumFractionDigits: 0
                                         }) + '</em>');
                                 }
 
@@ -623,7 +627,8 @@
                                             .percentage.toFixed(2) + '%' : (inc
                                                 .amount !== null ? '৳ ' + inc.amount
                                                 .toLocaleString('en-US', {
-                                                    minimumFractionDigits: 2
+                                                    minimumFractionDigits: 0,
+                                                    maximumFractionDigits: 0
                                                 }) : '-');
                                         let formattedDate = inc.start_date ?
                                             formatDateStr(inc.start_date) : '-';
@@ -634,7 +639,7 @@
                                                 </td>
                                                 <td class="text-center fs-3xs">${formattedDate}</td>
                                                 <td class="text-end fw-semibold text-warning fs-3xs">${escStr}</td>
-                                                <td class="text-end num-cell font-bold fs-3xs">৳ ${inc.incremented_amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                                                <td class="text-end num-cell font-bold fs-3xs">৳ ${inc.incremented_amount.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
                                             </tr>`;
                                     });
                                     incHtml += `</tbody></table></div>`;
@@ -650,28 +655,28 @@
                             // Populate Footer Totals matching Workbench
                             $('#modalFootTotalGross').text('৳ ' + res.total_gross_rent
                                 .toLocaleString('en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
                                 }));
                             $('#modalFootAdvanceDeduction').text('-৳ ' + res
                                 .total_advance_deductions.toLocaleString('en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
                                 }));
                             $('#modalFootDepositRefund').text('-৳ ' + res.total_deposit_refunds
                                 .toLocaleString('en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
                                 }));
                             $('#modalFootNetOutflow').text('৳ ' + res.total_undiscounted_outflow
                                 .toLocaleString('en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
                                 }));
                             $('#modalFootTotalNPV').text('৳ ' + res.total_npv.toLocaleString(
                                 'en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
                                 }));
 
                             // Toggle increment legend
@@ -709,24 +714,24 @@
                                             ' <span class="badge bg-secondary ms-1 fs-3xs" title="Deferred Payment Period"><i class="fa fa-clock"></i> Deferred</span>';
                                     } else if (cf.arrears_amount > 0) {
                                         statusBadge =
-                                            ` <span class="badge bg-warning text-dark ms-1 fs-3xs" title="Includes ৳ ${cf.arrears_amount.toLocaleString('en-US', {minimumFractionDigits: 2})} arrears"><i class="fa fa-hand-holding-usd"></i> Arrears Paid</span>`;
+                                            ` <span class="badge bg-warning text-dark ms-1 fs-3xs" title="Includes ৳ ${cf.arrears_amount.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})} arrears"><i class="fa fa-hand-holding-usd"></i> Arrears Paid</span>`;
                                     }
 
                                     rowsHtml += `
                                         <tr class="${rowClass}">
                                             <td class="text-center text-muted num-cell fs-xs npv-col-left-1">${cf.period_index}</td>
                                             <td class="text-center fw-semibold fs-xs npv-col-left-2">${cf.month_label}${statusBadge}${incBadge}</td>
-                                            <td class="text-end num-cell npv-col-breakdown">${cf.office_gross_rent.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                                            <td class="text-end num-cell npv-col-breakdown">${cf.dg_gross_rent.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                                            <td class="text-end num-cell npv-col-breakdown">${cf.parking_gross_rent.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                                            <td class="text-end num-cell npv-col-breakdown">${cf.store_gross_rent.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                                            <td class="text-end num-cell fw-semibold npv-total-col">${cf.total_gross_rent.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                                            <td class="text-end num-cell text-danger">${cf.advance_deduction > 0 ? '-' + cf.advance_deduction.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</td>
-                                            <td class="text-end num-cell text-success">${cf.deposit_refund > 0 ? '-' + cf.deposit_refund.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</td>
-                                            <td class="text-end num-cell fw-bold">${cf.net_outflow.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                                            <td class="text-center num-cell text-muted fs-xs">${cf.discount_factor.toFixed(6)}</td>
-                                            <td class="text-end num-cell text-primary fw-bold npv-col-right-2">৳ ${cf.present_value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                                            <td class="text-end num-cell text-info fs-xs npv-col-right-1">৳ ${cf.cumulative_pv.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                                            <td class="text-end num-cell npv-col-breakdown">${cf.office_gross_rent.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
+                                            <td class="text-end num-cell npv-col-breakdown">${cf.dg_gross_rent.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
+                                            <td class="text-end num-cell npv-col-breakdown">${cf.parking_gross_rent.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
+                                            <td class="text-end num-cell npv-col-breakdown">${cf.store_gross_rent.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
+                                            <td class="text-end num-cell fw-semibold npv-total-col">${cf.total_gross_rent.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
+                                            <td class="text-end num-cell text-danger">${cf.advance_deduction > 0 ? '-' + cf.advance_deduction.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0}) : '0'}</td>
+                                            <td class="text-end num-cell text-success">${cf.deposit_refund > 0 ? '-' + cf.deposit_refund.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0}) : '0'}</td>
+                                            <td class="text-end num-cell fw-bold">${cf.net_outflow.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
+                                            <td class="text-center num-cell text-muted fs-xs">${cf.discount_factor.toFixed(4)}</td>
+                                            <td class="text-end num-cell text-primary fw-bold npv-col-right-2">৳ ${cf.present_value.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
+                                            <td class="text-end num-cell text-info fs-xs npv-col-right-1">৳ ${cf.cumulative_pv.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
                                         </tr>
                                     `;
                                 });

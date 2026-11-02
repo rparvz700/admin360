@@ -63,6 +63,7 @@
                                                 $activeMenu == 'wizard.property' ||
                                                 $activeMenu == 'facilities.npv' ||
                                                 $activeMenu == 'facilities.npv.report' ||
+                                                $activeMenu == 'facilities.npv.summary' ||
                                                 $activeMenu == 'admin.finance-settings')
                                                 ? 'open'
                                                 : '' }}">
@@ -74,7 +75,7 @@
                                             <ul class="nav-main-submenu">
 
                                                 <li
-                                                    class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'buildings' || $activeMenu == 'floors' || $activeMenu == 'agreements' || $activeMenu == 'rent' || $activeMenu == 'utility-types' || $activeMenu == 'wizard.property' || $activeMenu == 'facilities.npv' || $activeMenu == 'facilities.npv.report' || $activeMenu == 'admin.finance-settings') ? 'open' : '' }}">
+                                                    class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'buildings' || $activeMenu == 'floors' || $activeMenu == 'agreements' || $activeMenu == 'rent' || $activeMenu == 'utility-types' || $activeMenu == 'wizard.property' || $activeMenu == 'facilities.npv' || $activeMenu == 'facilities.npv.report' || $activeMenu == 'facilities.npv.summary' || $activeMenu == 'admin.finance-settings') ? 'open' : '' }}">
                                                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu"
                                                         aria-haspopup="true" aria-expanded="false" href="#">
                                                         <i class="nav-main-link-icon fa fa-home"></i>
@@ -124,7 +125,7 @@
                                                         @endcanany
                                                         @canany(['npv-calculation', 'npv-report'])
                                                             <li
-                                                                class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'facilities.npv' || $activeMenu == 'facilities.npv.report') ? 'open' : '' }}">
+                                                                class="nav-main-item {{ isset($activeMenu) && ($activeMenu == 'facilities.npv' || $activeMenu == 'facilities.npv.report' || $activeMenu == 'facilities.npv.summary') ? 'open' : '' }}">
                                                                 <a class="nav-main-link nav-main-link-submenu"
                                                                     data-toggle="submenu" aria-haspopup="true"
                                                                     aria-expanded="false" href="#">
@@ -144,6 +145,12 @@
                                                                             <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'facilities.npv.report' ? 'active' : '' }}"
                                                                                 href="{{ route('facilities.npv.report') }}">
                                                                                 <span class="nav-main-link-name">NPV Report</span>
+                                                                            </a>
+                                                                        </li>
+                                                                        <li class="nav-main-item">
+                                                                            <a class="nav-main-link {{ isset($activeMenu) && $activeMenu == 'facilities.npv.summary' ? 'active' : '' }}"
+                                                                                href="{{ route('facilities.npv.summary') }}">
+                                                                                <span class="nav-main-link-name">NPV Summary Schedule</span>
                                                                             </a>
                                                                         </li>
                                                                     @endcanany

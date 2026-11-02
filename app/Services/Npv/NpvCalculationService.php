@@ -79,7 +79,7 @@ class NpvCalculationService
             $totalDepositRefunds += $cf->depositRefund;
         }
 
-        $totalNPV = round($totalNPV, 2);
+        $totalNPV = (float) round($totalNPV);
 
         // Fetch security deposit summary totals from DB/relation
         $deposits = $agreement->securityDeposits;
@@ -110,11 +110,11 @@ class NpvCalculationService
             $period0Outflow = $period0Cf ? (float) $period0Cf->netOutflow : 0.0;
 
             // Initial Lease Obligation = Total NPV - Period 0 Outflow
-            $initialLeaseLiability = round($totalNPV - $period0Outflow, 2);
+            $initialLeaseLiability = (float) round($totalNPV - $period0Outflow);
             // PPE Initial Balance = Total NPV
-            $initialRouAsset = $totalNPV;
+            $initialRouAsset = (float) round($totalNPV);
             // Straight-line monthly depreciation = Total NPV / totalMonths
-            $monthlyDepreciation = round($initialRouAsset / $totalMonths, 2);
+            $monthlyDepreciation = (float) round($initialRouAsset / $totalMonths);
 
             $currentObligation = $initialLeaseLiability;
             $currentRouWdv = $initialRouAsset;
@@ -139,7 +139,7 @@ class NpvCalculationService
 
                 if ($currentObligation > 0) {
                     // Finance expense = Opening lease obligation * monthly discount rate
-                    $finExpense = round($currentObligation * $monthlyRate, 2);
+                    $finExpense = (float) round($currentObligation * $monthlyRate);
                     $cf->financeExpense = $finExpense;
                     $sumFinanceExpense += $finExpense;
 
@@ -148,13 +148,13 @@ class NpvCalculationService
                         $principalPayment = $currentObligation;
                         $closingObligation = 0.0;
                     } else {
-                        $tentativePrincipal = round($cf->netOutflow - $finExpense, 2);
+                        $tentativePrincipal = (float) round($cf->netOutflow - $finExpense);
                         if ($tentativePrincipal >= $currentObligation) {
                             $principalPayment = $currentObligation;
                             $closingObligation = 0.0;
                         } elseif ($tentativePrincipal > 0) {
                             $principalPayment = $tentativePrincipal;
-                            $closingObligation = round($currentObligation - $principalPayment, 2);
+                            $closingObligation = (float) round($currentObligation - $principalPayment);
                         } else {
                             $principalPayment = 0.0;
                             $closingObligation = $currentObligation;
@@ -181,7 +181,7 @@ class NpvCalculationService
                     $closingWdv = 0.0;
                 } else {
                     $depr = min($currentRouWdv, $monthlyDepreciation);
-                    $closingWdv = round($currentRouWdv - $depr, 2);
+                    $closingWdv = (float) round($currentRouWdv - $depr);
                 }
 
                 $cf->depreciationCharged = $depr;
@@ -190,9 +190,9 @@ class NpvCalculationService
                 $currentRouWdv = $cf->rouWdv;
             }
 
-            $totalFinanceExpense = round($sumFinanceExpense, 2);
-            $totalLeasePayments = round($sumLeasePayments, 2);
-            $totalDepreciation = round($sumDepreciation, 2);
+            $totalFinanceExpense = (float) round($sumFinanceExpense);
+            $totalLeasePayments = (float) round($sumLeasePayments);
+            $totalDepreciation = (float) round($sumDepreciation);
         }
 
         return new NpvCalculationResult(
@@ -203,12 +203,12 @@ class NpvCalculationService
             annualDiscountRate: $annualRate,
             monthlyDiscountRate: $monthlyRate,
             totalNPV: $totalNPV,
-            totalUndiscountedOutflow: round($totalUndiscountedOutflow, 2),
-            totalGrossRent: round($totalGrossRent, 2),
-            totalAdvanceDeductions: round($totalAdvanceDeductions, 2),
-            totalDepositRefunds: round($totalDepositRefunds, 2),
-            absorbableAdvanceTotal: round($absorbableTotal, 2),
-            nonAbsorbableDepositTotal: round($nonAbsorbableTotal, 2),
+            totalUndiscountedOutflow: (float) round($totalUndiscountedOutflow),
+            totalGrossRent: (float) round($totalGrossRent),
+            totalAdvanceDeductions: (float) round($totalAdvanceDeductions),
+            totalDepositRefunds: (float) round($totalDepositRefunds),
+            absorbableAdvanceTotal: (float) round($absorbableTotal),
+            nonAbsorbableDepositTotal: (float) round($nonAbsorbableTotal),
             cashFlows: $cashFlows,
             hasIfrs16Schedule: $hasIfrs16Schedule,
             initialLeaseLiability: $initialLeaseLiability,

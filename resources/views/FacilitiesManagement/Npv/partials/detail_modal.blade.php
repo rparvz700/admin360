@@ -38,14 +38,14 @@
                                 title="Total Present Value (NPV): Sum of discounted monthly net cash outflows">
                                 <div class="metric-label" title="Total Present Value (NPV)"><i
                                         class="fa fa-coins me-1 text-primary"></i> Total Present Value (NPV)</div>
-                                <div class="metric-value text-npv-primary" id="modalTotalNPV">৳ 0.00</div>
+                                <div class="metric-value text-npv-primary" id="modalTotalNPV">৳ 0</div>
                                 <div class="metric-subtext">Discounted Net Outflows</div>
                             </div>
                             <div class="col-6 col-lg-3 summary-metric-item ps-3 ps-md-4 py-2"
                                 title="Total Nominal Outflow: Undiscounted total cash outflow over lease term">
                                 <div class="metric-label" title="Total Nominal Outflow"><i
                                         class="fa fa-money-bill-wave me-1 text-warning"></i> Total Nominal Outflow</div>
-                                <div class="metric-value text-npv-warning" id="modalTotalOutflow">৳ 0.00</div>
+                                <div class="metric-value text-npv-warning" id="modalTotalOutflow">৳ 0</div>
                                 <div class="metric-subtext">Undiscounted Cash Total</div>
                             </div>
                             <div class="col-6 col-lg-3 summary-metric-item ps-3 ps-md-4 py-2"
@@ -83,9 +83,9 @@
                                     <div class="col-md-6">
                                         <div class="audit-data-box h-100">
                                             <div class="text-muted font-semibold mb-1">Rent Base Parameters</div>
-                                            <div>Base Rent: <strong>৳ <span id="modalAuditBaseRent">0.00</span></strong></div>
+                                            <div>Base Rent: <strong>৳ <span id="modalAuditBaseRent">0</span></strong></div>
                                             <div>At Source Tax: <strong><span id="modalAuditTaxSource">NO (0)</span></strong></div>
-                                            <div>VAT: ৳ <span id="modalAuditVat">0.00</span> | Tax: ৳ <span id="modalAuditTax">0.00</span></div>
+                                            <div>VAT: ৳ <span id="modalAuditVat">0</span> | Tax: ৳ <span id="modalAuditTax">0</span></div>
                                             <div class="mt-1 fs-2xs text-muted">
                                                 Agreement Term: <strong><span id="modalAuditStartDate">N/A</span></strong> to <strong><span id="modalAuditEndDate">N/A</span></strong>
                                             </div>
@@ -99,9 +99,9 @@
                                                 <span>Security Deposit & Advance Structure</span>
                                                 <span class="badge bg-primary-light text-primary fs-3xs d-none" id="modalAuditSdBadge">0 Clauses</span>
                                             </div>
-                                            <div>Total Deposit: <strong>৳ <span id="modalAuditSdTotal">0.00</span></strong></div>
-                                            <div>Adjustable Advance: <strong>৳ <span id="modalAuditSdAbsorbable">0.00</span></strong></div>
-                                            <div>Non-Adjustable Deposit: <strong>৳ <span id="modalAuditSdNonAbsorbable">0.00</span></strong></div>
+                                            <div>Total Deposit: <strong>৳ <span id="modalAuditSdTotal">0</span></strong></div>
+                                            <div>Adjustable Advance: <strong>৳ <span id="modalAuditSdAbsorbable">0</span></strong></div>
+                                            <div>Non-Adjustable Deposit: <strong>৳ <span id="modalAuditSdNonAbsorbable">0</span></strong></div>
                                             <div id="modalAuditSdClausesBox">
                                                 <div class="mt-1 fs-2xs text-muted">
                                                     Interval: <span id="modalAuditSdFrequency">N/A</span> months | Start: <span id="modalAuditSdStartDate">N/A</span>
@@ -180,12 +180,12 @@
                                     <td class="text-end npv-col-breakdown">-</td>
                                     <td class="text-end npv-col-breakdown">-</td>
                                     <td class="text-end npv-col-breakdown">-</td>
-                                    <td class="text-end num-cell fw-bold npv-total-col" id="modalFootTotalGross">৳ 0.00</td>
-                                    <td class="text-end num-cell text-warning fw-bold" id="modalFootAdvanceDeduction">-৳ 0.00</td>
-                                    <td class="text-end num-cell text-success fw-bold" id="modalFootDepositRefund">-৳ 0.00</td>
-                                    <td class="text-end num-cell fw-bold" id="modalFootNetOutflow">৳ 0.00</td>
+                                    <td class="text-end num-cell fw-bold npv-total-col" id="modalFootTotalGross">৳ 0</td>
+                                    <td class="text-end num-cell text-warning fw-bold" id="modalFootAdvanceDeduction">-৳ 0</td>
+                                    <td class="text-end num-cell text-success fw-bold" id="modalFootDepositRefund">-৳ 0</td>
+                                    <td class="text-end num-cell fw-bold" id="modalFootNetOutflow">৳ 0</td>
                                     <td class="text-center">-</td>
-                                    <td class="text-end num-cell text-primary fw-bold npv-col-right-2" id="modalFootTotalNPV">৳ 0.00</td>
+                                    <td class="text-end num-cell text-primary fw-bold npv-col-right-2" id="modalFootTotalNPV">৳ 0</td>
                                     <td class="text-end npv-col-right-1">-</td>
                                 </tr>
                             </tfoot>

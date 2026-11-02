@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Agreement;
 use App\Models\FinanceSetting;
 use App\Models\VatTax;
+use App\Models\PropertiesBuilding;
 use App\Services\Npv\Dto\NpvCalculationInput;
 use App\Services\Npv\NpvCalculationService;
+use App\Services\Npv\NpvConsolidatedScheduleService;
 use App\Services\Npv\NpvReportService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -16,7 +18,8 @@ class NpvAnalysisController extends Controller
 {
     public function __construct(
         private NpvCalculationService $npvService,
-        private NpvReportService $reportService
+        private NpvReportService $reportService,
+        private NpvConsolidatedScheduleService $consolidatedService
     ) {
         $this->middleware('auth');
     }
@@ -186,19 +189,19 @@ class NpvAnalysisController extends Controller
             fputcsv($handle, ['Annual Discount Rate (%)', $result->annualDiscountRate . '%']);
             fputcsv($handle, ['Monthly Compounding Rate (%)', number_format($result->monthlyDiscountRate * 100, 6) . '%']);
             fputcsv($handle, ['Total Duration (Months)', $result->totalMonths]);
-            fputcsv($handle, ['TOTAL NPV (Present Value)', number_format($result->totalNPV, 2)]);
-            fputcsv($handle, ['Total Undiscounted Net Outflow', number_format($result->totalUndiscountedOutflow, 2)]);
-            fputcsv($handle, ['Total Advance Deductions', number_format($result->totalAdvanceDeductions, 2)]);
-            fputcsv($handle, ['Total Security Deposit Refunds', number_format($result->totalDepositRefunds, 2)]);
+            fputcsv($handle, ['TOTAL NPV (Present Value)', number_format($result->totalNPV, 0)]);
+            fputcsv($handle, ['Total Undiscounted Net Outflow', number_format($result->totalUndiscountedOutflow, 0)]);
+            fputcsv($handle, ['Total Advance Deductions', number_format($result->totalAdvanceDeductions, 0)]);
+            fputcsv($handle, ['Total Security Deposit Refunds', number_format($result->totalDepositRefunds, 0)]);
             if ($result->hasIfrs16Schedule) {
                 fputcsv($handle, ['IFRS 16 Schedule', 'Applicable (NPV >= 1,000,000 BDT)']);
-                fputcsv($handle, ['Opening Lease Obligation', number_format($result->initialLeaseLiability, 2)]);
-                fputcsv($handle, ['Lease Payment', number_format($result->totalLeasePayments, 2)]);
-                fputcsv($handle, ['Closing Lease Obligation', '0.00']);
-                fputcsv($handle, ['Finance Expense', number_format($result->totalFinanceExpense, 2)]);
-                fputcsv($handle, ['PPE Opening Balance', number_format($result->initialRouAsset, 2)]);
-                fputcsv($handle, ['Depreciation Charged', number_format($result->totalDepreciation, 2)]);
-                fputcsv($handle, ['WDV', '0.00']);
+                fputcsv($handle, ['Opening Lease Obligation', number_format($result->initialLeaseLiability, 0)]);
+                fputcsv($handle, ['Lease Payment', number_format($result->totalLeasePayments, 0)]);
+                fputcsv($handle, ['Closing Lease Obligation', '0']);
+                fputcsv($handle, ['Finance Expense', number_format($result->totalFinanceExpense, 0)]);
+                fputcsv($handle, ['PPE Opening Balance', number_format($result->initialRouAsset, 0)]);
+                fputcsv($handle, ['Depreciation Charged', number_format($result->totalDepreciation, 0)]);
+                fputcsv($handle, ['WDV', '0']);
             }
             fputcsv($handle, []);
 
@@ -240,27 +243,27 @@ class NpvAnalysisController extends Controller
                     $cf->periodIndex,
                     $cf->billingMonth,
                     $cf->monthLabel,
-                    number_format($cf->officeGrossRent, 2, '.', ''),
-                    number_format($cf->dgGrossRent, 2, '.', ''),
-                    number_format($cf->parkingGrossRent, 2, '.', ''),
-                    number_format($cf->storeGrossRent, 2, '.', ''),
-                    number_format($cf->totalGrossRent, 2, '.', ''),
-                    number_format($cf->advanceDeduction, 2, '.', ''),
-                    number_format($cf->depositRefund, 2, '.', ''),
-                    number_format($cf->netOutflow, 2, '.', ''),
-                    number_format($cf->discountFactor, 6, '.', ''),
-                    number_format($cf->presentValue, 2, '.', ''),
-                    number_format($cf->cumulativePV, 2, '.', ''),
+                    number_format($cf->officeGrossRent, 0, '.', ''),
+                    number_format($cf->dgGrossRent, 0, '.', ''),
+                    number_format($cf->parkingGrossRent, 0, '.', ''),
+                    number_format($cf->storeGrossRent, 0, '.', ''),
+                    number_format($cf->totalGrossRent, 0, '.', ''),
+                    number_format($cf->advanceDeduction, 0, '.', ''),
+                    number_format($cf->depositRefund, 0, '.', ''),
+                    number_format($cf->netOutflow, 0, '.', ''),
+                    number_format($cf->discountFactor, 4, '.', ''),
+                    number_format($cf->presentValue, 0, '.', ''),
+                    number_format($cf->cumulativePV, 0, '.', ''),
                 ];
 
                 if ($result->hasIfrs16Schedule) {
-                    $row[] = $cf->openingLeaseObligation !== null ? number_format($cf->openingLeaseObligation, 2, '.', '') : '';
-                    $row[] = $cf->leasePayment !== null ? number_format($cf->leasePayment, 2, '.', '') : '';
-                    $row[] = $cf->closingLeaseObligation !== null ? number_format($cf->closingLeaseObligation, 2, '.', '') : '';
-                    $row[] = $cf->financeExpense !== null ? number_format($cf->financeExpense, 2, '.', '') : '';
-                    $row[] = $cf->rouOpeningBalance !== null ? number_format($cf->rouOpeningBalance, 2, '.', '') : '';
-                    $row[] = $cf->depreciationCharged !== null ? number_format($cf->depreciationCharged, 2, '.', '') : '';
-                    $row[] = $cf->rouWdv !== null ? number_format($cf->rouWdv, 2, '.', '') : '';
+                    $row[] = $cf->openingLeaseObligation !== null ? number_format($cf->openingLeaseObligation, 0, '.', '') : '';
+                    $row[] = $cf->leasePayment !== null ? number_format($cf->leasePayment, 0, '.', '') : '';
+                    $row[] = $cf->closingLeaseObligation !== null ? number_format($cf->closingLeaseObligation, 0, '.', '') : '';
+                    $row[] = $cf->financeExpense !== null ? number_format($cf->financeExpense, 0, '.', '') : '';
+                    $row[] = $cf->rouOpeningBalance !== null ? number_format($cf->rouOpeningBalance, 0, '.', '') : '';
+                    $row[] = $cf->depreciationCharged !== null ? number_format($cf->depreciationCharged, 0, '.', '') : '';
+                    $row[] = $cf->rouWdv !== null ? number_format($cf->rouWdv, 0, '.', '') : '';
                 }
 
                 fputcsv($handle, $row);
@@ -284,11 +287,11 @@ class NpvAnalysisController extends Controller
         // Aggregate KPI Metrics
         $totalAgreements = count($summaryRows);
         $calculatedRows = array_filter($summaryRows, fn($r) => $r->hasInterestRate && $r->totalNPV !== null);
-        $portfolioTotalNPV = array_sum(array_map(fn($r) => $r->totalNPV, $calculatedRows));
-        $portfolioTotalOutflow = array_sum(array_map(fn($r) => $r->totalUndiscountedOutflow, $summaryRows));
-        $portfolioTotalGrossRent = array_sum(array_map(fn($r) => $r->totalGrossRent, $summaryRows));
+        $portfolioTotalNPV = (float) round(array_sum(array_map(fn($r) => $r->totalNPV, $calculatedRows)));
+        $portfolioTotalOutflow = (float) round(array_sum(array_map(fn($r) => $r->totalUndiscountedOutflow, $summaryRows)));
+        $portfolioTotalGrossRent = (float) round(array_sum(array_map(fn($r) => $r->totalGrossRent, $summaryRows)));
         $calculatedCount = count($calculatedRows);
-        $averageNPV = $calculatedCount > 0 ? ($portfolioTotalNPV / $calculatedCount) : 0;
+        $averageNPV = $calculatedCount > 0 ? (float) round($portfolioTotalNPV / $calculatedCount) : 0.0;
 
         return view('FacilitiesManagement.Npv.report', compact(
             'summaryRows',
@@ -310,8 +313,8 @@ class NpvAnalysisController extends Controller
         $data = array_map(fn($r) => $r->toArray(), $summaryRows);
 
         $calculatedRows = array_filter($summaryRows, fn($r) => $r->hasInterestRate && $r->totalNPV !== null);
-        $portfolioTotalNPV = array_sum(array_map(fn($r) => $r->totalNPV, $calculatedRows));
-        $portfolioTotalOutflow = array_sum(array_map(fn($r) => $r->totalUndiscountedOutflow, $summaryRows));
+        $portfolioTotalNPV = (float) round(array_sum(array_map(fn($r) => $r->totalNPV, $calculatedRows)));
+        $portfolioTotalOutflow = (float) round(array_sum(array_map(fn($r) => $r->totalUndiscountedOutflow, $summaryRows)));
 
         return response()->json([
             'success' => true,
@@ -378,11 +381,11 @@ class NpvAnalysisController extends Controller
 
         // Recompute portfolio totals
         $calculatedRows = array_filter($summaryRows, fn($r) => $r->hasInterestRate && $r->totalNPV !== null);
-        $portfolioTotalNPV = array_sum(array_map(fn($r) => $r->totalNPV, $calculatedRows));
-        $portfolioTotalOutflow = array_sum(array_map(fn($r) => $r->totalUndiscountedOutflow, $summaryRows));
-        $portfolioTotalGrossRent = array_sum(array_map(fn($r) => $r->totalGrossRent, $summaryRows));
+        $portfolioTotalNPV = (float) round(array_sum(array_map(fn($r) => $r->totalNPV, $calculatedRows)));
+        $portfolioTotalOutflow = (float) round(array_sum(array_map(fn($r) => $r->totalUndiscountedOutflow, $summaryRows)));
+        $portfolioTotalGrossRent = (float) round(array_sum(array_map(fn($r) => $r->totalGrossRent, $summaryRows)));
         $calculatedCount = count($calculatedRows);
-        $averageNPV = $calculatedCount > 0 ? ($portfolioTotalNPV / $calculatedCount) : 0;
+        $averageNPV = $calculatedCount > 0 ? (float) round($portfolioTotalNPV / $calculatedCount) : 0.0;
 
         return response()->json([
             'success' => true,
@@ -395,14 +398,108 @@ class NpvAnalysisController extends Controller
                 'has_interest_rate' => $rate !== null,
                 'interest_rate' => $rate,
                 'interest_rate_formatted' => $rate !== null ? number_format($rate, 2) . '%' : 'Not Set',
-                'total_npv' => $updatedRow?->totalNPV,
-                'total_npv_formatted' => $updatedRow?->totalNPV !== null ? '৳ ' . number_format($updatedRow->totalNPV, 2) : 'Rate not set',
-                'portfolio_total_npv' => '৳ ' . number_format($portfolioTotalNPV, 2),
-                'portfolio_total_outflow' => '৳ ' . number_format($portfolioTotalOutflow, 2),
-                'average_npv' => '৳ ' . number_format($averageNPV, 2),
+                'total_npv' => $updatedRow?->totalNPV !== null ? (float) round($updatedRow->totalNPV) : null,
+                'total_npv_formatted' => $updatedRow?->totalNPV !== null ? '৳ ' . number_format($updatedRow->totalNPV, 0) : 'Rate not set',
+                'portfolio_total_npv' => '৳ ' . number_format($portfolioTotalNPV, 0),
+                'portfolio_total_outflow' => '৳ ' . number_format($portfolioTotalOutflow, 0),
+                'average_npv' => '৳ ' . number_format($averageNPV, 0),
                 'calculated_count' => $calculatedCount,
                 'total_agreements' => count($summaryRows),
             ],
         ]);
     }
+
+    /**
+     * Render the NPV Consolidated Summary Schedule page.
+     * Features consolidated multi-agreement timeline matrix with metric dropdown selector.
+     */
+    public function summary(Request $request)
+    {
+        $buildings = PropertiesBuilding::orderBy('site_name')->get(['id', 'site_name', 'code']);
+        $metrics = NpvConsolidatedScheduleService::METRICS;
+
+        $selectedMetric = $request->get('metric', 'net_outflow');
+        $selectedYear = $request->get('year', 'all');
+        $initialMatrix = $this->consolidatedService->getConsolidatedMatrix(
+            metric: $selectedMetric,
+            selectedYear: $selectedYear
+        );
+
+        return view('FacilitiesManagement.Npv.summary', compact(
+            'buildings',
+            'metrics',
+            'initialMatrix',
+            'selectedMetric',
+            'selectedYear'
+        ));
+    }
+
+    /**
+     * AJAX endpoint to fetch full 12-row schedule for a single agreement.
+     */
+    public function summaryAgreementSchedule(Request $request, int $agreementId)
+    {
+        try {
+            $data = $this->consolidatedService->getAgreementSchedule($agreementId);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to load agreement schedule: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * AJAX endpoint to fetch matrix data for the consolidated multi-agreement table.
+     */
+    public function summaryMatrixData(Request $request)
+    {
+        try {
+            $metric = $request->get('metric', 'net_outflow');
+            $year = $request->get('year', 'all');
+            $buildingId = $request->filled('building_id') ? (int) $request->get('building_id') : null;
+            $search = $request->get('search');
+
+            $matrix = $this->consolidatedService->getConsolidatedMatrix(
+                metric: $metric,
+                selectedYear: $year,
+                buildingId: $buildingId,
+                search: $search
+            );
+
+            return response()->json([
+                'success' => true,
+                'matrix' => $matrix,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load consolidated matrix: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Export consolidated multi-agreement matrix to CSV.
+     */
+    public function exportSummary(Request $request)
+    {
+        $metric = $request->get('metric', 'net_outflow');
+        $year = $request->get('year', 'all');
+        $buildingId = $request->filled('building_id') ? (int) $request->get('building_id') : null;
+        $search = $request->get('search');
+
+        return $this->consolidatedService->exportConsolidatedMatrix(
+            metric: $metric,
+            selectedYear: $year,
+            buildingId: $buildingId,
+            search: $search
+        );
+    }
 }
+

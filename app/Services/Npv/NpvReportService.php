@@ -51,7 +51,7 @@ class NpvReportService
         $activeAgreementIds = $agreements->pluck('id')->toArray();
 
         // Invalidate stale cache records created before new NPV engine logic
-        $staleCutoff = '2026-08-20 14:10:00';
+        $staleCutoff = '2026-10-26 13:00:00';
         NpvAgreementSummary::where('calculated_at', '<', $staleCutoff)->delete();
 
         // Fetch existing cached records
@@ -87,11 +87,11 @@ class NpvReportService
                         paymentStartDate: $cachedRow->payment_start_date ?? ($cachedRow->from_date ?? 'N/A'),
                         expiryDate: $cachedRow->expiry_date ?? ($cachedRow->to_date ?? 'N/A'),
                         totalMonths: (int) $cachedRow->total_months,
-                        totalNPV: $hasRate ? (float) $cachedRow->total_npv : null,
-                        totalUndiscountedOutflow: (float) $cachedRow->total_undiscounted_outflow,
-                        totalGrossRent: (float) $cachedRow->total_gross_rent,
-                        totalAdvanceDeductions: (float) $cachedRow->total_advance_deductions,
-                        totalDepositRefunds: (float) $cachedRow->total_deposit_refunds,
+                        totalNPV: $hasRate ? (float) round((float) $cachedRow->total_npv) : null,
+                        totalUndiscountedOutflow: (float) round((float) $cachedRow->total_undiscounted_outflow),
+                        totalGrossRent: (float) round((float) $cachedRow->total_gross_rent),
+                        totalAdvanceDeductions: (float) round((float) $cachedRow->total_advance_deductions),
+                        totalDepositRefunds: (float) round((float) $cachedRow->total_deposit_refunds),
                         annualDiscountRate: $hasRate ? (float) $cachedRow->discount_rate : null,
                         hasInterestRate: $hasRate,
                         fromDate: $cachedRow->payment_start_date ?? ($cachedRow->from_date ?? 'N/A'),
@@ -120,7 +120,7 @@ class NpvReportService
                 $paymentStartVal = $agr->payment_start_date ?? ($agr->from_date ?? 'N/A');
                 $expiryVal = $agr->expiry_date ?? ($agr->to_date ?? 'N/A');
 
-                $calculatedNpv = $hasRate ? round($result->totalNPV, 2) : null;
+                $calculatedNpv = $hasRate ? (float) round($result->totalNPV) : null;
 
                 $summaryData = [
                     'agreement_id' => $agr->id,
@@ -129,11 +129,11 @@ class NpvReportService
                     'vendor_name' => $agr->vendor->name ?? 'N/A',
                     'site_name' => $siteName,
                     'total_months' => $result->totalMonths,
-                    'total_npv' => $calculatedNpv ?? 0.00,
-                    'total_undiscounted_outflow' => round($result->totalUndiscountedOutflow, 2),
-                    'total_gross_rent' => round($result->totalGrossRent, 2),
-                    'total_advance_deductions' => round($result->totalAdvanceDeductions, 2),
-                    'total_deposit_refunds' => round($result->totalDepositRefunds, 2),
+                    'total_npv' => $calculatedNpv ?? 0,
+                    'total_undiscounted_outflow' => (float) round($result->totalUndiscountedOutflow),
+                    'total_gross_rent' => (float) round($result->totalGrossRent),
+                    'total_advance_deductions' => (float) round($result->totalAdvanceDeductions),
+                    'total_deposit_refunds' => (float) round($result->totalDepositRefunds),
                     'calculated_at' => $now,
                     'created_at' => $now,
                     'updated_at' => $now,

@@ -124,7 +124,7 @@ class AdvanceAdjustmentScheduler
                     $totalAdvanceDeduction += $deduction;
                     $details[] = [
                         'type' => 'advance_deduction',
-                        'amount' => round($deduction, 2),
+                        'amount' => (float) round($deduction),
                     ];
                 }
             }
@@ -140,7 +140,7 @@ class AdvanceAdjustmentScheduler
                 $totalAdvanceDeduction += $deduction;
                 $details[] = [
                     'type' => 'advance_deduction_summary',
-                    'amount' => round($deduction, 2),
+                    'amount' => (float) round($deduction),
                 ];
             }
         }
@@ -151,13 +151,13 @@ class AdvanceAdjustmentScheduler
             $totalDepositRefund = $nonAbsorbableTotal;
             $details[] = [
                 'type' => 'security_deposit_refund',
-                'amount' => round($nonAbsorbableTotal, 2),
+                'amount' => (float) round($nonAbsorbableTotal),
             ];
         }
 
         return [
-            'advance_deduction' => round($totalAdvanceDeduction, 2),
-            'deposit_refund' => round($totalDepositRefund, 2),
+            'advance_deduction' => (float) round($totalAdvanceDeduction),
+            'deposit_refund' => (float) round($totalDepositRefund),
             'details' => $details,
         ];
     }

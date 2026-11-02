@@ -100,7 +100,7 @@ class RentIncrementProjector
             $effectiveFrom = $incStart->format('Y-m-d');
         }
 
-        $effectiveGross = round($baseGrossRent * $multiplier, 2);
+        $effectiveGross = (float) round($baseGrossRent * $multiplier);
 
         return [
             'effective_gross' => $effectiveGross,

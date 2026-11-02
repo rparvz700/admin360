@@ -36,7 +36,7 @@ class DiscountingService
             return 1.0;
         }
 
-        return 1.0 / pow(1.0 + $monthlyRate, $monthIndex);
+        return round(1.0 / pow(1.0 + $monthlyRate, $monthIndex), 4);
     }
 
     /**
@@ -49,6 +49,6 @@ class DiscountingService
      */
     public function calculatePresentValue(float $netOutflow, float $discountFactor): float
     {
-        return round($netOutflow * $discountFactor, 4);
+        return (float) round($netOutflow * $discountFactor);
     }
 }

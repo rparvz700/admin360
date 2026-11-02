@@ -28,6 +28,10 @@
                     deductions, and discounted present values.</p>
             </div>
             <div class="d-flex gap-2">
+                <a href="{{ route('facilities.npv.summary') }}" class="btn npv-header-btn"
+                    title="View Consolidated NPV Summary Schedule">
+                    <i class="fa fa-table me-1 text-success"></i> Summary Schedule
+                </a>
                 <a href="{{ route('facilities.npv.report') }}" class="btn npv-header-btn"
                     title="View Net Present Value (NPV) Valuation Report">
                     <i class="fa fa-chart-bar me-1 text-primary"></i> Valuation Report
@@ -181,8 +185,8 @@
                         <div class="metric-label" title="Total Present Value (NPV)"><i
                                 class="fa fa-coins me-1 text-primary"></i> Total Present Value (NPV)</div>
                         <div class="metric-value text-npv-primary"
-                            title="৳ {{ number_format($initialResult->totalNPV, 2) }}">৳
-                            {{ number_format($initialResult->totalNPV, 2) }}</div>
+                            title="৳ {{ number_format($initialResult->totalNPV, 0) }}">৳
+                            {{ number_format($initialResult->totalNPV, 0) }}</div>
                         <div class="metric-subtext"
                             title="Sum of discounted monthly net cash outflows over {{ $initialResult->totalMonths }} months (Discount Rate: {{ number_format($initialResult->monthlyDiscountRate * 100, 4) }}% monthly / {{ number_format($initialResult->annualDiscountRate, 2) }}% annual)">
                             Discounted Net Outflows</div>
@@ -192,8 +196,8 @@
                         <div class="metric-label" title="Total Nominal Outflow"><i
                                 class="fa fa-money-bill-wave me-1 text-warning"></i> Total Nominal Outflow</div>
                         <div class="metric-value text-npv-warning"
-                            title="৳ {{ number_format($initialResult->totalUndiscountedOutflow, 2) }}">৳
-                            {{ number_format($initialResult->totalUndiscountedOutflow, 2) }}</div>
+                            title="৳ {{ number_format($initialResult->totalUndiscountedOutflow, 0) }}">৳
+                            {{ number_format($initialResult->totalUndiscountedOutflow, 0) }}</div>
                         <div class="metric-subtext"
                             title="Undiscounted gross cash outflow over entire lease term of {{ $initialResult->totalMonths }} months">
                             Undiscounted Cash Total</div>
@@ -215,12 +219,12 @@
                         <div class="metric-label" title="Absorbable Advance & Security Deposit"><i
                                 class="fa fa-hand-holding-usd me-1 text-success"></i> Advance (Absorbable)</div>
                         <div class="metric-value text-npv-success"
-                            title="৳ {{ number_format($initialResult->absorbableAdvanceTotal, 2) }}">৳
-                            {{ number_format($initialResult->absorbableAdvanceTotal, 2) }}</div>
+                            title="৳ {{ number_format($initialResult->absorbableAdvanceTotal, 0) }}">৳
+                            {{ number_format($initialResult->absorbableAdvanceTotal, 0) }}</div>
                         <div class="metric-subtext"
-                            title="Total Advance Deducted in Schedule: ৳ {{ number_format($initialResult->totalAdvanceDeductions, 2) }} | Non-Absorbable Deposit: ৳ {{ number_format($initialResult->nonAbsorbableDepositTotal, 2) }}">
-                            Deducted: ৳ {{ number_format($initialResult->totalAdvanceDeductions, 2) }} | SD: ৳
-                            {{ number_format($initialResult->nonAbsorbableDepositTotal, 2) }}</div>
+                            title="Total Advance Deducted in Schedule: ৳ {{ number_format($initialResult->totalAdvanceDeductions, 0) }} | Non-Absorbable Deposit: ৳ {{ number_format($initialResult->nonAbsorbableDepositTotal, 0) }}">
+                            Deducted: ৳ {{ number_format($initialResult->totalAdvanceDeductions, 0) }} | SD: ৳
+                            {{ number_format($initialResult->nonAbsorbableDepositTotal, 0) }}</div>
                     </div>
                 </div>
             </div>
@@ -235,9 +239,9 @@
                                 <i class="fa fa-balance-scale me-1"></i> IFRS 16 Schedule Applicable
                             </span>
                             <span class="fs-xs text-muted">
-                                Total Present Value (<strong>৳ {{ number_format($initialResult->totalNPV, 2) }}</strong>)
-                                is ≥ ৳ 1,000,000 threshold. Amortization and PPE schedule generated.
-                            </span>
+                                 Total Present Value (<strong>৳ {{ number_format($initialResult->totalNPV, 0) }}</strong>)
+                                 is ≥ ৳ 1,000,000 threshold. Amortization and PPE schedule generated.
+                             </span>
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-light text-dark border fs-3xs">
@@ -258,8 +262,8 @@
                                     <div class="ifrs16-icon icon-slate"><i class="fa fa-file-invoice-dollar"></i></div>
                                 </div>
                                 <div class="ifrs16-card-value text-dark"
-                                    title="৳ {{ number_format($initialResult->initialLeaseLiability, 2) }}">
-                                    ৳ {{ number_format($initialResult->initialLeaseLiability, 2) }}
+                                    title="৳ {{ number_format($initialResult->initialLeaseLiability, 0) }}">
+                                    ৳ {{ number_format($initialResult->initialLeaseLiability, 0) }}
                                 </div>
                                 <p class="ifrs16-card-sub" title="Initial recognized lease liability">Initial recognized
                                     liability</p>
@@ -274,8 +278,8 @@
                                     <div class="ifrs16-icon icon-primary"><i class="fa fa-receipt"></i></div>
                                 </div>
                                 <div class="ifrs16-card-value text-primary"
-                                    title="৳ {{ number_format($initialResult->totalLeasePayments, 2) }}">
-                                    ৳ {{ number_format($initialResult->totalLeasePayments, 2) }}
+                                    title="৳ {{ number_format($initialResult->totalLeasePayments, 0) }}">
+                                    ৳ {{ number_format($initialResult->totalLeasePayments, 0) }}
                                 </div>
                                 <p class="ifrs16-card-sub" title="Total principal repaid">Total principal repaid</p>
                             </div>
@@ -289,8 +293,8 @@
                                         Obligation</div>
                                     <div class="ifrs16-icon icon-success"><i class="fa fa-check-circle"></i></div>
                                 </div>
-                                <div class="ifrs16-card-value text-success" title="৳ 0.00">
-                                    ৳ 0.00
+                                <div class="ifrs16-card-value text-success" title="৳ 0">
+                                    ৳ 0
                                 </div>
                                 <p class="ifrs16-card-sub" title="Fully amortized at expiry">Fully amortized at expiry</p>
                             </div>
@@ -304,8 +308,8 @@
                                     <div class="ifrs16-icon icon-danger"><i class="fa fa-chart-pie"></i></div>
                                 </div>
                                 <div class="ifrs16-card-value text-danger"
-                                    title="৳ {{ number_format($initialResult->totalFinanceExpense, 2) }}">
-                                    ৳ {{ number_format($initialResult->totalFinanceExpense, 2) }}
+                                    title="৳ {{ number_format($initialResult->totalFinanceExpense, 0) }}">
+                                    ৳ {{ number_format($initialResult->totalFinanceExpense, 0) }}
                                 </div>
                                 <p class="ifrs16-card-sub" title="Total interest cost over term">Total interest over term
                                 </p>
@@ -320,8 +324,8 @@
                                     <div class="ifrs16-icon icon-info"><i class="fa fa-building"></i></div>
                                 </div>
                                 <div class="ifrs16-card-value text-info"
-                                    title="৳ {{ number_format($initialResult->initialRouAsset, 2) }}">
-                                    ৳ {{ number_format($initialResult->initialRouAsset, 2) }}
+                                    title="৳ {{ number_format($initialResult->initialRouAsset, 0) }}">
+                                    ৳ {{ number_format($initialResult->initialRouAsset, 0) }}
                                 </div>
                                 <p class="ifrs16-card-sub" title="Initial Right-of-Use (ROU) asset balance">Initial ROU
                                     asset balance</p>
@@ -336,12 +340,12 @@
                                     <div class="ifrs16-icon icon-warning"><i class="fa fa-sort-amount-down"></i></div>
                                 </div>
                                 <div class="ifrs16-card-value text-warning"
-                                    title="৳ {{ number_format($initialResult->totalDepreciation, 2) }}">
-                                    ৳ {{ number_format($initialResult->totalDepreciation, 2) }}
+                                    title="৳ {{ number_format($initialResult->totalDepreciation, 0) }}">
+                                    ৳ {{ number_format($initialResult->totalDepreciation, 0) }}
                                 </div>
                                 <p class="ifrs16-card-sub"
-                                    title="Monthly: ৳ {{ number_format($initialResult->monthlyDepreciation, 2) }}">
-                                    ৳ {{ number_format($initialResult->monthlyDepreciation, 2) }}/month
+                                    title="Monthly: ৳ {{ number_format($initialResult->monthlyDepreciation, 0) }}">
+                                    ৳ {{ number_format($initialResult->monthlyDepreciation, 0) }}/month
                                 </p>
                             </div>
                         </div>
@@ -353,8 +357,8 @@
                                     <div class="ifrs16-card-title" title="WDV">WDV</div>
                                     <div class="ifrs16-icon icon-success"><i class="fa fa-shield-alt"></i></div>
                                 </div>
-                                <div class="ifrs16-card-value text-success" title="৳ 0.00">
-                                    ৳ 0.00
+                                <div class="ifrs16-card-value text-success" title="৳ 0">
+                                    ৳ 0
                                 </div>
                                 <p class="ifrs16-card-sub" title="Fully depreciated at expiry">Fully depreciated at expiry
                                 </p>
@@ -389,12 +393,12 @@
                                 <div class="audit-data-box h-100">
                                     <div class="text-muted font-semibold mb-1">Rent Base Parameters</div>
                                     <div>Base Rent: <strong>৳
-                                            {{ number_format($latestRentBase->base_rent ?? 0, 2) }}</strong></div>
+                                            {{ number_format($latestRentBase->base_rent ?? 0, 0) }}</strong></div>
                                     <div>At Source Tax:
                                         <strong>{{ $latestRentBase->is_at_source ?? false ? 'YES (1)' : 'NO (0)' }}</strong>
                                     </div>
-                                    <div>VAT: ৳ {{ number_format($latestRentBase->vat ?? 0, 2) }} | Tax: ৳
-                                        {{ number_format($latestRentBase->tax ?? 0, 2) }}</div>
+                                    <div>VAT: ৳ {{ number_format($latestRentBase->vat ?? 0, 0) }} | Tax: ৳
+                                        {{ number_format($latestRentBase->tax ?? 0, 0) }}</div>
                                     <div class="mt-1 fs-2xs text-muted">
                                         Agreement Date:
                                         <strong>{{ $initialResult->agreement->agreement_date ? \Carbon\Carbon::parse($initialResult->agreement->agreement_date)->format('d M Y') : 'N/A' }}</strong>
@@ -421,12 +425,12 @@
                                         @endif
                                     </div>
                                     <div>Total Deposit: <strong>৳
-                                            {{ number_format($initialResult->agreement->securityDeposits->max('security_deposit_total') ?? ($latestSd->security_deposit_total ?? 0), 2) }}</strong>
+                                            {{ number_format($initialResult->agreement->securityDeposits->max('security_deposit_total') ?? ($latestSd->security_deposit_total ?? 0), 0) }}</strong>
                                     </div>
                                     <div>Adjustable Advance: <strong>৳
-                                            {{ number_format($initialResult->absorbableAdvanceTotal, 2) }}</strong></div>
+                                            {{ number_format($initialResult->absorbableAdvanceTotal, 0) }}</strong></div>
                                     <div>Non-Adjustable Deposit: <strong>৳
-                                            {{ number_format($initialResult->nonAbsorbableDepositTotal, 2) }}</strong>
+                                            {{ number_format($initialResult->nonAbsorbableDepositTotal, 0) }}</strong>
                                     </div>
 
                                     @php $sdRows = $initialResult->agreement->securityDeposits->filter(fn($sd) => $sd->absorb_amount > 0 || $sd->absorb_frequency > 0); @endphp
@@ -492,11 +496,11 @@
                                                             @endphp
                                                             <tr>
                                                                 <td>Clause #{{ $loop->iteration }}</td>
-                                                                <td class="text-end">৳ {{ number_format($amount, 2) }}
+                                                                <td class="text-end">৳ {{ number_format($amount, 0) }}
                                                                 </td>
                                                                 <td class="text-center">{{ $interval }} mos</td>
                                                                 <td class="text-end text-info fw-semibold">৳
-                                                                    {{ number_format($monthly, 2) }}</td>
+                                                                    {{ number_format($monthly, 0) }}</td>
                                                                 <td class="text-center fs-3xs">
                                                                     {{ $cStart ? $cStart->format('M Y') : 'N/A' }} -
                                                                     {{ $cEnd ? $cEnd->format('M Y') : 'N/A' }}
@@ -542,13 +546,13 @@
                                                             <td class="text-end">{{ number_format($comp->area_sft, 2) }}
                                                             </td>
                                                             <td class="text-end">৳
-                                                                {{ number_format($comp->rent_amount, 2) }}</td>
+                                                                {{ number_format($comp->rent_amount, 0) }}</td>
                                                             <td class="text-end">৳
-                                                                {{ number_format($comp->vat_amount ?? 0, 2) }}</td>
+                                                                {{ number_format($comp->vat_amount ?? 0, 0) }}</td>
                                                             <td class="text-end">৳
-                                                                {{ number_format($comp->tax_amount ?? 0, 2) }}</td>
+                                                                {{ number_format($comp->tax_amount ?? 0, 0) }}</td>
                                                             <td class="text-end font-bold">৳
-                                                                {{ number_format($comp->total_amount, 2) }}</td>
+                                                                {{ number_format($comp->total_amount, 0) }}</td>
                                                         </tr>
                                                     @endforeach
                                                 </tbody>
@@ -556,7 +560,7 @@
                                         </div>
                                     @else
                                         <em class="text-muted">No component breakdown rows. Using base_rent fallback: ৳
-                                            {{ number_format($latestRentBase->base_rent ?? 0, 2) }}</em>
+                                            {{ number_format($latestRentBase->base_rent ?? 0, 0) }}</em>
                                     @endif
                                 </div>
                             </div>
@@ -593,7 +597,7 @@
                                                                     '%'
                                                                 : ($inc->increment_amount
                                                                     ? '৳ ' .
-                                                                        number_format((float) $inc->increment_amount, 2)
+                                                                        number_format((float) $inc->increment_amount, 0)
                                                                     : '-');
                                                         @endphp
                                                         <tr>
@@ -607,7 +611,7 @@
                                                             <td class="text-end fw-semibold text-warning fs-3xs">
                                                                 {{ $escalationStr }}</td>
                                                             <td class="text-end num-cell font-bold fs-3xs">৳
-                                                                {{ number_format((float) ($inc->incremented_amount ?? 0), 2) }}
+                                                                {{ number_format((float) ($inc->incremented_amount ?? 0), 0) }}
                                                             </td>
                                                         </tr>
                                                     @endforeach
@@ -742,7 +746,7 @@
                                             </span>
                                         @elseif ($cf->arrearsAmount > 0)
                                             <span class="badge bg-warning text-dark ms-1 fs-3xs"
-                                                title="Includes ৳ {{ number_format($cf->arrearsAmount, 2) }} arrears from deferred period">
+                                                title="Includes ৳ {{ number_format($cf->arrearsAmount, 0) }} arrears from deferred period">
                                                 <i class="fa fa-hand-holding-usd"></i> Arrears Paid
                                             </span>
                                         @endif
@@ -786,49 +790,49 @@
                                         @endif
                                     </td>
                                     <td class="text-end num-cell npv-col-breakdown">
-                                        {{ number_format($cf->officeGrossRent, 2) }}</td>
+                                        {{ number_format($cf->officeGrossRent, 0) }}</td>
                                     <td class="text-end num-cell npv-col-breakdown">
-                                        {{ number_format($cf->dgGrossRent, 2) }}</td>
+                                        {{ number_format($cf->dgGrossRent, 0) }}</td>
                                     <td class="text-end num-cell npv-col-breakdown">
-                                        {{ number_format($cf->parkingGrossRent, 2) }}</td>
+                                        {{ number_format($cf->parkingGrossRent, 0) }}</td>
                                     <td class="text-end num-cell npv-col-breakdown">
-                                        {{ number_format($cf->storeGrossRent, 2) }}</td>
+                                        {{ number_format($cf->storeGrossRent, 0) }}</td>
                                     <td class="text-end num-cell fw-semibold npv-total-col">
-                                        {{ number_format($cf->totalGrossRent, 2) }}</td>
+                                        {{ number_format($cf->totalGrossRent, 0) }}</td>
                                     <td class="text-end num-cell text-danger">
-                                        {{ $cf->advanceDeduction > 0 ? '-' . number_format($cf->advanceDeduction, 2) : '0.00' }}
+                                        {{ $cf->advanceDeduction > 0 ? '-' . number_format($cf->advanceDeduction, 0) : '0' }}
                                     </td>
                                     <td class="text-end num-cell text-success">
-                                        {{ $cf->depositRefund > 0 ? '-' . number_format($cf->depositRefund, 2) : '0.00' }}
+                                        {{ $cf->depositRefund > 0 ? '-' . number_format($cf->depositRefund, 0) : '0' }}
                                     </td>
-                                    <td class="text-end num-cell fw-bold">{{ number_format($cf->netOutflow, 2) }}</td>
+                                    <td class="text-end num-cell fw-bold">{{ number_format($cf->netOutflow, 0) }}</td>
                                     <td class="text-center num-cell text-muted fs-xs">
-                                        {{ number_format($cf->discountFactor, 6) }}</td>
+                                        {{ number_format($cf->discountFactor, 4) }}</td>
                                     <td class="text-end num-cell text-primary fw-bold">৳
-                                        {{ number_format($cf->presentValue, 2) }}</td>
+                                        {{ number_format($cf->presentValue, 0) }}</td>
                                     <td class="text-end num-cell text-info fs-xs">৳
-                                        {{ number_format($cf->cumulativePV, 2) }}</td>
+                                        {{ number_format($cf->cumulativePV, 0) }}</td>
                                     @if ($initialResult->hasIfrs16Schedule)
                                         <td class="text-end num-cell npv-col-ifrs16 text-muted">
-                                            {{ $cf->openingLeaseObligation !== null ? number_format($cf->openingLeaseObligation, 2) : '-' }}
+                                            {{ $cf->openingLeaseObligation !== null ? number_format($cf->openingLeaseObligation, 0) : '-' }}
                                         </td>
                                         <td class="text-end num-cell npv-col-ifrs16 text-success fw-semibold">
-                                            {{ $cf->leasePayment !== null ? number_format($cf->leasePayment, 2) : '-' }}
+                                            {{ $cf->leasePayment !== null ? number_format($cf->leasePayment, 0) : '-' }}
                                         </td>
                                         <td class="text-end num-cell npv-col-ifrs16 fw-bold">
-                                            {{ $cf->closingLeaseObligation !== null ? number_format($cf->closingLeaseObligation, 2) : '-' }}
+                                            {{ $cf->closingLeaseObligation !== null ? number_format($cf->closingLeaseObligation, 0) : '-' }}
                                         </td>
                                         <td class="text-end num-cell npv-col-ifrs16 text-danger">
-                                            {{ $cf->financeExpense !== null ? number_format($cf->financeExpense, 2) : '-' }}
+                                            {{ $cf->financeExpense !== null ? number_format($cf->financeExpense, 0) : '-' }}
                                         </td>
                                         <td class="text-end num-cell npv-col-ifrs16 text-info">
-                                            {{ $cf->rouOpeningBalance !== null ? number_format($cf->rouOpeningBalance, 2) : '-' }}
+                                            {{ $cf->rouOpeningBalance !== null ? number_format($cf->rouOpeningBalance, 0) : '-' }}
                                         </td>
                                         <td class="text-end num-cell npv-col-ifrs16 text-warning">
-                                            {{ $cf->depreciationCharged !== null ? number_format($cf->depreciationCharged, 2) : '-' }}
+                                            {{ $cf->depreciationCharged !== null ? number_format($cf->depreciationCharged, 0) : '-' }}
                                         </td>
                                         <td class="text-end num-cell npv-col-ifrs16 fw-semibold text-primary">
-                                            {{ $cf->rouWdv !== null ? number_format($cf->rouWdv, 2) : '-' }}
+                                            {{ $cf->rouWdv !== null ? number_format($cf->rouWdv, 0) : '-' }}
                                         </td>
                                     @endif
                                 </tr>
@@ -843,28 +847,28 @@
                                 <td class="text-end npv-col-breakdown">-</td>
                                 <td class="text-end npv-col-breakdown">-</td>
                                 <td class="text-end num-cell fw-bold npv-total-col">৳
-                                    {{ number_format($initialResult->totalGrossRent, 2) }}</td>
+                                    {{ number_format($initialResult->totalGrossRent, 0) }}</td>
                                 <td class="text-end num-cell text-warning fw-bold">-৳
-                                    {{ number_format($initialResult->totalAdvanceDeductions, 2) }}</td>
+                                    {{ number_format($initialResult->totalAdvanceDeductions, 0) }}</td>
                                 <td class="text-end num-cell text-success fw-bold">-৳
-                                    {{ number_format($initialResult->totalDepositRefunds, 2) }}</td>
+                                    {{ number_format($initialResult->totalDepositRefunds, 0) }}</td>
                                 <td class="text-end num-cell fw-bold">৳
-                                    {{ number_format($initialResult->totalUndiscountedOutflow, 2) }}</td>
+                                    {{ number_format($initialResult->totalUndiscountedOutflow, 0) }}</td>
                                 <td class="text-center">-</td>
                                 <td class="text-end num-cell text-primary fw-bold">৳
-                                    {{ number_format($initialResult->totalNPV, 2) }}</td>
+                                    {{ number_format($initialResult->totalNPV, 0) }}</td>
                                 <td class="text-end">-</td>
                                 @if ($initialResult->hasIfrs16Schedule)
                                     <td class="text-end npv-col-ifrs16">-</td>
                                     <td class="text-end num-cell text-success fw-bold npv-col-ifrs16">৳
-                                        {{ number_format($initialResult->totalLeasePayments, 2) }}</td>
-                                    <td class="text-end num-cell fw-bold npv-col-ifrs16">৳ 0.00</td>
+                                        {{ number_format($initialResult->totalLeasePayments, 0) }}</td>
+                                    <td class="text-end num-cell fw-bold npv-col-ifrs16">৳ 0</td>
                                     <td class="text-end num-cell text-danger fw-bold npv-col-ifrs16">৳
-                                        {{ number_format($initialResult->totalFinanceExpense, 2) }}</td>
+                                        {{ number_format($initialResult->totalFinanceExpense, 0) }}</td>
                                     <td class="text-end npv-col-ifrs16">-</td>
                                     <td class="text-end num-cell text-warning fw-bold npv-col-ifrs16">৳
-                                        {{ number_format($initialResult->totalDepreciation, 2) }}</td>
-                                    <td class="text-end num-cell fw-bold npv-col-ifrs16">৳ 0.00</td>
+                                        {{ number_format($initialResult->totalDepreciation, 0) }}</td>
+                                    <td class="text-end num-cell fw-bold npv-col-ifrs16">৳ 0</td>
                                 @endif
                             </tr>
                         </tfoot>

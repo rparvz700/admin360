@@ -50,18 +50,21 @@ class RentGrossUpCalculator
             $grossBeforeVat = $netRent + $taxAmount;
         }
 
+        $grossBeforeVat = round($grossBeforeVat);
+        $taxAmount = round($grossBeforeVat - $netRent);
+
         // 2. VAT applicability based on area threshold (>= 150 sq ft)
         $vatApplicable = ($areaSft >= $taxableThreshold);
-        $vatAmount = $vatApplicable ? ($grossBeforeVat * $vatDecimal) : 0.0;
+        $vatAmount = $vatApplicable ? round($grossBeforeVat * $vatDecimal) : 0.0;
 
-        $totalGross = $grossBeforeVat + $vatAmount;
+        $totalGross = round($grossBeforeVat + $vatAmount);
 
         return [
-            'net_rent' => round($netRent, 2),
-            'gross_before_vat' => round($grossBeforeVat, 2),
-            'tax_amount' => round($taxAmount, 2),
-            'vat_amount' => round($vatAmount, 2),
-            'total_gross' => round($totalGross, 2),
+            'net_rent' => (float) round($netRent),
+            'gross_before_vat' => (float) $grossBeforeVat,
+            'tax_amount' => (float) $taxAmount,
+            'vat_amount' => (float) $vatAmount,
+            'total_gross' => (float) $totalGross,
             'vat_applicable' => $vatApplicable,
         ];
     }

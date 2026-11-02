@@ -149,11 +149,11 @@ class MonthlyScheduleGenerator
                 $parkResult = $this->incrementProjector->calculateEffectiveGross($baseParkingGross, $increments, $bMonth);
                 $stResult = $this->incrementProjector->calculateEffectiveGross($baseStoreGross, $increments, $bMonth);
 
-                $mOff = round($offResult['effective_gross'], 2);
-                $mDg = round($dgResult['effective_gross'], 2);
-                $mPark = round($parkResult['effective_gross'], 2);
-                $mSt = round($stResult['effective_gross'], 2);
-                $mTot = round($mOff + $mDg + $mPark + $mSt, 2);
+                $mOff = (float) round($offResult['effective_gross']);
+                $mDg = (float) round($dgResult['effective_gross']);
+                $mPark = (float) round($parkResult['effective_gross']);
+                $mSt = (float) round($stResult['effective_gross']);
+                $mTot = (float) round($mOff + $mDg + $mPark + $mSt);
 
                 $adj = $this->advanceScheduler->getAdjustmentsForMonth(
                     $securityDeposits,
@@ -162,7 +162,7 @@ class MonthlyScheduleGenerator
                     $expiryDateStr,
                     false
                 );
-                $mAdv = round($adj['advance_deduction'], 2);
+                $mAdv = (float) round($adj['advance_deduction']);
 
                 $accumulatedOfficeGross += $mOff;
                 $accumulatedDgGross += $mDg;
@@ -215,13 +215,13 @@ class MonthlyScheduleGenerator
                 totalGrossRent: 0.0,
                 advanceDeduction: 0.0,
                 depositRefund: 0.0,
-                netOutflow: round($initialDepositTotal, 2),
-                discountFactor: 1.000000,
-                presentValue: round($initialDepositTotal, 2),
-                cumulativePV: round($initialDepositTotal, 2),
+                netOutflow: (float) round($initialDepositTotal),
+                discountFactor: 1.0000,
+                presentValue: (float) round($initialDepositTotal),
+                cumulativePV: (float) round($initialDepositTotal),
                 activeIncrements: []
             );
-            $cumulativePV = round($initialDepositTotal, 2);
+            $cumulativePV = (float) round($initialDepositTotal);
         }
 
         $periodIndex = 1;
@@ -239,11 +239,11 @@ class MonthlyScheduleGenerator
             $storeIncResult = $this->incrementProjector->calculateEffectiveGross($baseStoreGross, $increments, $billingMonth);
             $incMeta = $this->incrementProjector->calculateEffectiveGross($incrementReferenceBase, $increments, $billingMonth);
 
-            $mOfficeGross = round($officeIncResult['effective_gross'], 2);
-            $mDgGross = round($dgIncResult['effective_gross'], 2);
-            $mParkingGross = round($parkingIncResult['effective_gross'], 2);
-            $mStoreGross = round($storeIncResult['effective_gross'], 2);
-            $mTotalGross = round($mOfficeGross + $mDgGross + $mParkingGross + $mStoreGross, 2);
+            $mOfficeGross = (float) round($officeIncResult['effective_gross']);
+            $mDgGross = (float) round($dgIncResult['effective_gross']);
+            $mParkingGross = (float) round($parkingIncResult['effective_gross']);
+            $mStoreGross = (float) round($storeIncResult['effective_gross']);
+            $mTotalGross = (float) round($mOfficeGross + $mDgGross + $mParkingGross + $mStoreGross);
 
             $adjustments = $this->advanceScheduler->getAdjustmentsForMonth(
                 $securityDeposits,
@@ -252,26 +252,26 @@ class MonthlyScheduleGenerator
                 $expiryDateStr,
                 $isExpiryMonth
             );
-            $mAdvanceDeduction = round($adjustments['advance_deduction'], 2);
-            $depositRefund = $adjustments['deposit_refund'];
+            $mAdvanceDeduction = (float) round($adjustments['advance_deduction']);
+            $depositRefund = (float) round($adjustments['deposit_refund']);
 
             // Period 1 includes accumulated prior arrears from agreement start date
-            $officeGross = round($mOfficeGross + ($isFirstPaymentMonth ? $accumulatedOfficeGross : 0.0), 2);
-            $dgGross = round($mDgGross + ($isFirstPaymentMonth ? $accumulatedDgGross : 0.0), 2);
-            $parkingGross = round($mParkingGross + ($isFirstPaymentMonth ? $accumulatedParkingGross : 0.0), 2);
-            $storeGross = round($mStoreGross + ($isFirstPaymentMonth ? $accumulatedStoreGross : 0.0), 2);
-            $totalGross = round($mTotalGross + ($isFirstPaymentMonth ? $accumulatedTotalGross : 0.0), 2);
+            $officeGross = (float) round($mOfficeGross + ($isFirstPaymentMonth ? $accumulatedOfficeGross : 0.0));
+            $dgGross = (float) round($mDgGross + ($isFirstPaymentMonth ? $accumulatedDgGross : 0.0));
+            $parkingGross = (float) round($mParkingGross + ($isFirstPaymentMonth ? $accumulatedParkingGross : 0.0));
+            $storeGross = (float) round($mStoreGross + ($isFirstPaymentMonth ? $accumulatedStoreGross : 0.0));
+            $totalGross = (float) round($mTotalGross + ($isFirstPaymentMonth ? $accumulatedTotalGross : 0.0));
 
-            $advanceDeduction = round($mAdvanceDeduction + ($isFirstPaymentMonth ? $accumulatedAdvanceDeduction : 0.0), 2);
-            $netOutflow = round($totalGross - $advanceDeduction - $depositRefund, 2);
+            $advanceDeduction = (float) round($mAdvanceDeduction + ($isFirstPaymentMonth ? $accumulatedAdvanceDeduction : 0.0));
+            $netOutflow = (float) round($totalGross - $advanceDeduction - $depositRefund);
 
             // Discounting starts strictly at payment_start_date (Period 1 = payment_start_date)
             $discountFactor = $this->discountingService->calculateDiscountFactor($periodIndex, $monthlyRate);
-            $presentValue = round($this->discountingService->calculatePresentValue($netOutflow, $discountFactor), 2);
-            $cumulativePV = round($cumulativePV + $presentValue, 2);
+            $presentValue = (float) round($this->discountingService->calculatePresentValue($netOutflow, $discountFactor));
+            $cumulativePV = (float) round($cumulativePV + $presentValue);
 
             $arrearsTotalForMonth = ($isFirstPaymentMonth && $accumulatedTotalGross > 0)
-                ? round($accumulatedTotalGross - $accumulatedAdvanceDeduction, 2) 
+                ? (float) round($accumulatedTotalGross - $accumulatedAdvanceDeduction) 
                 : 0.0;
 
             $totalMonthsPaidStr = ($isFirstPaymentMonth && $priorElapsedMonths > 0)

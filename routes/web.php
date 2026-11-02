@@ -158,6 +158,12 @@ Route::middleware(['auth'])->group(function(){
         Route::get('/report/{agreementId}/detail', [NpvAnalysisController::class, 'agreementDetail'])->name('report.detail');
         Route::post('/report/refresh-cache', [NpvAnalysisController::class, 'refreshReportCache'])->name('report.refresh-cache');
         Route::post('/agreements/{agreement}/update-interest-rate', [NpvAnalysisController::class, 'updateInterestRate'])->name('update-interest-rate');
+
+        // Consolidated NPV Summary Schedule Routes
+        Route::get('/summary', [NpvAnalysisController::class, 'summary'])->name('summary');
+        Route::get('/summary/agreement/{agreementId}', [NpvAnalysisController::class, 'summaryAgreementSchedule'])->name('summary.agreement');
+        Route::get('/summary/matrix-data', [NpvAnalysisController::class, 'summaryMatrixData'])->name('summary.matrix-data');
+        Route::get('/summary/export', [NpvAnalysisController::class, 'exportSummary'])->name('summary.export');
     });
 
     // Finance Settings Routes (Discount Rate management)
@@ -375,3 +381,5 @@ Route::middleware(['auth'])->prefix('reports')->name('reports.')->group(function
     Route::post('joins/save', [\App\Http\Controllers\ReportManagement\ReportController::class, 'saveJoin'])->name('joins.save');
     Route::delete('joins/{id}', [\App\Http\Controllers\ReportManagement\ReportController::class, 'deleteJoin'])->name('joins.delete');
 });
+
+
