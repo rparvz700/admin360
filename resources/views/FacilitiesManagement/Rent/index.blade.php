@@ -54,6 +54,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Agreement</th>
+                                <th>Building and Floor</th>
                                 <th>Base Rent</th>
                                 <th>Agreement Start Date</th>
                                 <th>Agreement End Date</th>
@@ -114,7 +115,11 @@
                         stateDuration: -1,
                         stateLoadCallback: function(settings) {
                             try {
-                                return JSON.parse(globalConfig);
+                                const parsed = JSON.parse(globalConfig);
+                                if (parsed && parsed.columns && parsed.columns.length === settings.aoColumns.length) {
+                                    return parsed;
+                                }
+                                return null;
                             } catch (e) {
                                 return null;
                             }
@@ -142,7 +147,14 @@
                                 searchable: false
                             },
                             {
-                                data: 'agreement'
+                                data: 'agreement',
+                                name: 'agreement'
+                            },
+                            {
+                                data: 'building_and_floor',
+                                name: 'building_and_floor',
+                                orderable: false,
+                                searchable: true
                             },
                             {
                                 data: 'base_rent'

@@ -126,7 +126,11 @@
                         stateDuration: -1,
                         stateLoadCallback: function(settings) {
                             try {
-                                return JSON.parse(globalConfig);
+                                const parsed = JSON.parse(globalConfig);
+                                if (parsed && parsed.columns && parsed.columns.length === settings.aoColumns.length) {
+                                    return parsed;
+                                }
+                                return null;
                             } catch (e) {
                                 return null;
                             }

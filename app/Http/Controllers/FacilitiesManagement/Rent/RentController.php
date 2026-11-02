@@ -25,7 +25,7 @@ class RentController extends Controller
 
     public function list(Request $request)
     {
-        $query = RentBase::with(['agreement', 'invoice'])->orderBy('id', 'desc');
+        $query = RentBase::with(['agreement.floors.building', 'invoice'])->orderBy('id', 'desc');
         return datatables()->of($query)
             ->addIndexColumn()
             ->addColumn('agreement_start_date', function($row) {
@@ -40,6 +40,38 @@ class RentController extends Controller
             ->addColumn('agreement', function($row) {
                 return ($row->agreement ? $row->agreement->agreement_ref_no : '');
             })
+            ->addColumn('building_and_floor', function ($row) {
+                $floors = $row->agreement ? $row->agreement->floors : collect();
+                if ($floors->isEmpty()) {
+                    return '<span class="text-muted">-</span>';
+                }
+
+                $grouped = $floors->groupBy(function ($floor) {
+                    if (!$floor->building) {
+                        return 'N/A';
+                    }
+                    $b = $floor->building;
+                    $name = $b->site_name;
+                    $code = $b->code ?? $b->site_code;
+                    if ($name && $code && $name !== $code) {
+                        return "{$name} ({$code})";
+                    }
+                    return $name ?: ($code ?: 'N/A');
+                });
+
+                $html = [];
+                foreach ($grouped as $buildingName => $bFloors) {
+                    $floorLabels = $bFloors->pluck('floor_label')->filter()->unique()->implode(', ');
+                    $item = '<div><span class="fw-semibold text-dark">' . e($buildingName) . '</span>';
+                    if (!empty($floorLabels)) {
+                        $item .= '<span class="text-muted fs-xs d-block"><i class="fa fa-layer-group me-1"></i>' . e($floorLabels) . '</span>';
+                    }
+                    $item .= '</div>';
+                    $html[] = $item;
+                }
+
+                return implode('<div class="my-1 border-top border-light"></div>', $html);
+            })
             ->editColumn('status', function ($row) {
                 if (!$row->agreement) {
                     return '<span class="badge bg-secondary">N/A</span>';
@@ -52,14 +84,29 @@ class RentController extends Controller
                     $q->where('agreement_ref_no', 'like', "%{$keyword}%");
                 });
             })
-            
-            ->rawColumns(['actions', 'status'])
+            ->filterColumn('building_and_floor', function ($query, $keyword) {
+                $query->whereHas('agreement.floors', function ($fq) use ($keyword) {
+                    $fq->where('floor_label', 'like', "%{$keyword}%")
+                       ->orWhereHas('building', function ($bq) use ($keyword) {
+                           $bq->where('site_name', 'like', "%{$keyword}%")
+                              ->orWhere('code', 'like', "%{$keyword}%")
+                              ->orWhere('site_code', 'like', "%{$keyword}%");
+                       });
+                });
+            })
+            ->rawColumns(['actions', 'status', 'building_and_floor'])
             ->make(true);
     }
     public function index()
     {
         $globalSettings = TableSetting::where('table_identifier', 'rent_table')->first();
-        $tableConfig = $globalSettings ? $globalSettings->settings : null;
+        $tableConfig = null;
+        if ($globalSettings && $globalSettings->settings) {
+            $decoded = json_decode($globalSettings->settings, true);
+            if (isset($decoded['columns']) && count($decoded['columns']) === 8) {
+                $tableConfig = $globalSettings->settings;
+            }
+        }
 
         return view('FacilitiesManagement.Rent.index', compact('tableConfig'));
     }
@@ -274,8 +321,8 @@ class RentController extends Controller
         $hasAbsorbable = $this->moneyValue($request->security_deposit_absorbable) > 0;
         $hasNonAbsorbable = $this->moneyValue($request->security_deposit_non_absorbable) > 0;
 
-        if (($hasAbsorbable || $hasNonAbsorbable) && !$this->hasDepositRows($request)) {
-            return 'Please add at least one deposit schedule row when Absorbable or Non-Absorbable amount is entered.';
+        if ($hasAbsorbable && !$this->hasDepositRows($request)) {
+            return 'Please add at least one deposit schedule row when an Adjustable amount is entered.';
         }
 
         return null;
@@ -292,6 +339,9 @@ class RentController extends Controller
 
         if ($this->hasDepositRows($request)) {
             foreach ($request->input('deposits', []) as $deposit) {
+                if (empty($deposit['absorb_amount']) && empty($deposit['absorb_start_date']) && empty($deposit['absorb_end_date'])) {
+                    continue;
+                }
                 \App\Models\SecurityDeposit::create(array_merge($this->depositPayload($deposit), $summary));
             }
             return;
@@ -306,7 +356,9 @@ class RentController extends Controller
     {
         return collect($request->input('deposits', []))
             ->contains(function ($deposit) {
-                return collect($deposit)->contains(fn ($value) => $value !== null && $value !== '');
+                return !empty($deposit['absorb_amount'])
+                    || !empty($deposit['absorb_start_date'])
+                    || !empty($deposit['absorb_end_date']);
             });
     }
 

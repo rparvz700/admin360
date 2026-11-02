@@ -54,9 +54,10 @@
                                         <i class="fa fa-eye"></i>
                                     </a>
                                 </label>
-                                <input type="hidden" name="agreement_id" value="{{ old('agreement_id', $base->agreement_id) }}">
-                                <select id="agreement_id" class="form-select js-select2"
-                                    data-placeholder="Select agreement" disabled>
+                                <input type="hidden" name="agreement_id"
+                                    value="{{ old('agreement_id', $base->agreement_id) }}">
+                                <select id="agreement_id" class="form-select js-select2" data-placeholder="Select agreement"
+                                    disabled>
                                     <option value=""></option>
                                     @foreach ($agreements as $agreement)
                                         <option value="{{ $agreement->id }}"
@@ -66,8 +67,10 @@
                                 </select>
                             </div>
                             <div class="col-md-6 col-sm-12 mb-4">
-                                <label class="form-label" for="is_at_source">Is At Source <span class="text-danger">*</span></label>
-                                <select class="form-select @error('is_at_source') is-invalid @enderror" id="is_at_source" name="is_at_source" required>
+                                <label class="form-label" for="is_at_source">Is At Source <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select @error('is_at_source') is-invalid @enderror" id="is_at_source"
+                                    name="is_at_source" required>
                                     <option value="">Select</option>
                                     <option value="1"
                                         {{ old('is_at_source', $base->is_at_source) == '1' ? 'selected' : '' }}>
@@ -103,7 +106,8 @@
                             <!-- Agreement FYI Panel -->
                             <div id="agreementFyiPanel" class="col-12 mb-4 d-none">
                                 <div class="card border shadow-sm bg-body-light">
-                                    <div class="card-header bg-light py-2 d-flex align-items-center justify-content-between">
+                                    <div
+                                        class="card-header bg-light py-2 d-flex align-items-center justify-content-between">
                                         <h6 class="mb-0 text-primary fw-semibold fs-sm">
                                             <i class="fa fa-info-circle me-1"></i> Agreement General Information (FYI)
                                         </h6>
@@ -116,52 +120,68 @@
                                                 <div class="fw-bold text-dark mb-2 border-bottom pb-1">
                                                     <i class="fa fa-calendar-alt text-muted me-1"></i> Agreement Details
                                                 </div>
-                                                <div class="mb-1"><span class="text-muted">Vendor / Tenant:</span> <strong id="fyiVendor">--</strong></div>
-                                                <div class="mb-1"><span class="text-muted">Agreement Date:</span> <span id="fyiAgreementDate">--</span></div>
-                                                <div class="mb-1"><span class="text-muted">Start Date:</span> <span id="fyiStartDate" class="badge bg-success-light text-success">--</span></div>
-                                                <div class="mb-1"><span class="text-muted">End Date:</span> <span id="fyiEndDate" class="badge bg-danger-light text-danger">--</span></div>
+                                                <div class="mb-1"><span class="text-muted">Vendor / Tenant:</span> <strong
+                                                        id="fyiVendor">--</strong></div>
+                                                <div class="mb-1"><span class="text-muted">Agreement Date:</span> <span
+                                                        id="fyiAgreementDate">--</span></div>
+                                                <div class="mb-1"><span class="text-muted">Start Date:</span> <span
+                                                        id="fyiStartDate"
+                                                        class="badge bg-success-light text-success">--</span></div>
+                                                <div class="mb-1"><span class="text-muted">End Date:</span> <span
+                                                        id="fyiEndDate" class="badge bg-danger-light text-danger">--</span>
+                                                </div>
                                             </div>
-                                            
+
                                             <!-- Building Information -->
                                             <div class="col-md-4 border-end">
                                                 <div class="fw-bold text-dark mb-2 border-bottom pb-1">
                                                     <i class="fa fa-building text-muted me-1"></i> Building Information
                                                 </div>
-                                                <div class="mb-1"><span class="text-muted">Building Name:</span> <strong id="fyiBuildingName">--</strong></div>
-                                                <div class="mb-1"><span class="text-muted">Building Code:</span> <span id="fyiBuildingCode">--</span></div>
-                                                <div class="mb-1"><span class="text-muted">Address / Location:</span> <span id="fyiBuildingAddress">--</span></div>
+                                                <div class="mb-1"><span class="text-muted">Site Name:</span> <strong
+                                                        id="fyiBuildingName">--</strong></div>
+                                                <div class="mb-1"><span class="text-muted">Site Code:</span> <span
+                                                        id="fyiBuildingCode">--</span></div>
+                                                <div class="mb-1"><span class="text-muted">Address / Location:</span>
+                                                    <span id="fyiBuildingAddress">--</span></div>
                                             </div>
-                                            
+
                                             <!-- Floor General Information -->
                                             <div class="col-md-4">
                                                 <div class="fw-bold text-dark mb-2 border-bottom pb-1">
-                                                    <i class="fa fa-layer-group text-muted me-1"></i> Floor & Premises Information
+                                                    <i class="fa fa-layer-group text-muted me-1"></i> Floor & Premises
+                                                    Information
                                                 </div>
-                                                <div class="mb-1"><span class="text-muted">Floor Label(s):</span> <strong id="fyiFloors">--</strong></div>
-                                                <div class="mb-1"><span class="text-muted">Premises Type:</span> <span id="fyiPremisesType">--</span></div>
+                                                <div class="mb-1"><span class="text-muted">Floor Label(s):</span>
+                                                    <strong id="fyiFloors">--</strong></div>
+                                                <div class="mb-1"><span class="text-muted">Premises Type:</span> <span
+                                                        id="fyiPremisesType">--</span></div>
                                                 <div class="row text-center mt-2 pt-2 border-top g-1">
                                                     <div class="col-3">
                                                         <div class="p-1 bg-white rounded border">
                                                             <div class="fs-xs text-muted">Floor Area</div>
-                                                            <div class="fw-bold fs-xs text-primary" id="fyiFloorArea">0 sft</div>
+                                                            <div class="fw-bold fs-xs text-primary" id="fyiFloorArea">0
+                                                                sft</div>
                                                         </div>
                                                     </div>
                                                     <div class="col-3">
                                                         <div class="p-1 bg-white rounded border">
                                                             <div class="fs-xs text-muted">Parking</div>
-                                                            <div class="fw-bold fs-xs text-info" id="fyiCarParking">0</div>
+                                                            <div class="fw-bold fs-xs text-info" id="fyiCarParking">0
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <div class="col-3">
                                                         <div class="p-1 bg-white rounded border">
                                                             <div class="fs-xs text-muted">DG Space</div>
-                                                            <div class="fw-bold fs-xs text-warning" id="fyiDgSpace">0 sft</div>
+                                                            <div class="fw-bold fs-xs text-warning" id="fyiDgSpace">0 sft
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <div class="col-3">
                                                         <div class="p-1 bg-white rounded border">
                                                             <div class="fs-xs text-muted">Store Space</div>
-                                                            <div class="fw-bold fs-xs text-secondary" id="fyiStoreSpace">0 sft</div>
+                                                            <div class="fw-bold fs-xs text-secondary" id="fyiStoreSpace">0
+                                                                sft</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -201,26 +221,31 @@
                                             <tr data-id="{{ $type->id }}">
                                                 <td class="align-middle fw-semibold">
                                                     {{ $type->name }}
-                                                    <input type="hidden" name="utilities[{{ $type->id }}][id]" value="{{ $type->id }}">
+                                                    <input type="hidden" name="utilities[{{ $type->id }}][id]"
+                                                        value="{{ $type->id }}">
                                                 </td>
                                                 <td>
                                                     <div class="input-group input-group-sm">
                                                         <span class="input-group-text">৳</span>
-                                                        <input type="number" step="0.01" class="form-control form-control-sm" 
-                                                               name="utilities[{{ $type->id }}][amount]" 
-                                                               value="{{ old('utilities.' . $type->id . '.amount', $existing->amount) }}" required>
+                                                        <input type="number" step="0.01"
+                                                            class="form-control form-control-sm"
+                                                            name="utilities[{{ $type->id }}][amount]"
+                                                            value="{{ old('utilities.' . $type->id . '.amount', $existing->amount) }}"
+                                                            required>
                                                     </div>
                                                 </td>
                                                 <td class="align-middle">
                                                     <div class="form-check form-switch mb-0">
-                                                        <input class="form-check-input" type="checkbox" 
-                                                               name="utilities[{{ $type->id }}][disburse_with_rent]" value="1"
-                                                               {{ old('utilities.' . $type->id . '.disburse_with_rent', $existing->disburse_with_rent) ? 'checked' : '' }}>
+                                                        <input class="form-check-input" type="checkbox"
+                                                            name="utilities[{{ $type->id }}][disburse_with_rent]"
+                                                            value="1"
+                                                            {{ old('utilities.' . $type->id . '.disburse_with_rent', $existing->disburse_with_rent) ? 'checked' : '' }}>
                                                         <label class="form-check-label fs-xs">Disburse with Rent</label>
                                                     </div>
                                                 </td>
                                                 <td class="text-center align-middle">
-                                                    <button type="button" class="btn btn-sm btn-alt-danger remove-utility-row">
+                                                    <button type="button"
+                                                        class="btn btn-sm btn-alt-danger remove-utility-row">
                                                         <i class="fa fa-times"></i>
                                                     </button>
                                                 </td>
@@ -252,66 +277,155 @@
 
                     <!-- Rent Increments Section -->
                     <section class="mb-4 p-3 border rounded rent-panel">
-                        <h5 class="mb-3">Rent Increments</h5>
-                        <table class="table table-bordered" id="incrementsTable">
-                            <thead>
-                                <tr>
-                                    <th>Start Date</th>
-                                    <th>Months</th>
-                                    <th>End Date</th>
-                                    <th>Amount</th>
-                                    <th>Percentage</th>
-                                    <th>Method Description</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (old('increments', $base->increments) as $ikey => $inc)
+                        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+                            <div>
+                                <h5 class="mb-1">Rent Increments</h5>
+                                <div class="text-muted fs-sm">Configure periodic rent escalation tiers and review effective
+                                    total rent.</div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-alt-success" id="addIncrement">
+                                <i class="fa fa-plus me-1"></i> Add Increment
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm table-vcenter align-middle mb-2 wizard-table"
+                                id="incrementsTable">
+                                <thead class="table-light fs-xs text-uppercase">
                                     <tr>
-                                        <td><input type="date"
-                                                name="increments[{{ $ikey }}][increment_start_date]"
-                                                class="form-control inc-start-date"
-                                                value="{{ old('increments.' . $ikey . '.increment_start_date', $inc->increment_start_date ?? '') }}"
-                                                required>
-                                        </td>
-                                        <td><input type="number" name="increments[{{ $ikey }}][years]"
-                                                class="form-control inc-years" min="1"
-                                                value="{{ old('increments.' . $ikey . '.years', $inc->years ?? '') }}"
-                                                required>
-                                        </td>
-                                        <td><input type="date"
-                                                name="increments[{{ $ikey }}][increment_end_date]"
-                                                class="form-control inc-end-date"
-                                                value="{{ old('increments.' . $ikey . '.increment_end_date', $inc->increment_end_date ?? '') }}"
-                                                required></td>
-                                        <td><input type="number" step="0.01"
-                                                name="increments[{{ $ikey }}][increment_amount]"
-                                                class="form-control inc-amount"
-                                                value="{{ old('increments.' . $ikey . '.increment_amount', $inc->increment_amount ?? '') }}"
-                                                required></td>
-                                        <td><input type="number" step="0.01"
-                                                name="increments[{{ $ikey }}][increment_percentage]"
-                                                class="form-control inc-percent"
-                                                value="{{ old('increments.' . $ikey . '.increment_percentage', $inc->increment_percentage ?? '') }}">
-                                        </td>
-                                        <td><input type="text"
-                                                name="increments[{{ $ikey }}][method_description]"
-                                                class="form-control"
-                                                value="{{ old('increments.' . $ikey . '.method_description', $inc->method_description ?? '') }}">
-                                        </td>
-                                        <td><button type="button"
-                                                class="btn btn-alt-danger btn-sm remove-increment">Remove</button>
-                                        </td>
+                                        <th style="min-width: 140px;">Start Date</th>
+                                        <th style="width: 110px;" class="text-center">Months</th>
+                                        <th style="min-width: 140px;">End Date</th>
+                                        <th style="min-width: 170px;" class="text-end">Increment Amount</th>
+                                        <th style="min-width: 120px;" class="text-end">Percentage</th>
+                                        <th style="min-width: 200px;" class="text-end">Total Incremented Amount</th>
+                                        <th style="width: 60px;" class="text-center">Action</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                        <button type="button" class="btn btn-alt-success" id="addIncrement">Add Increment</button>
+                                </thead>
+                                <tbody>
+                                    @php
+                                        $runningRentLoop = (float) old('base_rent', $base->base_rent ?? 0);
+                                    @endphp
+                                    @foreach (old('increments', $base->increments) as $ikey => $inc)
+                                        @php
+                                            $startDate = old(
+                                                "increments.$ikey.increment_start_date",
+                                                is_array($inc)
+                                                    ? $inc['increment_start_date'] ?? ''
+                                                    : $inc->increment_start_date ?? '',
+                                            );
+                                            $years = old(
+                                                "increments.$ikey.years",
+                                                is_array($inc) ? $inc['years'] ?? 1 : $inc->years ?? 1,
+                                            );
+                                            $endDate = old(
+                                                "increments.$ikey.increment_end_date",
+                                                is_array($inc)
+                                                    ? $inc['increment_end_date'] ?? ''
+                                                    : $inc->increment_end_date ?? '',
+                                            );
+                                            $amount = old(
+                                                "increments.$ikey.increment_amount",
+                                                is_array($inc)
+                                                    ? $inc['increment_amount'] ?? ''
+                                                    : $inc->increment_amount ?? '',
+                                            );
+                                            $percent = old(
+                                                "increments.$ikey.increment_percentage",
+                                                is_array($inc)
+                                                    ? $inc['increment_percentage'] ?? ''
+                                                    : $inc->increment_percentage ?? '',
+                                            );
+                                            $methodDesc = old(
+                                                "increments.$ikey.method_description",
+                                                is_array($inc)
+                                                    ? $inc['method_description'] ?? ''
+                                                    : $inc->method_description ?? '',
+                                            );
+                                            $incTotalVal = old(
+                                                "increments.$ikey.incremented_amount",
+                                                is_array($inc)
+                                                    ? $inc['incremented_amount'] ?? ''
+                                                    : $inc->incremented_amount ?? '',
+                                            );
+
+                                            $runningRentLoop += (float) ($amount ?? 0);
+                                            if (empty($incTotalVal) || (float) $incTotalVal <= 0) {
+                                                $incTotalVal = $runningRentLoop;
+                                            }
+                                        @endphp
+                                        <tr>
+                                            <td><input type="date"
+                                                    name="increments[{{ $ikey }}][increment_start_date]"
+                                                    class="form-control form-control-sm inc-start-date"
+                                                    value="{{ $startDate }}" required>
+                                            </td>
+                                            <td>
+                                                <div class="input-group input-group-sm">
+                                                    <input type="number" name="increments[{{ $ikey }}][years]"
+                                                        class="form-control form-control-sm text-center inc-years"
+                                                        min="1" value="{{ $years }}" required>
+                                                    <span class="input-group-text bg-light text-muted fs-xs">mo</span>
+                                                </div>
+                                            </td>
+                                            <td><input type="date"
+                                                    name="increments[{{ $ikey }}][increment_end_date]"
+                                                    class="form-control form-control-sm inc-end-date"
+                                                    value="{{ $endDate }}" required></td>
+                                            <td>
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text bg-light text-muted">৳</span>
+                                                    <input type="number" step="0.01" min="0"
+                                                        name="increments[{{ $ikey }}][increment_amount]"
+                                                        class="form-control form-control-sm text-end fw-semibold font-monospace inc-amount"
+                                                        value="{{ $amount }}" placeholder="0.00" required>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="input-group input-group-sm">
+                                                    <input type="number" step="0.01" min="0"
+                                                        name="increments[{{ $ikey }}][increment_percentage]"
+                                                        class="form-control form-control-sm text-end inc-percent"
+                                                        value="{{ $percent }}" placeholder="0.00">
+                                                    <span class="input-group-text bg-light text-muted">%</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="input-group input-group-sm">
+                                                    <span
+                                                        class="input-group-text bg-success-light text-success fw-bold">৳</span>
+                                                    <input type="text"
+                                                        class="form-control form-control-sm text-end fw-bold text-success font-monospace bg-light inc-total-display"
+                                                        value="{{ number_format((float) $incTotalVal, 2) }}" readonly
+                                                        placeholder="0.00">
+                                                    <input type="hidden"
+                                                        name="increments[{{ $ikey }}][incremented_amount]"
+                                                        class="inc-total-value" value="{{ $incTotalVal }}">
+                                                    <input type="hidden"
+                                                        name="increments[{{ $ikey }}][method_description]"
+                                                        value="{{ $methodDesc }}">
+                                                </div>
+                                                <div class="inc-total-words fs-xs text-muted text-end mt-1 font-monospace">
+                                                </div>
+                                            </td>
+                                            <td class="text-center"><button type="button"
+                                                    class="btn btn-alt-danger btn-sm remove-increment"
+                                                    title="Remove Increment"><i class="fa fa-times"></i></button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </section>
 
                     <!-- Security Deposits Section -->
                     <section class="mb-4 p-3 border rounded rent-panel">
-                        <h5 class="mb-3">Security Deposits</h5>
+                        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+                            <h5 class="mb-0">Security Deposits</h5>
+                            <button type="button" class="btn btn-sm btn-alt-success" id="addDeposit">
+                                <i class="fa fa-plus me-1"></i> Add Deposit
+                            </button>
+                        </div>
                         @error('deposits')
                             <div class="alert alert-danger py-2">{{ $message }}</div>
                         @enderror
@@ -349,80 +463,104 @@
                                 ),
                             ];
                         @endphp
-                        <div class="row mb-3">
+                        <div class="row g-3 mb-3">
                             <div class="col-md-4">
-                                <label class="form-label">Total</label>
-                                <input type="number" step="0.01" name="security_deposit_total" class="form-control"
-                                    value="{{ $securityDepositSummary->security_deposit_total }}">
+                                <label class="form-label">Total Security Deposit</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-light text-muted">৳</span>
+                                    <input type="number" step="0.01" min="0" name="security_deposit_total" class="form-control form-control-sm text-end fw-semibold font-monospace" placeholder="0.00"
+                                        value="{{ $securityDepositSummary->security_deposit_total }}">
+                                </div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Adjustable</label>
-                                <input type="number" step="0.01" name="security_deposit_absorbable"
-                                    class="form-control"
-                                    value="{{ $securityDepositSummary->security_deposit_absorbable }}">
+                                <label class="form-label">Adjustable Amount</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-light text-muted">৳</span>
+                                    <input type="number" step="0.01" min="0" name="security_deposit_absorbable"
+                                        class="form-control form-control-sm text-end fw-semibold font-monospace" placeholder="0.00"
+                                        value="{{ $securityDepositSummary->security_deposit_absorbable }}">
+                                </div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Non-Adjustable</label>
-                                <input type="number" step="0.01" name="security_deposit_non_absorbable"
-                                    class="form-control"
-                                    value="{{ $securityDepositSummary->security_deposit_non_absorbable }}">
+                                <label class="form-label">Non-Adjustable Amount</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-light text-muted">৳</span>
+                                    <input type="number" step="0.01" min="0" name="security_deposit_non_absorbable"
+                                        class="form-control form-control-sm text-end fw-semibold font-monospace" placeholder="0.00"
+                                        value="{{ $securityDepositSummary->security_deposit_non_absorbable }}">
+                                </div>
                             </div>
                         </div>
-                        <table class="table table-bordered" id="depositsTable">
-                            <thead>
-                                <tr>
-                                    <th>Adjustable Amount</th>
-                                    <th>Month Interval</th>
-                                    <th>Adjustable / Month</th>
-                                    <th>Adjustable Start</th>
-                                    <th>Adjustable End</th>
-                                    <th>Method Desc</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if ($depositRows->isNotEmpty())
-                                    @foreach ($depositRows as $dkey => $deposit)
-                                        <tr>
-                                            <td><input type="number" step="0.01"
-                                                    name="deposits[{{ $dkey }}][absorb_amount]"
-                                                    class="form-control abs-amount"
-                                                    value="{{ old('deposits.' . $dkey . '.absorb_amount', $deposit->absorb_amount ?? '') }}">
-                                            </td>
-                                            <td><input type="number"
-                                                    name="deposits[{{ $dkey }}][month_interval]"
-                                                    class="form-control dep-months" min="1"
-                                                    value="{{ old('deposits.' . $dkey . '.month_interval', $deposit->absorb_frequency ?? '') }}"
-                                                    required></td>
-                                            <td><input type="number" step="0.01"
-                                                    name="deposits[{{ $dkey }}][adjust_per_month]"
-                                                    class="form-control dep-per-month"
-                                                    value="{{ old('deposits.' . $dkey . '.adjust_per_month') }}" readonly>
-                                            </td>
-                                            <td><input type="date"
-                                                    name="deposits[{{ $dkey }}][absorb_start_date]"
-                                                    class="form-control dep-start-date"
-                                                    value="{{ old('deposits.' . $dkey . '.absorb_start_date', $deposit->absorb_start_date ?? '') }}">
-                                            </td>
-                                            <td><input type="date"
-                                                    name="deposits[{{ $dkey }}][absorb_end_date]"
-                                                    class="form-control dep-end-date"
-                                                    value="{{ old('deposits.' . $dkey . '.absorb_end_date', $deposit->absorb_end_date ?? '') }}"
-                                                    required></td>
-                                            <td><input type="text"
-                                                    name="deposits[{{ $dkey }}][method_description]"
-                                                    class="form-control"
-                                                    value="{{ old('deposits.' . $dkey . '.method_description', $deposit->method_description ?? '') }}">
-                                            </td>
-                                            <td><button type="button"
-                                                    class="btn btn-alt-danger btn-sm remove-deposit">Remove</button>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                @endif
-                            </tbody>
-                        </table>
-                        <button type="button" class="btn btn-alt-success" id="addDeposit">Add Deposit</button>
+                        <div class="text-muted fs-xs mb-2"><i class="fa fa-info-circle me-1"></i>Note: Schedule rows below are only required if an <strong>Adjustable</strong> deposit amount is specified. If the deposit is entirely Non-Adjustable, no schedule rows are needed.</div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm align-middle mb-0" id="depositsTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="min-width: 160px;" class="text-end">Adjustable Amount</th>
+                                        <th style="min-width: 90px;" class="text-center">Month Interval</th>
+                                        <th style="min-width: 160px;" class="text-end">Adjustable / Month</th>
+                                        <th style="min-width: 140px;">Adjustable Start</th>
+                                        <th style="min-width: 140px;">Adjustable End</th>
+                                        <th style="min-width: 180px;">Method Description</th>
+                                        <th style="width: 50px;" class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if ($depositRows->isNotEmpty())
+                                        @foreach ($depositRows as $dkey => $deposit)
+                                            <tr>
+                                                <td>
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text bg-light text-muted">৳</span>
+                                                        <input type="number" step="0.01" min="0"
+                                                            name="deposits[{{ $dkey }}][absorb_amount]"
+                                                            class="form-control form-control-sm text-end fw-semibold font-monospace abs-amount"
+                                                            value="{{ old('deposits.' . $dkey . '.absorb_amount', $deposit->absorb_amount ?? '') }}" placeholder="0.00">
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="number"
+                                                            name="deposits[{{ $dkey }}][month_interval]"
+                                                            class="form-control form-control-sm text-center dep-months" min="1"
+                                                            value="{{ old('deposits.' . $dkey . '.month_interval', $deposit->absorb_frequency ?? '') }}"
+                                                            required>
+                                                        <span class="input-group-text bg-light text-muted fs-xs">mo</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text bg-light text-muted">৳</span>
+                                                        <input type="number" step="0.01"
+                                                            name="deposits[{{ $dkey }}][adjust_per_month]"
+                                                            class="form-control form-control-sm text-end fw-semibold font-monospace bg-light dep-per-month"
+                                                            value="{{ old('deposits.' . $dkey . '.adjust_per_month') }}" readonly placeholder="0.00">
+                                                    </div>
+                                                </td>
+                                                <td><input type="date"
+                                                        name="deposits[{{ $dkey }}][absorb_start_date]"
+                                                        class="form-control form-control-sm dep-start-date"
+                                                        value="{{ old('deposits.' . $dkey . '.absorb_start_date', $deposit->absorb_start_date ?? '') }}">
+                                                </td>
+                                                <td><input type="date"
+                                                        name="deposits[{{ $dkey }}][absorb_end_date]"
+                                                        class="form-control form-control-sm dep-end-date"
+                                                        value="{{ old('deposits.' . $dkey . '.absorb_end_date', $deposit->absorb_end_date ?? '') }}"
+                                                        required></td>
+                                                <td><input type="text"
+                                                        name="deposits[{{ $dkey }}][method_description]"
+                                                        class="form-control form-control-sm"
+                                                        value="{{ old('deposits.' . $dkey . '.method_description', $deposit->method_description ?? '') }}" placeholder="Description">
+                                                </td>
+                                                <td class="text-center"><button type="button"
+                                                        class="btn btn-alt-danger btn-sm remove-deposit" title="Remove Deposit"><i class="fa fa-times"></i></button>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @endif
+                                </tbody>
+                            </table>
+                        </div>
                     </section>
                     <div class="rent-action-bar">
                         <a href="{{ route('rent.index') }}" class="btn btn-alt-secondary">Cancel</a>
@@ -443,25 +581,51 @@
                 $buildings = $agreement->floors->map(fn($f) => $f->building)->filter()->unique('id');
                 $bNames = $buildings->pluck('site_name')->filter()->unique()->implode(', ');
                 $bCodes = $buildings->pluck('code')->filter()->unique()->implode(', ');
-                $bAddresses = $buildings->map(function($b) {
-                    return implode(', ', array_filter([$b->address, $b->area, $b->district]));
-                })->filter()->unique()->implode('; ');
+                $bAddresses = $buildings
+                    ->map(function ($b) {
+                        return implode(', ', array_filter([$b->address, $b->area, $b->district]));
+                    })
+                    ->filter()
+                    ->unique()
+                    ->implode('; ');
 
                 return [
                     (string) $agreement->id => [
                         'id' => $agreement->id,
                         'ref_no' => $agreement->agreement_ref_no,
-                        'vendor' => $agreement->vendor ? ($agreement->vendor->name . ($agreement->vendor->vendor_code ? ' (' . $agreement->vendor->vendor_code . ')' : '')) : 'N/A',
-                        'agreement_date' => $agreement->agreement_date ? \Carbon\Carbon::parse($agreement->agreement_date)->format('d M Y') : 'N/A',
-                        'payment_start_date' => ($agreement->payment_start_date ?? $agreement->from_date) ? \Carbon\Carbon::parse($agreement->payment_start_date ?? $agreement->from_date)->format('d M Y') : 'N/A',
-                        'expiry_date' => ($agreement->expiry_date ?? $agreement->to_date) ? \Carbon\Carbon::parse($agreement->expiry_date ?? $agreement->to_date)->format('d M Y') : 'N/A',
-                        'from_date' => ($agreement->payment_start_date ?? $agreement->from_date) ? \Carbon\Carbon::parse($agreement->payment_start_date ?? $agreement->from_date)->format('d M Y') : 'N/A',
-                        'to_date' => ($agreement->expiry_date ?? $agreement->to_date) ? \Carbon\Carbon::parse($agreement->expiry_date ?? $agreement->to_date)->format('d M Y') : 'N/A',
+                        'vendor' => $agreement->vendor
+                            ? $agreement->vendor->name .
+                                ($agreement->vendor->vendor_code ? ' (' . $agreement->vendor->vendor_code . ')' : '')
+                            : 'N/A',
+                        'agreement_date' => $agreement->agreement_date
+                            ? \Carbon\Carbon::parse($agreement->agreement_date)->format('d M Y')
+                            : 'N/A',
+                        'payment_start_date' =>
+                            $agreement->payment_start_date ?? $agreement->from_date
+                                ? \Carbon\Carbon::parse(
+                                    $agreement->payment_start_date ?? $agreement->from_date,
+                                )->format('d M Y')
+                                : 'N/A',
+                        'expiry_date' =>
+                            $agreement->expiry_date ?? $agreement->to_date
+                                ? \Carbon\Carbon::parse($agreement->expiry_date ?? $agreement->to_date)->format('d M Y')
+                                : 'N/A',
+                        'from_date' =>
+                            $agreement->payment_start_date ?? $agreement->from_date
+                                ? \Carbon\Carbon::parse(
+                                    $agreement->payment_start_date ?? $agreement->from_date,
+                                )->format('d M Y')
+                                : 'N/A',
+                        'to_date' =>
+                            $agreement->expiry_date ?? $agreement->to_date
+                                ? \Carbon\Carbon::parse($agreement->expiry_date ?? $agreement->to_date)->format('d M Y')
+                                : 'N/A',
                         'building_name' => $bNames ?: 'N/A',
                         'building_code' => $bCodes ?: 'N/A',
                         'building_address' => $bAddresses ?: 'N/A',
                         'floors' => $agreement->floors->pluck('floor_label')->filter()->implode(', ') ?: 'N/A',
-                        'premises_type' => $agreement->floors->pluck('premises_type')->filter()->unique()->implode(', ') ?: 'N/A',
+                        'premises_type' =>
+                            $agreement->floors->pluck('premises_type')->filter()->unique()->implode(', ') ?: 'N/A',
                         'floor_area' => (float) $agreement->floors->sum('floor_area_sft'),
                         'car_parking' => (float) $agreement->floors->sum('car_parking'),
                         'dg_space' => (float) $agreement->floors->sum('dg_space_sft'),
@@ -473,15 +637,17 @@
             $agreementAreas = $agreementsData->mapWithKeys(function ($item, $key) {
                 return [
                     $key => [
-                        'floor_area'  => $item['floor_area'],
+                        'floor_area' => $item['floor_area'],
                         'car_parking' => $item['car_parking'],
-                        'dg_space'    => $item['dg_space'],
+                        'dg_space' => $item['dg_space'],
                         'store_space' => $item['store_space'],
                     ],
                 ];
             });
         @endphp
-        @include('FacilitiesManagement.Rent.partials.component-script', ['agreementAreas' => $agreementAreas])
+        @include('FacilitiesManagement.Rent.partials.component-script', [
+            'agreementAreas' => $agreementAreas,
+        ])
         <script>
             One.helpersOnLoad(['jq-select2', 'jq-notify']);
 
@@ -686,13 +852,36 @@
 
                     $('#incrementsTable tbody').append(`
                     <tr>
-                        <td><input type="date" name="increments[${incrementIndex}][increment_start_date]" class="form-control inc-start-date" value="${newStartDate}" required></td>
-                        <td><input type="number" name="increments[${incrementIndex}][years]" class="form-control inc-years" min="1" value="1" required></td>
-                        <td><input type="date" name="increments[${incrementIndex}][increment_end_date]" class="form-control inc-end-date" required></td>
-                        <td><input type="number" step="0.01" name="increments[${incrementIndex}][increment_amount]" class="form-control inc-amount" required></td>
-                        <td><input type="number" step="0.01" name="increments[${incrementIndex}][increment_percentage]" class="form-control inc-percent"></td>
-                        <td><input type="text" name="increments[${incrementIndex}][method_description]" class="form-control"></td>
-                        <td><button type="button" class="btn btn-alt-danger btn-sm remove-increment">Remove</button></td>
+                        <td><input type="date" name="increments[${incrementIndex}][increment_start_date]" class="form-control form-control-sm inc-start-date" value="${newStartDate}" required></td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="increments[${incrementIndex}][years]" class="form-control form-control-sm text-center inc-years" min="1" value="1" required>
+                                <span class="input-group-text bg-light text-muted fs-xs">mo</span>
+                            </div>
+                        </td>
+                        <td><input type="date" name="increments[${incrementIndex}][increment_end_date]" class="form-control form-control-sm inc-end-date" required></td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light text-muted">৳</span>
+                                <input type="number" step="0.01" min="0" name="increments[${incrementIndex}][increment_amount]" class="form-control form-control-sm text-end fw-semibold font-monospace inc-amount" placeholder="0.00" required>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="number" step="0.01" min="0" name="increments[${incrementIndex}][increment_percentage]" class="form-control form-control-sm text-end inc-percent" placeholder="0.00">
+                                <span class="input-group-text bg-light text-muted">%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-success-light text-success fw-bold">৳</span>
+                                <input type="text" class="form-control form-control-sm text-end fw-bold text-success font-monospace bg-light inc-total-display" readonly placeholder="0.00">
+                                <input type="hidden" name="increments[${incrementIndex}][incremented_amount]" class="inc-total-value">
+                                <input type="hidden" name="increments[${incrementIndex}][method_description]" value="">
+                            </div>
+                            <div class="inc-total-words fs-xs text-muted text-end mt-1 font-monospace"></div>
+                        </td>
+                        <td class="text-center"><button type="button" class="btn btn-alt-danger btn-sm remove-increment" title="Remove Increment"><i class="fa fa-times"></i></button></td>
                     </tr>
                 `);
 
@@ -706,6 +895,8 @@
                     }
 
                     incrementIndex++;
+                    refreshIncrementPercentages();
+                    refreshIncrementTotals();
                 });
 
                 $(document).on('click', '.remove-increment', function() {
@@ -725,6 +916,8 @@
                                 'change'); // Default months to 1 and trigger calculation
                         }
                     }
+                    refreshIncrementPercentages();
+                    refreshIncrementTotals();
                 });
 
                 $(document).on('change', '.inc-start-date, .inc-years', function() {
@@ -764,7 +957,7 @@
                     // If the duration is missing but start and end dates exist, derive it in months.
                     if (!monthsVal && startDateInput.val() && endDateInput.val()) {
                         const derivedMonths = calculateMonthsFromDates(startDateInput.val(), endDateInput
-                    .val());
+                            .val());
                         if (derivedMonths !== '') {
                             monthsInput.val(derivedMonths);
                             monthsVal = derivedMonths;
@@ -800,16 +993,31 @@
                     }
 
                     $('#depositsTable tbody').append(`
-                    <tr>
-                        <td><input type="number" step="0.01" name="deposits[${depositIndex}][absorb_amount]" class="form-control abs-amount"></td>
-                        <td><input type="number" name="deposits[${depositIndex}][month_interval]" class="form-control dep-months" min="1" value="1" required></td>
-                        <td><input type="number" step="0.01" name="deposits[${depositIndex}][adjust_per_month]" class="form-control dep-per-month" readonly></td>
-                        <td><input type="date" name="deposits[${depositIndex}][absorb_start_date]" class="form-control dep-start-date" value="${newStartDate}"></td>
-                        <td><input type="date" name="deposits[${depositIndex}][absorb_end_date]" class="form-control dep-end-date" required></td>
-                        <td><input type="text" name="deposits[${depositIndex}][method_description]" class="form-control"></td>
-                        <td><button type="button" class="btn btn-alt-danger btn-sm remove-deposit">Remove</button></td>
-                    </tr>
-                `);
+                        <tr>
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-light text-muted">৳</span>
+                                    <input type="number" step="0.01" min="0" name="deposits[${depositIndex}][absorb_amount]" class="form-control form-control-sm text-end fw-semibold font-monospace abs-amount" placeholder="0.00">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" name="deposits[${depositIndex}][month_interval]" class="form-control form-control-sm text-center dep-months" min="1" value="1" required>
+                                    <span class="input-group-text bg-light text-muted fs-xs">mo</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-light text-muted">৳</span>
+                                    <input type="number" step="0.01" name="deposits[${depositIndex}][adjust_per_month]" class="form-control form-control-sm text-end fw-semibold font-monospace bg-light dep-per-month" readonly placeholder="0.00">
+                                </div>
+                            </td>
+                            <td><input type="date" name="deposits[${depositIndex}][absorb_start_date]" class="form-control form-control-sm dep-start-date" value="${newStartDate}"></td>
+                            <td><input type="date" name="deposits[${depositIndex}][absorb_end_date]" class="form-control form-control-sm dep-end-date" required></td>
+                            <td><input type="text" name="deposits[${depositIndex}][method_description]" class="form-control form-control-sm" placeholder="Description"></td>
+                            <td class="text-center"><button type="button" class="btn btn-alt-danger btn-sm remove-deposit" title="Remove Deposit"><i class="fa fa-times"></i></button></td>
+                        </tr>
+                    `);
 
                     const newRow = $('#depositsTable tbody tr').last();
                     const startDateInput = newRow.find('.dep-start-date');
@@ -880,7 +1088,7 @@
                     let monthsVal = monthsInput.val();
                     if (!monthsVal && startDateInput.val() && endDateInput.val()) {
                         const derivedMonths = calculateMonthsFromDates(startDateInput.val(), endDateInput
-                    .val());
+                            .val());
                         if (derivedMonths !== '') {
                             monthsInput.val(derivedMonths);
                             monthsVal = derivedMonths;
@@ -917,12 +1125,12 @@
                         }).length > 0;
                     }).length;
 
-                    if ((absorbable > 0 || nonAbsorbable > 0) && depositRows === 0) {
+                    if (absorbable > 0 && depositRows === 0) {
                         e.preventDefault();
                         One.helpers('jq-notify', {
                             type: 'danger',
                             icon: 'fa fa-times me-1',
-                            message: 'Please add at least one deposit schedule row when Adjustable or Non-Adjustable amount is entered.'
+                            message: 'Please add at least one deposit schedule row when an Adjustable amount is entered.'
                         });
                     }
                 });
@@ -961,13 +1169,60 @@
                 if (currentAgreementId) {
                     let viewBtn = $('#viewAgreementBtn');
                     let url = "{{ route('agreements.show', ':id') }}".replace(':id', currentAgreementId);
-                    viewBtn.attr('href', url).css('pointer-events', 'auto').removeClass('text-muted').addClass('text-primary');
+                    viewBtn.attr('href', url).css('pointer-events', 'auto').removeClass('text-muted').addClass(
+                        'text-primary');
                     updateAgreementFyi(currentAgreementId);
                 }
 
                 // --- Base Rent Dependent Calculations ---
                 function getBaseRent() {
                     return parseFloat($('#base_rent').val()) || 0;
+                }
+
+                function formatMoneyBDT(amount) {
+                    if (isNaN(amount) || amount === null || amount === undefined) {
+                        return '0.00';
+                    }
+                    return Number(amount).toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+
+                function formatAmountHint(amount) {
+                    amount = parseFloat(amount) || 0;
+                    if (amount <= 0) return '';
+                    if (amount >= 10000000) {
+                        return (amount / 10000000).toFixed(2).replace(/\.00$/, '') + ' Cr';
+                    }
+                    if (amount >= 100000) {
+                        return (amount / 100000).toFixed(2).replace(/\.00$/, '') + ' Lac';
+                    }
+                    return '';
+                }
+
+                function refreshIncrementTotals() {
+                    let runningRent = getBaseRent();
+
+                    $('#incrementsTable tbody tr').each(function() {
+                        const row = $(this);
+                        const amount = parseFloat(row.find('.inc-amount').val()) || 0;
+
+                        runningRent += amount;
+
+                        row.find('.inc-total-value').val(runningRent > 0 ? runningRent.toFixed(2) : '');
+                        row.find('.inc-total-display').val(runningRent > 0 ? formatMoneyBDT(runningRent) : '0.00');
+
+                        const totalWords = row.find('.inc-total-words');
+                        if (runningRent > 0) {
+                            const hint = formatAmountHint(runningRent);
+                            totalWords.html(hint ?
+                                `<span class="badge bg-success-light text-success"><i class="fa fa-chart-line me-1"></i>${hint}</span>` :
+                                '');
+                        } else {
+                            totalWords.empty();
+                        }
+                    });
                 }
 
                 function getIncrementBaseForRow(row) {
@@ -993,6 +1248,8 @@
 
                         runningRent += amount;
                     });
+
+                    refreshIncrementTotals();
                 }
 
                 function refreshIncrementAmountsFromPercentages() {
@@ -1008,32 +1265,36 @@
 
                         runningRent += parseFloat(row.find('.inc-amount').val()) || 0;
                     });
+
+                    refreshIncrementTotals();
                 }
 
                 $(document).on('input', '.inc-amount', function() {
                     let base = getIncrementBaseForRow($(this).closest('tr'));
                     let amt = parseFloat($(this).val()) || 0;
-                    if (base > 0) $(this).closest('tr').find('.inc-percent').val(((amt / base) * 100).toFixed(
-                        2));
+                    if (base > 0) $(this).closest('tr').find('.inc-percent').val(((amt / base) * 100).toFixed(2));
                     refreshIncrementPercentages();
+                    refreshIncrementTotals();
                 });
 
                 $(document).on('input', '.inc-percent', function() {
                     let base = getIncrementBaseForRow($(this).closest('tr'));
                     let percent = parseFloat($(this).val()) || 0;
-                    if (base > 0) $(this).closest('tr').find('.inc-amount').val(((percent / 100) * base)
-                        .toFixed(2));
+                    if (base > 0) $(this).closest('tr').find('.inc-amount').val(((percent / 100) * base).toFixed(2));
                     refreshIncrementAmountsFromPercentages();
+                    refreshIncrementTotals();
                 });
 
                 $('#base_rent').on('input', function() {
                     refreshIncrementAmountsFromPercentages();
+                    refreshIncrementTotals();
                     $('#depositsTable tbody tr').each(function() {
                         updateDepositPerMonth($(this));
                     });
                 });
 
                 refreshIncrementPercentages();
+                refreshIncrementTotals();
 
                 // --- Dynamic Utilities Logic ---
                 const utilitySelector = $('#utility_type_selector');

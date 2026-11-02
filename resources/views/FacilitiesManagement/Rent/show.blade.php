@@ -237,9 +237,9 @@
                                     <tr>
                                         <th style="width: 14%;">Start Date</th>
                                         <th style="width: 14%;">End Date</th>
-                                        <th style="width: 14%;">Amount</th>
-                                        <th style="width: 12%;">Percentage</th>
-                                        <th style="width: 18%;">Total Amount After Increment</th>
+                                        <th style="width: 16%;" class="text-end">Increment Amount</th>
+                                        <th style="width: 12%;" class="text-end">Percentage</th>
+                                        <th style="width: 22%;" class="text-end">Total Incremented Amount</th>
                                         <th>Method Description</th>
                                     </tr>
                                 </thead>
@@ -260,9 +260,16 @@
                                             </td>
                                             <td>{{ $inc->increment_end_date ? \Carbon\Carbon::parse($inc->increment_end_date)->format('Y-m-d') : 'N/A' }}
                                             </td>
-                                            <td>{{ number_format($inc->increment_amount ?? 0, 2) }}</td>
-                                            <td>{{ number_format($inc->increment_percentage ?? 0, 2) }}%</td>
-                                            <td class="fw-semibold text-success">{{ number_format($totalAfterIncrement, 2) }}</td>
+                                            <td class="text-end font-monospace">৳ {{ number_format($incAmt, 2) }}</td>
+                                            <td class="text-end font-monospace">{{ number_format($inc->increment_percentage ?? 0, 2) }}%</td>
+                                            <td class="fw-bold text-success text-end font-monospace">
+                                                ৳ {{ number_format($totalAfterIncrement, 2) }}
+                                                @if($totalAfterIncrement >= 10000000)
+                                                    <span class="badge bg-success-light text-success ms-1">{{ rtrim(rtrim(number_format($totalAfterIncrement / 10000000, 2), '0'), '.') }} Cr</span>
+                                                @elseif($totalAfterIncrement >= 100000)
+                                                    <span class="badge bg-success-light text-success ms-1">{{ rtrim(rtrim(number_format($totalAfterIncrement / 100000, 2), '0'), '.') }} Lac</span>
+                                                @endif
+                                            </td>
                                             <td>{{ $inc->method_description ?? 'N/A' }}</td>
                                         </tr>
                                     @empty
@@ -281,14 +288,14 @@
                             <table class="table table-bordered table-striped table-vcenter fs-sm">
                                 <thead class="table-light">
                                     <tr>
-                                        <th style="width: 10%;">Total</th>
-                                        <th style="width: 10%;">Adjustable</th>
-                                        <th style="width: 10%;">Non-Adjustable</th>
+                                        <th style="width: 11%;" class="text-end">Total</th>
+                                        <th style="width: 11%;" class="text-end">Adjustable</th>
+                                        <th style="width: 11%;" class="text-end">Non-Adjustable</th>
                                         <th style="width: 12%;">Adjust Start</th>
                                         <th style="width: 12%;">Adjust End</th>
-                                        <th style="width: 10%;">Adjust Amount</th>
-                                        <th style="width: 10%;">Month Interval</th>
-                                        <th style="width: 10%;">Adjust / Month</th>
+                                        <th style="width: 12%;" class="text-end">Adjust Amount</th>
+                                        <th style="width: 10%;" class="text-center">Month Interval</th>
+                                        <th style="width: 11%;" class="text-end">Adjust / Month</th>
                                         <th>Method Desc</th>
                                     </tr>
                                 </thead>
@@ -302,16 +309,16 @@
                                                     : null;
                                         @endphp
                                         <tr>
-                                            <td>{{ number_format($dep->security_deposit_total ?? 0, 2) }}</td>
-                                            <td>{{ number_format($dep->security_deposit_absorbable ?? 0, 2) }}</td>
-                                            <td>{{ number_format($dep->security_deposit_non_absorbable ?? 0, 2) }}</td>
+                                            <td class="text-end font-monospace fw-semibold">৳ {{ number_format($dep->security_deposit_total ?? 0, 2) }}</td>
+                                            <td class="text-end font-monospace">৳ {{ number_format($dep->security_deposit_absorbable ?? 0, 2) }}</td>
+                                            <td class="text-end font-monospace">৳ {{ number_format($dep->security_deposit_non_absorbable ?? 0, 2) }}</td>
                                             <td>{{ $dep->absorb_start_date ? \Carbon\Carbon::parse($dep->absorb_start_date)->format('Y-m-d') : 'N/A' }}
                                             </td>
                                             <td>{{ $dep->absorb_end_date ? \Carbon\Carbon::parse($dep->absorb_end_date)->format('Y-m-d') : 'N/A' }}
                                             </td>
-                                            <td>{{ number_format($dep->absorb_amount ?? 0, 2) }}</td>
-                                            <td>{{ $monthInterval > 0 ? $monthInterval . ' month(s)' : 'N/A' }}</td>
-                                            <td>{{ $adjustPerMonth !== null ? number_format($adjustPerMonth, 2) : 'N/A' }}</td>
+                                            <td class="text-end font-monospace">৳ {{ number_format($dep->absorb_amount ?? 0, 2) }}</td>
+                                            <td class="text-center font-monospace">{{ $monthInterval > 0 ? $monthInterval . ' mo' : 'N/A' }}</td>
+                                            <td class="text-end font-monospace">{{ $adjustPerMonth !== null ? '৳ ' . number_format($adjustPerMonth, 2) : 'N/A' }}</td>
                                             <td>{{ $dep->method_description ?? 'N/A' }}</td>
                                         </tr>
                                     @empty

@@ -23,9 +23,9 @@
 
     <div class="row g-4">
         <div class="col-lg-5">
-            <label class="form-label" for="code">Code <span class="text-danger">*</span></label>
-            <input type="text" class="form-control form-control-lg @error('code') is-invalid @enderror" id="code"
-                name="code" value="{{ old('code', $building->code ?? '') }}" required>
+            <label class="form-label" for="code">Site Code <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-lg @error('code') is-invalid @enderror"
+                id="code" name="code" value="{{ old('code', $building->code ?? '') }}" required>
             @error('code')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
@@ -59,7 +59,8 @@
                 <option value="">Select Division</option>
                 @foreach ($divisions as $division)
                     @php
-                        $divisionName = $division['division'] ?? ($division['division_name'] ?? ($division['name'] ?? ''));
+                        $divisionName =
+                            $division['division'] ?? ($division['division_name'] ?? ($division['name'] ?? ''));
                     @endphp
                     @if ($divisionName)
                         <option value="{{ $divisionName }}"
@@ -76,8 +77,8 @@
 
         <div class="col-lg-6">
             <label class="form-label" for="district">District</label>
-            <select class="form-select js-select2 @error('district') is-invalid @enderror" id="district" name="district"
-                style="width: 100%;">
+            <select class="form-select js-select2 @error('district') is-invalid @enderror" id="district"
+                name="district" style="width: 100%;">
                 <option value="">Select District</option>
             </select>
             @error('district')
@@ -107,8 +108,8 @@
 
         <div class="col-lg-6">
             <label class="form-label" for="address">Address</label>
-            <input type="text" class="form-control @error('address') is-invalid @enderror" id="address" name="address"
-                value="{{ old('address', $building->address ?? '') }}">
+            <input type="text" class="form-control @error('address') is-invalid @enderror" id="address"
+                name="address" value="{{ old('address', $building->address ?? '') }}">
             @error('address')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror

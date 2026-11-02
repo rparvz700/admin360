@@ -253,8 +253,8 @@ class PropertyWizardController extends Controller
         $hasAbsorbable = $this->moneyValue($request->security_deposit_absorbable) > 0;
         $hasNonAbsorbable = $this->moneyValue($request->security_deposit_non_absorbable) > 0;
 
-        if (($hasAbsorbable || $hasNonAbsorbable) && !$this->hasDepositRows($request)) {
-            return 'Please add at least one deposit schedule row when Absorbable or Non-Absorbable amount is entered.';
+        if ($hasAbsorbable && !$this->hasDepositRows($request)) {
+            return 'Please add at least one deposit schedule row when an Adjustable amount is entered.';
         }
 
         return null;
@@ -271,6 +271,9 @@ class PropertyWizardController extends Controller
 
         if ($this->hasDepositRows($request)) {
             foreach ($request->input('deposits', []) as $deposit) {
+                if (empty($deposit['absorb_amount']) && empty($deposit['absorb_start_date']) && empty($deposit['absorb_end_date'])) {
+                    continue;
+                }
                 SecurityDeposit::create(array_merge($this->depositPayload($deposit), $summary));
             }
             return;
@@ -285,7 +288,9 @@ class PropertyWizardController extends Controller
     {
         return collect($request->input('deposits', []))
             ->contains(function ($deposit) {
-                return collect($deposit)->contains(fn ($value) => $value !== null && $value !== '');
+                return !empty($deposit['absorb_amount'])
+                    || !empty($deposit['absorb_start_date'])
+                    || !empty($deposit['absorb_end_date']);
             });
     }
 

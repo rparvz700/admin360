@@ -407,10 +407,13 @@
                                 </div>
                                 <div class="col-md-6 mb-2">
                                     <label class="form-label">Vendor</label>
-                                    <select name="vendor_id" id="vendor_id" class="form-select js-select2{{ $invalidClass('vendor_id') }}" data-placeholder="Select Vendor (Optional)" style="width: 100%;">
+                                    <select name="vendor_id" id="vendor_id"
+                                        class="form-select js-select2{{ $invalidClass('vendor_id') }}"
+                                        data-placeholder="Select Vendor (Optional)" style="width: 100%;">
                                         <option value=""></option>
                                         @foreach ($vendors as $vendor)
-                                            <option value="{{ $vendor->id }}" {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>
+                                            <option value="{{ $vendor->id }}"
+                                                {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>
                                                 {{ $vendor->name }} ({{ $vendor->vendor_code }})
                                             </option>
                                         @endforeach
@@ -442,7 +445,8 @@
                                 </div>
                                 <div class="col-md-6 mb-2">
                                     <label class="form-label">Expiry Date</label>
-                                    <input type="date" name="expiry_date" class="form-control{{ $invalidClass('expiry_date') ?: $invalidClass('to_date') }}"
+                                    <input type="date" name="expiry_date"
+                                        class="form-control{{ $invalidClass('expiry_date') ?: $invalidClass('to_date') }}"
                                         value="{{ old('expiry_date', old('to_date')) }}">
                                     @error('expiry_date')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -455,7 +459,8 @@
                                     <label class="form-label">Status <span class="text-danger">*</span></label>
                                     <select name="agreement_status"
                                         class="form-select{{ $invalidClass('agreement_status') }}" required>
-                                        <option value="1" {{ old('agreement_status', '1') == '1' ? 'selected' : '' }}>
+                                        <option value="1"
+                                            {{ old('agreement_status', '1') == '1' ? 'selected' : '' }}>
                                             Active</option>
                                         <option value="0" {{ old('agreement_status') == '0' ? 'selected' : '' }}>
                                             Inactive</option>
@@ -487,7 +492,7 @@
                             </div>
                             <div class="row g-4">
                                 <div class="col-md-6 mb-2">
-                                    <label class="form-label">Building Code <span class="text-danger">*</span></label>
+                                    <label class="form-label">Site Code <span class="text-danger">*</span></label>
                                     <input type="text" name="building_code"
                                         class="form-control{{ $invalidClass('building_code') }}" required
                                         value="{{ old('building_code') }}">
@@ -746,7 +751,9 @@
                                 </div>
                             </section>
 
-                            @include('FacilitiesManagement.Rent.partials.components', ['panelClass' => 'wizard-finance-panel'])
+                            @include('FacilitiesManagement.Rent.partials.components', [
+                                'panelClass' => 'wizard-finance-panel',
+                            ])
 
                             <section class="wizard-finance-panel">
                                 <h5 class="mb-3">Utilities & Service Charges</h5>
@@ -770,7 +777,8 @@
                                         <select id="utility_type_selector" class="form-select">
                                             <option value="">Choose Utility...</option>
                                             @foreach ($utilityTypes as $type)
-                                                <option value="{{ $type->id }}" data-name="{{ $type->name }}">{{ $type->name }}</option>
+                                                <option value="{{ $type->id }}" data-name="{{ $type->name }}">
+                                                    {{ $type->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -793,73 +801,107 @@
                                     <table class="table table-bordered table-sm wizard-table" id="incrementsTable">
                                         <thead>
                                             <tr>
-                                                <th>Start Date</th>
-                                                <th>Months</th>
-                                                <th>End Date</th>
-                                                <th>Amount</th>
-                                                <th>Percentage</th>
-                                                <th>Method Description</th>
-                                                <th>Action</th>
+                                                <th style="min-width: 140px;">Start Date</th>
+                                                <th style="min-width: 90px;">Duration</th>
+                                                <th style="min-width: 140px;">End Date</th>
+                                                <th style="min-width: 160px;" class="text-end">Increment Amount</th>
+                                                <th style="min-width: 120px;" class="text-end">Percentage</th>
+                                                <th style="min-width: 200px;" class="text-end">Total Incremented Amount</th>
+                                                <th style="width: 50px;" class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @if (old('increments'))
+                                                @php $runningRentOld = (float) old('base_rent', 0); @endphp
                                                 @foreach (old('increments') as $index => $increment)
+                                                    @php
+                                                        $amount = $increment['increment_amount'] ?? '';
+                                                        $percent = $increment['increment_percentage'] ?? '';
+                                                        $incTotalVal = $increment['incremented_amount'] ?? '';
+                                                        $methodDesc = $increment['method_description'] ?? '';
+                                                        $runningRentOld += (float) ($amount ?? 0);
+                                                        if (empty($incTotalVal) || (float) $incTotalVal <= 0) {
+                                                            $incTotalVal = $runningRentOld;
+                                                        }
+                                                    @endphp
                                                     <tr>
                                                         <td><input type="date"
                                                                 name="increments[{{ $index }}][increment_start_date]"
-                                                                class="form-control inc-start-date{{ $invalidClass("increments.$index.increment_start_date") }}"
+                                                                class="form-control form-control-sm inc-start-date{{ $invalidClass("increments.$index.increment_start_date") }}"
                                                                 value="{{ $increment['increment_start_date'] ?? '' }}"
                                                                 required>
                                                             @error("increments.$index.increment_start_date")
                                                                 <div class="invalid-feedback">{{ $message }}</div>
                                                             @enderror
                                                         </td>
-                                                        <td><input type="number"
-                                                                name="increments[{{ $index }}][years]"
-                                                                class="form-control inc-years{{ $invalidClass("increments.$index.years") }}"
-                                                                min="1" value="{{ $increment['years'] ?? 1 }}"
-                                                                required>
+                                                        <td>
+                                                            <div class="input-group input-group-sm">
+                                                                <input type="number"
+                                                                    name="increments[{{ $index }}][years]"
+                                                                    class="form-control form-control-sm text-center inc-years{{ $invalidClass("increments.$index.years") }}"
+                                                                    min="1" value="{{ $increment['years'] ?? 1 }}"
+                                                                    required>
+                                                                <span class="input-group-text bg-light text-muted fs-xs">mo</span>
+                                                            </div>
                                                             @error("increments.$index.years")
                                                                 <div class="invalid-feedback">{{ $message }}</div>
                                                             @enderror
                                                         </td>
                                                         <td><input type="date"
                                                                 name="increments[{{ $index }}][increment_end_date]"
-                                                                class="form-control inc-end-date{{ $invalidClass("increments.$index.increment_end_date") }}"
+                                                                class="form-control form-control-sm inc-end-date{{ $invalidClass("increments.$index.increment_end_date") }}"
                                                                 value="{{ $increment['increment_end_date'] ?? '' }}"
                                                                 required>
                                                             @error("increments.$index.increment_end_date")
                                                                 <div class="invalid-feedback">{{ $message }}</div>
                                                             @enderror
                                                         </td>
-                                                        <td><input type="number" step="0.01"
-                                                                name="increments[{{ $index }}][increment_amount]"
-                                                                class="form-control inc-amount{{ $invalidClass("increments.$index.increment_amount") }}"
-                                                                value="{{ $increment['increment_amount'] ?? '' }}"
-                                                                required>
+                                                        <td>
+                                                            <div class="input-group input-group-sm">
+                                                                <span class="input-group-text bg-light text-muted">৳</span>
+                                                                <input type="number" step="0.01" min="0"
+                                                                    name="increments[{{ $index }}][increment_amount]"
+                                                                    class="form-control form-control-sm text-end fw-semibold font-monospace inc-amount{{ $invalidClass("increments.$index.increment_amount") }}"
+                                                                    value="{{ $amount }}" placeholder="0.00"
+                                                                    required>
+                                                            </div>
                                                             @error("increments.$index.increment_amount")
                                                                 <div class="invalid-feedback">{{ $message }}</div>
                                                             @enderror
                                                         </td>
-                                                        <td><input type="number" step="0.01"
-                                                                name="increments[{{ $index }}][increment_percentage]"
-                                                                class="form-control inc-percent{{ $invalidClass("increments.$index.increment_percentage") }}"
-                                                                value="{{ $increment['increment_percentage'] ?? '' }}">
+                                                        <td>
+                                                            <div class="input-group input-group-sm">
+                                                                <input type="number" step="0.01" min="0"
+                                                                    name="increments[{{ $index }}][increment_percentage]"
+                                                                    class="form-control form-control-sm text-end inc-percent{{ $invalidClass("increments.$index.increment_percentage") }}"
+                                                                    value="{{ $percent }}" placeholder="0.00">
+                                                                <span class="input-group-text bg-light text-muted">%</span>
+                                                            </div>
                                                             @error("increments.$index.increment_percentage")
                                                                 <div class="invalid-feedback">{{ $message }}</div>
                                                             @enderror
                                                         </td>
-                                                        <td><input type="text"
-                                                                name="increments[{{ $index }}][method_description]"
-                                                                class="form-control{{ $invalidClass("increments.$index.method_description") }}"
-                                                                value="{{ $increment['method_description'] ?? '' }}">
-                                                            @error("increments.$index.method_description")
-                                                                <div class="invalid-feedback">{{ $message }}</div>
-                                                            @enderror
+                                                        <td>
+                                                            <div class="input-group input-group-sm">
+                                                                <span class="input-group-text bg-success-light text-success fw-bold">৳</span>
+                                                                <input type="text"
+                                                                    class="form-control form-control-sm text-end fw-bold text-success font-monospace bg-light inc-total-display"
+                                                                    value="{{ number_format((float) $incTotalVal, 2) }}" readonly
+                                                                    placeholder="0.00">
+                                                                <input type="hidden"
+                                                                    name="increments[{{ $index }}][incremented_amount]"
+                                                                    class="inc-total-value" value="{{ $incTotalVal }}">
+                                                                <input type="hidden"
+                                                                    name="increments[{{ $index }}][method_description]"
+                                                                    value="{{ $methodDesc }}">
+                                                            </div>
+                                                            <div class="inc-total-words fs-xs text-muted text-end mt-1 font-monospace"></div>
                                                         </td>
-                                                        <td class="text-center"><button type="button"
-                                                                class="btn btn-alt-danger btn-sm remove-increment">Remove</button></td>
+                                                        <td class="text-center">
+                                                            <button type="button"
+                                                                class="btn btn-alt-danger btn-sm remove-increment"
+                                                                title="Remove Increment"><i class="fa fa-times"></i></button>
+                                                        </td>
                                                     </tr>
                                                 @endforeach
                                             @endif
@@ -879,79 +921,104 @@
                                     class="alert alert-danger py-2 {{ $errors->has('deposits') ? '' : 'd-none' }}">
                                     {{ $errors->first('deposits') }}
                                 </div>
-                                <div class="row g-4 mb-3">
-                                    <div class="col-md-4"><label class="form-label">Total</label><input type="number"
-                                            step="0.01" name="security_deposit_total"
-                                            class="form-control{{ $invalidClass('security_deposit_total') }}"
-                                            value="{{ old('security_deposit_total') }}">
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Total Security Deposit</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light text-muted">৳</span>
+                                            <input type="number" step="0.01" min="0" name="security_deposit_total"
+                                                class="form-control form-control-sm text-end fw-semibold font-monospace{{ $invalidClass('security_deposit_total') }}"
+                                                placeholder="0.00" value="{{ old('security_deposit_total') }}">
+                                        </div>
                                         @error('security_deposit_total')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    <div class="col-md-4"><label class="form-label">Adjustable</label><input
-                                            type="number" step="0.01" name="security_deposit_absorbable"
-                                            class="form-control{{ $invalidClass('security_deposit_absorbable') }}"
-                                            value="{{ old('security_deposit_absorbable') }}">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Adjustable Amount</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light text-muted">৳</span>
+                                            <input type="number" step="0.01" min="0" name="security_deposit_absorbable"
+                                                class="form-control form-control-sm text-end fw-semibold font-monospace{{ $invalidClass('security_deposit_absorbable') }}"
+                                                placeholder="0.00" value="{{ old('security_deposit_absorbable') }}">
+                                        </div>
                                         @error('security_deposit_absorbable')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    <div class="col-md-4"><label class="form-label">Non-Adjustable</label><input
-                                            type="number" step="0.01" name="security_deposit_non_absorbable"
-                                            class="form-control{{ $invalidClass('security_deposit_non_absorbable') }}"
-                                            value="{{ old('security_deposit_non_absorbable') }}">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Non-Adjustable Amount</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light text-muted">৳</span>
+                                            <input type="number" step="0.01" min="0" name="security_deposit_non_absorbable"
+                                                class="form-control form-control-sm text-end fw-semibold font-monospace{{ $invalidClass('security_deposit_non_absorbable') }}"
+                                                placeholder="0.00" value="{{ old('security_deposit_non_absorbable') }}">
+                                        </div>
                                         @error('security_deposit_non_absorbable')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
                                 </div>
+                                <div class="text-muted fs-xs mb-2"><i class="fa fa-info-circle me-1"></i>Note: Schedule rows below are only required if an <strong>Adjustable</strong> deposit amount is specified. If the deposit is entirely Non-Adjustable, no schedule rows are needed.</div>
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-sm wizard-table" id="depositsTable">
-                                        <thead>
+                                    <table class="table table-bordered table-sm wizard-table align-middle mb-0" id="depositsTable">
+                                        <thead class="table-light">
                                             <tr>
-                                                <th>Adjustable Amount</th>
-                                                <th>Month Interval</th>
-                                                <th>Adjustable / Month</th>
-                                                <th>Adjustable Start</th>
-                                                <th>Adjustable End</th>
-                                                <th>Method Desc</th>
-                                                <th>Action</th>
+                                                <th style="min-width: 160px;" class="text-end">Adjustable Amount</th>
+                                                <th style="min-width: 90px;" class="text-center">Month Interval</th>
+                                                <th style="min-width: 160px;" class="text-end">Adjustable / Month</th>
+                                                <th style="min-width: 140px;">Adjustable Start</th>
+                                                <th style="min-width: 140px;">Adjustable End</th>
+                                                <th style="min-width: 180px;">Method Description</th>
+                                                <th style="width: 50px;" class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @if (old('deposits'))
                                                 @foreach (old('deposits') as $index => $deposit)
                                                     <tr>
-                                                        <td><input type="number" step="0.01"
-                                                                name="deposits[{{ $index }}][absorb_amount]"
-                                                                class="form-control abs-amount{{ $invalidClass("deposits.$index.absorb_amount") }}"
-                                                                value="{{ $deposit['absorb_amount'] ?? '' }}">
+                                                        <td>
+                                                            <div class="input-group input-group-sm">
+                                                                <span class="input-group-text bg-light text-muted">৳</span>
+                                                                <input type="number" step="0.01" min="0"
+                                                                    name="deposits[{{ $index }}][absorb_amount]"
+                                                                    class="form-control form-control-sm text-end fw-semibold font-monospace abs-amount{{ $invalidClass("deposits.$index.absorb_amount") }}"
+                                                                    value="{{ $deposit['absorb_amount'] ?? '' }}" placeholder="0.00">
+                                                            </div>
                                                             @error("deposits.$index.absorb_amount")
                                                                 <div class="invalid-feedback">{{ $message }}</div>
                                                             @enderror
                                                         </td>
-                                                        <td><input type="number"
-                                                                name="deposits[{{ $index }}][month_interval]"
-                                                                class="form-control dep-months{{ $invalidClass("deposits.$index.month_interval") }}"
-                                                                min="1"
-                                                                value="{{ $deposit['month_interval'] ?? ($deposit['years'] ?? 1) }}"
-                                                                required>
+                                                        <td>
+                                                            <div class="input-group input-group-sm">
+                                                                <input type="number"
+                                                                    name="deposits[{{ $index }}][month_interval]"
+                                                                    class="form-control form-control-sm text-center dep-months{{ $invalidClass("deposits.$index.month_interval") }}"
+                                                                    min="1"
+                                                                    value="{{ $deposit['month_interval'] ?? ($deposit['years'] ?? 1) }}"
+                                                                    required>
+                                                                <span class="input-group-text bg-light text-muted fs-xs">mo</span>
+                                                            </div>
                                                             @error("deposits.$index.month_interval")
                                                                 <div class="invalid-feedback">{{ $message }}</div>
                                                             @enderror
                                                         </td>
-                                                        <td><input type="number" step="0.01"
-                                                                name="deposits[{{ $index }}][adjust_per_month]"
-                                                                class="form-control dep-per-month{{ $invalidClass("deposits.$index.adjust_per_month") }}"
-                                                                value="{{ $deposit['adjust_per_month'] ?? '' }}"
-                                                                readonly>
+                                                        <td>
+                                                            <div class="input-group input-group-sm">
+                                                                <span class="input-group-text bg-light text-muted">৳</span>
+                                                                <input type="number" step="0.01"
+                                                                    name="deposits[{{ $index }}][adjust_per_month]"
+                                                                    class="form-control form-control-sm text-end fw-semibold font-monospace bg-light dep-per-month{{ $invalidClass("deposits.$index.adjust_per_month") }}"
+                                                                    value="{{ $deposit['adjust_per_month'] ?? '' }}"
+                                                                    readonly placeholder="0.00">
+                                                            </div>
                                                             @error("deposits.$index.adjust_per_month")
                                                                 <div class="invalid-feedback">{{ $message }}</div>
                                                             @enderror
                                                         </td>
                                                         <td><input type="date"
                                                                 name="deposits[{{ $index }}][absorb_start_date]"
-                                                                class="form-control dep-start-date{{ $invalidClass("deposits.$index.absorb_start_date") }}"
+                                                                class="form-control form-control-sm dep-start-date{{ $invalidClass("deposits.$index.absorb_start_date") }}"
                                                                 value="{{ $deposit['absorb_start_date'] ?? '' }}">
                                                             @error("deposits.$index.absorb_start_date")
                                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -959,7 +1026,7 @@
                                                         </td>
                                                         <td><input type="date"
                                                                 name="deposits[{{ $index }}][absorb_end_date]"
-                                                                class="form-control dep-end-date{{ $invalidClass("deposits.$index.absorb_end_date") }}"
+                                                                class="form-control form-control-sm dep-end-date{{ $invalidClass("deposits.$index.absorb_end_date") }}"
                                                                 value="{{ $deposit['absorb_end_date'] ?? '' }}" required>
                                                             @error("deposits.$index.absorb_end_date")
                                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -967,14 +1034,15 @@
                                                         </td>
                                                         <td><input type="text"
                                                                 name="deposits[{{ $index }}][method_description]"
-                                                                class="form-control{{ $invalidClass("deposits.$index.method_description") }}"
-                                                                value="{{ $deposit['method_description'] ?? '' }}">
+                                                                class="form-control form-control-sm{{ $invalidClass("deposits.$index.method_description") }}"
+                                                                value="{{ $deposit['method_description'] ?? '' }}" placeholder="Description">
                                                             @error("deposits.$index.method_description")
                                                                 <div class="invalid-feedback">{{ $message }}</div>
                                                             @enderror
                                                         </td>
                                                         <td class="text-center"><button type="button"
-                                                                class="btn btn-alt-danger btn-sm remove-deposit">Remove</button></td>
+                                                                class="btn btn-alt-danger btn-sm remove-deposit" title="Remove Deposit"><i class="fa fa-times"></i></button>
+                                                        </td>
                                                     </tr>
                                                 @endforeach
                                             @endif
@@ -1431,13 +1499,36 @@
 
                 $('#incrementsTable tbody').append(`
                     <tr>
-                        <td><input type="date" name="increments[${incIdx}][increment_start_date]" class="form-control inc-start-date" value="${newStartDate}" required></td>
-                        <td><input type="number" name="increments[${incIdx}][years]" class="form-control inc-years" min="1" value="1" required></td>
-                        <td><input type="date" name="increments[${incIdx}][increment_end_date]" class="form-control inc-end-date" required></td>
-                        <td><input type="number" step="0.01" name="increments[${incIdx}][increment_amount]" class="form-control inc-amount" required></td>
-                        <td><input type="number" step="0.01" name="increments[${incIdx}][increment_percentage]" class="form-control inc-percent"></td>
-                        <td><input type="text" name="increments[${incIdx}][method_description]" class="form-control"></td>
-                        <td class="text-center"><button type="button" class="btn btn-alt-danger btn-sm remove-increment">Remove</button></td>
+                        <td><input type="date" name="increments[${incIdx}][increment_start_date]" class="form-control form-control-sm inc-start-date" value="${newStartDate}" required></td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="increments[${incIdx}][years]" class="form-control form-control-sm text-center inc-years" min="1" value="1" required>
+                                <span class="input-group-text bg-light text-muted fs-xs">mo</span>
+                            </div>
+                        </td>
+                        <td><input type="date" name="increments[${incIdx}][increment_end_date]" class="form-control form-control-sm inc-end-date" required></td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light text-muted">৳</span>
+                                <input type="number" step="0.01" min="0" name="increments[${incIdx}][increment_amount]" class="form-control form-control-sm text-end fw-semibold font-monospace inc-amount" placeholder="0.00" required>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="number" step="0.01" min="0" name="increments[${incIdx}][increment_percentage]" class="form-control form-control-sm text-end inc-percent" placeholder="0.00">
+                                <span class="input-group-text bg-light text-muted">%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-success-light text-success fw-bold">৳</span>
+                                <input type="text" class="form-control form-control-sm text-end fw-bold text-success font-monospace bg-light inc-total-display" readonly placeholder="0.00">
+                                <input type="hidden" name="increments[${incIdx}][incremented_amount]" class="inc-total-value">
+                                <input type="hidden" name="increments[${incIdx}][method_description]" value="">
+                            </div>
+                            <div class="inc-total-words fs-xs text-muted text-end mt-1 font-monospace"></div>
+                        </td>
+                        <td class="text-center"><button type="button" class="btn btn-alt-danger btn-sm remove-increment" title="Remove Increment"><i class="fa fa-times"></i></button></td>
                     </tr>
                 `);
 
@@ -1451,6 +1542,8 @@
                 }
 
                 incIdx++;
+                refreshIncrementPercentages();
+                refreshIncrementTotals();
             });
 
             // Delegated event listener for removing increment rows
@@ -1469,6 +1562,8 @@
                         firstRemainingRow.find('.inc-years').trigger('change');
                     }
                 }
+                refreshIncrementPercentages();
+                refreshIncrementTotals();
             });
 
             // Handle changes to start date or months for any increment row
@@ -1520,13 +1615,28 @@
 
                 $('#depositsTable tbody').append(`
                     <tr>
-                        <td><input type="number" step="0.01" name="deposits[${depIdx}][absorb_amount]" class="form-control abs-amount"></td>
-                        <td><input type="number" name="deposits[${depIdx}][month_interval]" class="form-control dep-months" min="1" value="1" required></td>
-                        <td><input type="number" step="0.01" name="deposits[${depIdx}][adjust_per_month]" class="form-control dep-per-month" readonly></td>
-                        <td><input type="date" name="deposits[${depIdx}][absorb_start_date]" class="form-control dep-start-date" value="${newStartDate}"></td>
-                        <td><input type="date" name="deposits[${depIdx}][absorb_end_date]" class="form-control dep-end-date" required></td>
-                        <td><input type="text" name="deposits[${depIdx}][method_description]" class="form-control"></td>
-                        <td class="text-center"><button type="button" class="btn btn-alt-danger btn-sm remove-deposit">Remove</button></td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light text-muted">৳</span>
+                                <input type="number" step="0.01" min="0" name="deposits[${depIdx}][absorb_amount]" class="form-control form-control-sm text-end fw-semibold font-monospace abs-amount" placeholder="0.00">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="deposits[${depIdx}][month_interval]" class="form-control form-control-sm text-center dep-months" min="1" value="1" required>
+                                <span class="input-group-text bg-light text-muted fs-xs">mo</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light text-muted">৳</span>
+                                <input type="number" step="0.01" name="deposits[${depIdx}][adjust_per_month]" class="form-control form-control-sm text-end fw-semibold font-monospace bg-light dep-per-month" readonly placeholder="0.00">
+                            </div>
+                        </td>
+                        <td><input type="date" name="deposits[${depIdx}][absorb_start_date]" class="form-control form-control-sm dep-start-date" value="${newStartDate}"></td>
+                        <td><input type="date" name="deposits[${depIdx}][absorb_end_date]" class="form-control form-control-sm dep-end-date" required></td>
+                        <td><input type="text" name="deposits[${depIdx}][method_description]" class="form-control form-control-sm" placeholder="Description"></td>
+                        <td class="text-center"><button type="button" class="btn btn-alt-danger btn-sm remove-deposit" title="Remove Deposit"><i class="fa fa-times"></i></button></td>
                     </tr>
                 `);
 
@@ -1617,10 +1727,10 @@
                         }).length > 0;
                     }).length;
 
-                    if ((absorbable > 0 || nonAbsorbable > 0) && depositRows === 0) {
+                    if (absorbable > 0 && depositRows === 0) {
                         e.preventDefault();
                         const message =
-                            'Please add at least one deposit schedule row when Adjustable or Non-Adjustable amount is entered.';
+                            'Please add at least one deposit schedule row when an Adjustable amount is entered.';
 
                         depositValidationError.removeClass('d-none').text(message);
                         One.helpers('jq-notify', {
@@ -1648,6 +1758,52 @@
                 return runningRent;
             }
 
+            function formatMoneyBDT(amount) {
+                if (isNaN(amount) || amount === null || amount === undefined) {
+                    return '0.00';
+                }
+                return Number(amount).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            function formatAmountHint(amount) {
+                amount = parseFloat(amount) || 0;
+                if (amount <= 0) return '';
+                if (amount >= 10000000) {
+                    return (amount / 10000000).toFixed(2).replace(/\.00$/, '') + ' Cr';
+                }
+                if (amount >= 100000) {
+                    return (amount / 100000).toFixed(2).replace(/\.00$/, '') + ' Lac';
+                }
+                return '';
+            }
+
+            function refreshIncrementTotals() {
+                let runningRent = parseFloat($('#base_rent').val()) || 0;
+
+                $('#incrementsTable tbody tr').each(function() {
+                    const row = $(this);
+                    const amount = parseFloat(row.find('.inc-amount').val()) || 0;
+
+                    runningRent += amount;
+
+                    row.find('.inc-total-value').val(runningRent > 0 ? runningRent.toFixed(2) : '');
+                    row.find('.inc-total-display').val(runningRent > 0 ? formatMoneyBDT(runningRent) : '0.00');
+
+                    const totalWords = row.find('.inc-total-words');
+                    if (runningRent > 0) {
+                        const hint = formatAmountHint(runningRent);
+                        totalWords.html(hint ?
+                            `<span class="badge bg-success-light text-success"><i class="fa fa-chart-line me-1"></i>${hint}</span>` :
+                            '');
+                    } else {
+                        totalWords.empty();
+                    }
+                });
+            }
+
             function refreshIncrementPercentages() {
                 let runningRent = parseFloat($('#base_rent').val()) || 0;
 
@@ -1661,6 +1817,8 @@
 
                     runningRent += amount;
                 });
+
+                refreshIncrementTotals();
             }
 
             function refreshIncrementAmountsFromPercentages() {
@@ -1676,27 +1834,33 @@
 
                     runningRent += parseFloat(row.find('.inc-amount').val()) || 0;
                 });
+
+                refreshIncrementTotals();
             }
 
             // Logic to calculate percentages for increments using cumulative rent.
             $(document).on('input', '.inc-amount', function() {
                 let base = getIncrementBaseForRow($(this).closest('tr'));
                 let amt = parseFloat($(this).val()) || 0;
-                if (base > 0) $(this).closest('tr').find('.inc-percent').val(((amt / base) * 100).toFixed(
-                    2));
+                if (base > 0) $(this).closest('tr').find('.inc-percent').val(((amt / base) * 100).toFixed(2));
                 refreshIncrementPercentages();
+                refreshIncrementTotals();
             });
 
             $(document).on('input', '.inc-percent', function() {
                 let base = getIncrementBaseForRow($(this).closest('tr'));
                 let percent = parseFloat($(this).val()) || 0;
-                if (base > 0) $(this).closest('tr').find('.inc-amount').val(((percent / 100) * base)
-                    .toFixed(2));
+                if (base > 0) $(this).closest('tr').find('.inc-amount').val(((percent / 100) * base).toFixed(2));
                 refreshIncrementAmountsFromPercentages();
+                refreshIncrementTotals();
             });
 
-            $('#base_rent').on('input', refreshIncrementAmountsFromPercentages);
+            $('#base_rent').on('input', function() {
+                refreshIncrementAmountsFromPercentages();
+                refreshIncrementTotals();
+            });
             refreshIncrementPercentages();
+            refreshIncrementTotals();
         });
     </script>
 @endsection

@@ -72,6 +72,32 @@ class Agreement extends Model
         return $this->hasMany(PropertiesFloor::class, 'agreement_id');
     }
 
+    public function buildings()
+    {
+        return $this->hasManyThrough(
+            PropertiesBuilding::class,
+            PropertiesFloor::class,
+            'agreement_id',
+            'id',
+            'id',
+            'building_id'
+        );
+    }
+
+    public function getBuildingNamesAttribute(): string
+    {
+        $floors = $this->relationLoaded('floors') ? $this->floors : $this->floors()->with('building')->get();
+        return $floors->map(function ($floor) {
+            if (!$floor->building) return null;
+            $name = $floor->building->site_name;
+            $code = $floor->building->code ?? $floor->building->site_code;
+            if ($name && $code && $name !== $code) {
+                return "{$name} ({$code})";
+            }
+            return $name ?: $code;
+        })->filter()->unique()->implode(', ');
+    }
+
     public function payments()
     {
         return $this->hasMany(Payment::class, 'agreement_id');

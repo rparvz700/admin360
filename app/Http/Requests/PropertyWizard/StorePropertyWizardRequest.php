@@ -63,6 +63,7 @@ class StorePropertyWizardRequest extends FormRequest
             'increments.*.increment_end_date' => 'required_with:increments.*.increment_start_date,increments.*.years,increments.*.increment_amount|date|after_or_equal:increments.*.increment_start_date',
             'increments.*.increment_amount' => 'required_with:increments.*.increment_start_date,increments.*.years,increments.*.increment_end_date|numeric|min:0',
             'increments.*.increment_percentage' => 'nullable|numeric|min:0',
+            'increments.*.incremented_amount' => 'nullable|numeric|min:0',
             'increments.*.method_description' => 'nullable|string|max:1000',
 
             'security_deposit_total' => 'nullable|numeric|min:0',
@@ -161,7 +162,7 @@ class StorePropertyWizardRequest extends FormRequest
             if ($this->requiresDepositRows() && !$this->hasDepositRows()) {
                 $validator->errors()->add(
                     'deposits',
-                    'Please add at least one deposit schedule row when Absorbable or Non-Absorbable amount is entered.'
+                    'Please add at least one deposit schedule row when an Adjustable amount is entered.'
                 );
             }
         });
@@ -169,15 +170,16 @@ class StorePropertyWizardRequest extends FormRequest
 
     private function requiresDepositRows(): bool
     {
-        return $this->moneyValue($this->input('security_deposit_absorbable')) > 0
-            || $this->moneyValue($this->input('security_deposit_non_absorbable')) > 0;
+        return $this->moneyValue($this->input('security_deposit_absorbable')) > 0;
     }
 
     private function hasDepositRows(): bool
     {
         return collect($this->input('deposits', []))
             ->contains(function ($deposit) {
-                return collect($deposit)->contains(fn ($value) => $value !== null && $value !== '');
+                return !empty($deposit['absorb_amount'])
+                    || !empty($deposit['absorb_start_date'])
+                    || !empty($deposit['absorb_end_date']);
             });
     }
 

@@ -28,9 +28,17 @@ class AgreementsController extends Controller
         $tableConfig = $globalSettings ? $globalSettings->settings : null;
 
         if ($request->ajax()) {
-            $query = Agreement::with('vendor')->orderBy('id', 'desc')->get();
+            $query = Agreement::with(['vendor', 'floors.building'])->orderBy('id', 'desc')->get();
             return DataTables::of($query)
                 ->addIndexColumn()
+                ->editColumn('agreement_ref_no', function ($row) {
+                    $buildings = $row->building_names;
+                    $html = '<span class="fw-semibold text-primary">' . e($row->agreement_ref_no) . '</span>';
+                    if (!empty($buildings)) {
+                        $html .= '<span class="text-muted fs-xs d-block"><i class="fa fa-building me-1"></i>' . e($buildings) . '</span>';
+                    }
+                    return $html;
+                })
                 ->addColumn('vendor', function($row) { return $row->vendor ? $row->vendor->name : '-'; })
                 ->addColumn('agreement_date', function($row) { return $row->agreement_date; })
                 ->addColumn('payment_start_date', function($row) { return $row->payment_start_date ?? $row->from_date; })
@@ -45,7 +53,7 @@ class AgreementsController extends Controller
                 ->addColumn('actions', function ($agreement) {
                     return view('FacilitiesManagement.Agreements.partials.actions', compact('agreement'))->render();
                 })
-                ->rawColumns(['actions', 'status'])
+                ->rawColumns(['actions', 'status', 'agreement_ref_no'])
                 ->make(true);
         }
         return view('FacilitiesManagement.Agreements.index', compact('tableConfig'));
